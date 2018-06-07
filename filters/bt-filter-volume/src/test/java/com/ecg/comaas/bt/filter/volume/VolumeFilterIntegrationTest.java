@@ -9,6 +9,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static com.ecg.replyts.core.api.model.Tenants.TENANT_MX;
@@ -30,22 +32,21 @@ public class VolumeFilterIntegrationTest {
                 " }"));
 
         String from = "foo" + System.currentTimeMillis() + "@bar.com";
-
+        List<MailInterceptor.ProcessedMail> mails = new ArrayList<>();
         for (int i = 0; i < 3; i++) {
             MailInterceptor.ProcessedMail response = rule.deliver(MailBuilder.aNewMail().adId("123").from(from).to("bar@foo.com").htmlBody("oobar"));
-
             assertEquals(MessageState.SENT, response.getMessage().getState());
+            mails.add(response);
         }
 
-        rule.flushSearchIndex();
-
+        rule.waitUntilIndexedInEs(mails);
         MailInterceptor.ProcessedMail response = rule.deliver(MailBuilder.aNewMail().adId("123").from(from).to("bar@foo.com").htmlBody("oobar"));
 
         assertEquals(1, response.getMessage().getProcessingFeedback().size());
     }
 
     @Test
-    public void skipsQuotaViolation() throws InterruptedException {
+    public void skipsQuotaViolation() throws Exception {
         rule.registerConfig(VolumeFilterFactory.IDENTIFIER, (ObjectNode) JsonObjects.parse("{\n" +
                 "    rules: [\n" +
                 "        {\"allowance\": 3, \"perTimeValue\": 3, \"perTimeUnit\": \"SECONDS\", \"score\": 100},\n" +
@@ -54,14 +55,13 @@ public class VolumeFilterIntegrationTest {
                 " }"));
 
         String from = "foo" + System.currentTimeMillis() + "@bar.com";
-
+        List<MailInterceptor.ProcessedMail> mails = new ArrayList<>();
         for (int i = 0; i < 2; i++) {
             MailInterceptor.ProcessedMail response = rule.deliver(MailBuilder.aNewMail().adId("123").from(from).to("bar@foo.com").htmlBody("oobar"));
-
             assertEquals(MessageState.SENT, response.getMessage().getState());
+            mails.add(response);
         }
-
-        TimeUnit.SECONDS.sleep(3);
+        rule.waitUntilIndexedInEs(mails);
 
         MailInterceptor.ProcessedMail response = rule.deliver(MailBuilder.aNewMail().adId("123").from(from).to("bar@foo.com").htmlBody("oobar"));
 
@@ -78,14 +78,14 @@ public class VolumeFilterIntegrationTest {
                 " }"));
 
         String from = "foo" + System.currentTimeMillis() + "@bar.com";
-
+        List<MailInterceptor.ProcessedMail> mails = new ArrayList<>();
         for (int i = 0; i < 3; i++) {
             MailInterceptor.ProcessedMail response = rule.deliver(MailBuilder.aNewMail().adId("123").from(from).to("bar@foo.com").htmlBody("oobar"));
-
             assertEquals(MessageState.SENT, response.getMessage().getState());
+            mails.add(response);
         }
 
-        rule.flushSearchIndex();
+        rule.waitUntilIndexedInEs(mails);
 
         MailInterceptor.ProcessedMail response = rule.deliver(MailBuilder.aNewMail().adId("123").from(from).to("bar@foo.com").htmlBody("oobar"));
 

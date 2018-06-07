@@ -50,7 +50,7 @@ public class HealthController {
     @Value("${persistence.cassandra.core.keyspace:replyts2}")
     private String cassandraKeyspace;
 
-    @Value("${search.es.clustername:unknown}")
+    @Value("${search.es.clustername:elasticsearch}")
     private String searchClusterName;
 
     @Value("${persistence.cassandra.core.dc:#{systemEnvironment['region']}}")

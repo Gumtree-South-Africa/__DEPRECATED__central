@@ -3,6 +3,7 @@ package com.ecg.replyts.integration.test;
 import com.datastax.driver.core.Session;
 import com.ecg.replyts.client.configclient.Configuration;
 import com.ecg.replyts.client.configclient.ReplyTsConfigClient;
+import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.pluginconfiguration.PluginState;
 import com.ecg.replyts.integration.cassandra.CassandraIntegrationTestProvisioner;
 import com.ecg.replyts.integration.test.support.Waiter;
@@ -206,10 +207,6 @@ public class ReplyTsIntegrationTestRule implements TestRule {
         return testRunner.getESIndexer();
     }
 
-    public void flushSearchIndex() {
-        testRunner.getSearchClient().admin().indices().flush(new FlushRequest("replyts"));
-    }
-
     private static final AtomicInteger COUNTER = new AtomicInteger(0);
 
     /**
@@ -332,6 +329,27 @@ public class ReplyTsIntegrationTestRule implements TestRule {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public void waitUntilIndexedInEs(List<MailInterceptor.ProcessedMail> mails) throws Exception {
+
+        Client searchClient = getSearchClient();
+        DirectESIndexer directESIndexer = getESIndexer();
+        List<Conversation> conversations = new ArrayList<>();
+        List<String> conversationIds = new ArrayList<>();
+        for(MailInterceptor.ProcessedMail mail : mails) {
+            conversations.add(mail.getConversation());
+            String id = mail.getConversation().getId() + "/" + mail.getMessage().getId();
+            conversationIds.add(id);
+        }
+        directESIndexer.ensureIndexed(conversations, 5, TimeUnit.SECONDS);
+
+        SearchRequestBuilder searchRequestBuilder = searchClient.prepareSearch("replyts")
+                .setTypes("message")
+                .setQuery(QueryBuilders.termsQuery("_id", conversationIds));
+        Waiter.await(
+                () -> searchClient.search(searchRequestBuilder.request()).actionGet().getHits().getTotalHits() >= conversationIds.size()).
+                within(10, TimeUnit.SECONDS);
     }
 
     public void waitUntilIndexedInEs(MailInterceptor.ProcessedMail mail) throws Exception {

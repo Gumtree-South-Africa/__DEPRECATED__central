@@ -30,6 +30,7 @@ function startEnv() {
 
     set +e
     ${DOCKER_COMPOSE} up -d
+    sleep 10
     success=$?
     if [ $success -ne 0 ]; then
         echo

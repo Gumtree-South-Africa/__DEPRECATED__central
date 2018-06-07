@@ -21,7 +21,7 @@ import java.util.concurrent.TimeUnit;
 
 
 /**
- * THIS BEAN SHOULD ONLY BE USED FOR TESTING
+ * THIS CLASS SHOULD ONLY BE USED FOR TESTING
  * <p>
  * Indexes Conversations/Messages searches.
  * <b>Note:</b> The message type has to be setup specifically in order for the indexing to work properly. Please set up

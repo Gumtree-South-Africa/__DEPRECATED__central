@@ -18,7 +18,7 @@ public class ElasticSearchClientConfiguration {
 
     @Bean(destroyMethod = "close")
     public RestClient elasticRestClient(
-            @Value("${search.es.api.endpoint:http://localhost:9250}") String endpoint,
+            @Value("${search.es.api.endpoint:http://localhost:9200}") String endpoint,
             @Value("#{systemEnvironment['ESAAS_USERNAME'] ?: 'not_used'}") String username,
             @Value("#{systemEnvironment['ESAAS_PASSWORD'] ?: 'not_used'}") String password
     ) {

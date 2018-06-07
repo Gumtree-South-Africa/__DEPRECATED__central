@@ -37,8 +37,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 public final class ReplytsRunner {
     private static final Logger LOG = LoggerFactory.getLogger(ReplytsRunner.class);
-
-    private static final String ELASTIC_SEARCH_PREFIX = "comaas_integration_test_";
+    private static final String ES_HOST_NAME = "localhost";
+    private static final int ES_HOST_PORT = 9300;
+    private static final String ES_CLUSTER_NAME = "elasticsearch";
 
     private final File dropFolder = Files.createTempDir();
 
@@ -80,11 +81,9 @@ public final class ReplytsRunner {
 
             properties.put("mailreceiver.filesystem.dropfolder", dropFolder.getAbsolutePath());
 
-            String elasticClusterName = ELASTIC_SEARCH_PREFIX + UUID.randomUUID();
-            properties.put("search.es.clustername", elasticClusterName);
             Boolean isESEnabled = (Boolean) testProperties.get("search.es.enabled");
             if (isESEnabled != null && isESEnabled) {
-                searchClient = getElasticSearchClient("elasticsearch");
+                searchClient = getElasticSearchClient();
             }
 
             properties.put("node.run.cronjobs", "false");
@@ -143,22 +142,19 @@ public final class ReplytsRunner {
     }
 
 
-    private Client getElasticSearchClient(String clusterName) {
-        if(Strings.isNullOrEmpty(clusterName)) {
-            throw new IllegalArgumentException("Must have a clusterName");
-        }
+    private Client getElasticSearchClient() {
         System.setProperty("es.set.netty.runtime.available.processors", "false");
-        Settings settings = Settings.builder().put("cluster.name", clusterName).build();
-
+        Settings settings = Settings.builder().put("cluster.name", ES_CLUSTER_NAME).build();
+        LOG.info("Connecting to ElasticSearch on host{}:port{} clustername {}", ES_HOST_NAME, ES_HOST_PORT, ES_CLUSTER_NAME);
         TransportClient client = new PreBuiltTransportClient(settings);
-        client.addTransportAddress(new InetSocketTransportAddress(new InetSocketAddress("localhost", 9300)));
+        client.addTransportAddress(new InetSocketTransportAddress(new InetSocketAddress(ES_HOST_NAME, ES_HOST_PORT)));
         return client;
     }
 
     Client getSearchClient() {
-            if (searchClient == null) {
-                throw new IllegalStateException("COMaaS did not start up in its entirety or ElasticSearch was not enabled");
-            }
+        if (searchClient == null) {
+            throw new IllegalStateException("COMaaS did not start up in its entirety or ElasticSearch was not enabled");
+        }
         return searchClient;
     }
 
