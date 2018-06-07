@@ -31,7 +31,7 @@ public class SendPushService extends PushService {
                 LOG.trace("Sent message successfully, message Id is [{}]", messageResponse.getId());
                 return Result.ok(payload);
             }
-            LOG.debug("Message dropped due to no subscription");
+            LOG.trace("Message dropped due to no subscription");
             return Result.notFound(payload);
         } catch (SendException e) {
             LOG.warn("Not able to send message through SEND - internal cause {}", e.getInternalCause());

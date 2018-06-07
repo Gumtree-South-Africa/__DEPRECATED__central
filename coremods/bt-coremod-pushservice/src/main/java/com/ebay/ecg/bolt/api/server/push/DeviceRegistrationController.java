@@ -19,9 +19,19 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
 
 import static java.lang.String.format;
 
@@ -68,17 +78,13 @@ public class DeviceRegistrationController {
             Date currentDate = new Date(System.currentTimeMillis());
 
             if (registration != null) { // Update
-                if (registration.getDeviceTokens() != null) {
-                    if (!registration.getDeviceTokens().contains(deviceId)) {
-                        registration.getDeviceTokens().add(deviceId);
-                        registration.setModificationDate(currentDate);
+                if (registration.getDeviceTokens() != null && !registration.getDeviceTokens().contains(deviceId)) {
+                    registration.getDeviceTokens().add(deviceId);
+                    registration.setModificationDate(currentDate);
 
-                        repository.save(registration);
+                    repository.save(registration);
 
-                        LOG.info("Device added to the list of existing registered devices for the user {}", userId);
-                    } else {
-                        LOG.warn("Registration already exists for the device id {}", deviceId);
-                    }
+                    LOG.info("Device added to the list of existing registered devices for the user {}", userId);
                 }
             } else { // Create
                 registration = new PushRegistration();

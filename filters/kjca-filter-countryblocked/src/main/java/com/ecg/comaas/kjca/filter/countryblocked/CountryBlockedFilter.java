@@ -33,7 +33,7 @@ public class CountryBlockedFilter implements Filter {
         String ipAddress = context.getMail().get().getUniqueHeader(BoxHeaders.SENDER_IP_ADDRESS.getHeaderName());
 
         if (StringUtils.isBlank(ipAddress)) {
-            LOG.debug("IP Address is empty -- not scoring");
+            LOG.trace("IP Address is empty -- not scoring");
         } else if (StringUtils.isNotBlank(ipAddress) && checkIfCountryBlockedInLeGrid(ipAddress)) {
             return ImmutableList.of(new FilterFeedback("country is blocked", "IP country is blocked", countryBlockedScore, FilterResultState.DROPPED));
         }
