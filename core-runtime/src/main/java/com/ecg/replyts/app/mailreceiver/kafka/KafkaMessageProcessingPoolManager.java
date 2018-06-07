@@ -51,7 +51,7 @@ public class KafkaMessageProcessingPoolManager extends MessageProcessingPoolMana
     private UserIdentifierService userIdentifierService;
 
     @Autowired
-    public KafkaMessageProcessingPoolManager(@Value("${replyts.threadpool.kafka.new.mail.size:2}") int newMailProcessingThreads,
+    public KafkaMessageProcessingPoolManager(@Value("${replyts.threadpool.kafka.new.mail.size:4}") int newMailProcessingThreads,
                                              @Value("${replyts.threadpool.kafka.retry.mail.size:2}") int retryProcessingThreads,
                                              @Value("${replyts.threadpool.shutdown.await.ms:10000}") long gracefulShutdownTimeoutMs) {
         super(newMailProcessingThreads + retryProcessingThreads, gracefulShutdownTimeoutMs);
