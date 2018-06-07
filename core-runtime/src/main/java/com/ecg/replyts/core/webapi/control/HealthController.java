@@ -44,7 +44,7 @@ public class HealthController {
     @Value("#{'${persistence.cassandra.core.endpoint}'.split(',')}")
     private List<String> cassandraHosts;
 
-    @Value("#{'${search.es.endpoints}'.split(',')}")
+    @Value("#{'${search.es.endpoints:}'.split(',')}")
     private List<String> elasticSearchHosts;
 
     @Value("${persistence.cassandra.core.keyspace:replyts2}")
