@@ -163,7 +163,7 @@ void deployNomad(final String tenant, final String environment, final String ver
         }
 
         // temporarily disabling cronjob nodes for avoiding OOM errors, when switching on the cron jobs in nomad, remove the "-var='cronjob_count=${nrOfInstancesCron}' " + to use the default value
-        final Integer nrOfInstancesCron = 0
+        final Integer nrOfInstancesCron = 1
 
         // Have a maximum of 1/4th of the allocations restart at once, to reduce rebalancing load on Kafka
         final Integer maxParallelHttp = nrOfInstancesHttp.intdiv(4) <= 1 ? 1 : nrOfInstancesHttp.intdiv(4)

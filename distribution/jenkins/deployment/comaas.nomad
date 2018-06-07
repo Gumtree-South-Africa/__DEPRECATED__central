@@ -260,6 +260,7 @@ EOH
         HEAP_SIZE = "[[ .cronjob_heap_size ]]"
         JAVA_OPTS = ""
         TENANT = "[[ .tenant ]]"
+        COMAAS_RUN_CRON_JOBS = "true"
       }
 
       service {

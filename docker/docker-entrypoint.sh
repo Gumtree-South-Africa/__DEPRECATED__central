@@ -28,7 +28,6 @@ export COMAAS_HTTP_PORT=${NOMAD_PORT_http}
 export COMAAS_HAZELCAST_IP=${NOMAD_IP_hazelcast}
 export COMAAS_HAZELCAST_PORT=${NOMAD_PORT_hazelcast}
 export COMAAS_PROMETHEUS_PORT=${NOMAD_PORT_prometheus}
-export COMAAS_RUN_CRON_JOBS=false
 
 export region=${NOMAD_REGION}
 export http_proxy=http://proxy.${region}.cloud.ecg.so:3128
