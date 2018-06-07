@@ -48,7 +48,9 @@ public class CountryDelayedFilter implements Filter {
             return false;
         } else {
             boolean isDelayed = result.get(IS_COUNTRY_DELAYED_KEY);
-            LOG.debug("Is {} country delayed? {}", ipAddress, isDelayed);
+            if (isDelayed) {
+                LOG.debug("Country '{}' is delayed", ipAddress);
+            }
             return isDelayed;
         }
     }

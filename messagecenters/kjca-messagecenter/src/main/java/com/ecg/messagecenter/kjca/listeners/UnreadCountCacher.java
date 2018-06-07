@@ -24,6 +24,6 @@ public class UnreadCountCacher implements AbstractSimplePostBoxInitializer.PostB
     @Override
     public void success(String email, Long unreadCount, boolean markedAsUnread) {
         this.cachePopulater.populateCache(email);
-        LOG.debug("UnreadCountCache populated: '" + email + "', '" + markedAsUnread + "', '" + unreadCount + "'");
+        LOG.trace("UnreadCountCache populated: '" + email + "', '" + markedAsUnread + "', '" + unreadCount + "'");
     }
 }

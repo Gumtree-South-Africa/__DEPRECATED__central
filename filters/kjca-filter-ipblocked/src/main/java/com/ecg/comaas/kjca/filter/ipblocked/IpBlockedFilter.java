@@ -48,7 +48,9 @@ public class IpBlockedFilter implements Filter {
             return false;
         } else {
             boolean isBlocked = result.get(IS_BLOCKED_KEY);
-            LOG.debug("Is IP {} blocked? {}", ipAddress, isBlocked);
+            if (isBlocked) {
+                LOG.debug("IP '{}' is blocked", ipAddress);
+            }
             return isBlocked;
         }
     }

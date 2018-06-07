@@ -28,7 +28,7 @@ public class SendPushService extends PushService {
         try {
             if (sendClient.hasSubscription(messageRequest)) {
                 SendMessage messageResponse = sendClient.sendMessage(messageRequest);
-                LOG.debug("Sent message successfully, message Id is [{}]", messageResponse.getId());
+                LOG.trace("Sent message successfully, message Id is [{}]", messageResponse.getId());
                 return Result.ok(payload);
             }
             LOG.debug("Message dropped due to no subscription");

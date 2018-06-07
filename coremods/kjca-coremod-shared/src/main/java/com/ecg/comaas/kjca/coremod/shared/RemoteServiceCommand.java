@@ -312,8 +312,8 @@ public abstract class RemoteServiceCommand<R, S extends RemoteServiceCommand> {
             for (URI endpoint : endpoints) {
                 try {
                     final HttpHost host = new HttpHost(endpoint.getHost(), endpoint.getPort(), endpoint.getScheme());
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("About to send http request {} to {}://{}{}", request.getRequestLine().getMethod(), host.getSchemeName(), host.toHostString(), request.getRequestLine().getUri());
+                    if (LOG.isTraceEnabled()) {
+                        LOG.trace("About to send http request {} to {}://{}{}", request.getRequestLine().getMethod(), host.getSchemeName(), host.toHostString(), request.getRequestLine().getUri());
                     }
                     final HttpResponse response = httpClient.execute(host, request);
                     if (responseCanBeProcessed(response)) {
@@ -368,8 +368,8 @@ public abstract class RemoteServiceCommand<R, S extends RemoteServiceCommand> {
                 final int statusCode = statusLine.getStatusCode();
                 final String executedResponse = response.getEntity() != null ? EntityUtils.toString(response.getEntity()) : "";
 
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Http Response: status code {} {} \n Response body: [{}]", statusCode, statusLine.getReasonPhrase(), executedResponse);
+                if (LOG.isTraceEnabled()) {
+                    LOG.trace("Http Response: status code {} {} \n Response body: [{}]", statusCode, statusLine.getReasonPhrase(), executedResponse);
                 }
 
                 return handleResponse(statusCode, executedResponse);

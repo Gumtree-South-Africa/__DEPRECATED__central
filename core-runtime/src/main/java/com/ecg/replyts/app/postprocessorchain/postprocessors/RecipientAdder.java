@@ -19,7 +19,7 @@ public class RecipientAdder implements EmailPostProcessor {
     public void postProcess(MessageProcessingContext context) {
         MailAddress recipient = context.getRecipient();
         context.getOutgoingMail().setTo(recipient);
-        LOG.debug("Recipient of Outgoing mail: {}", recipient);
+        LOG.trace("Recipient of Outgoing mail: {}", recipient);
     }
 
     @Override

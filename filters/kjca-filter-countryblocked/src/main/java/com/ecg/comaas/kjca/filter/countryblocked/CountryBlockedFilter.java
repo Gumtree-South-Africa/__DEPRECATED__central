@@ -48,7 +48,9 @@ public class CountryBlockedFilter implements Filter {
             return false;
         } else {
             boolean isBlocked = result.get(IS_COUNTRY_BLOCKED_KEY);
-            LOG.debug("Is {} country blocked? {}", ipAddress, isBlocked);
+            if (isBlocked) {
+                LOG.debug("Country {} is blocked", ipAddress);
+            }
             return isBlocked;
         }
     }

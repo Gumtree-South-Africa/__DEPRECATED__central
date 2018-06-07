@@ -66,7 +66,9 @@ public class EmailBlockedFilter implements Filter {
             return false;
         } else {
             boolean isBlocked = result.get(IS_BLOCKED_KEY);
-            LOG.debug("Is email {} blocked? {}", from, isBlocked);
+            if (isBlocked) {
+                LOG.debug("Email '{}' is blocked", from);
+            }
             return isBlocked;
         }
     }

@@ -132,8 +132,8 @@ public class PushMessageOnUnreadConversationCallback implements SimplePostBoxIni
     }
 
     private void sendPushMessageInternal(PushService pushService, PushMessagePayload payload) {
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Sending push message, Payload:[{}]", payload.asJson());
+        if (LOG.isTraceEnabled()) {
+            LOG.trace("Sending push message, Payload:[{}]", payload.asJson());
         }
         PushService.Result sendPushResult = pushService.sendPushMessage(payload);
 
@@ -146,7 +146,7 @@ public class PushMessageOnUnreadConversationCallback implements SimplePostBoxIni
     }
 
     /**
-     * Determines which push service to use, this is for tuning and rolling out sending push notifications via SEND API.
+     * Determines which push service to use, this is for tuning and rolling out sending push notifications via SEND API.œ
      *
      * @return the right push service to be used.
      */
@@ -155,7 +155,7 @@ public class PushMessageOnUnreadConversationCallback implements SimplePostBoxIni
             LOG.debug("No send service percentage is defined or random number is larger than the allowed percentage. Falling back to using old push service.");
             return amqPushService;
         }
-        LOG.debug("Going to send message thru SEND");
+        LOG.trace("Going to send message thru SEND");
         return sendPushService;
     }
 
@@ -204,7 +204,7 @@ public class PushMessageOnUnreadConversationCallback implements SimplePostBoxIni
 
     private String createPushMessageText(final Message message, final Locale locale) {
         final String senderInfo = senderName(message, locale);
-        LOG.debug("Sender information for push: {}", senderInfo);
+        LOG.trace("Sender information for push: {}", senderInfo);
         return senderInfo + ": " + messageShort(message);
     }
 

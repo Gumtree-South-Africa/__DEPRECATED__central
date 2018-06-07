@@ -74,8 +74,8 @@ public class Addresser implements PostProcessor {
         outgoingMail.addHeader("From", encodedFromAddress);
         outgoingMail.setTo(newTo);
 
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("{}Anonymizing outgoing mail. Set Reply-To: {}, To: {}, From: {}",
+        if (LOG.isTraceEnabled()) {
+            LOG.trace("{}Anonymizing outgoing mail. Set Reply-To: {}, To: {}, From: {}",
                     !shouldAnonymize ? "NOT " : "",
                     fromAddress,
                     newTo,

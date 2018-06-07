@@ -142,8 +142,7 @@ public class PostBoxResponseBuilder {
             MutableConversation c =
                             conversationRepository.getById(conversationThread.getConversationId());
             if (c == null) {
-                LOG.info("Could not found conversation with id: " + conversationThread
-                                .getConversationId());
+                LOG.trace("Could not found conversation with id: " + conversationThread.getConversationId());
                 return Optional.empty();
             }
 
