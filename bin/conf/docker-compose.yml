@@ -55,7 +55,7 @@ services:
       environment:
         discovery.type: "single-node"
         xpack.security.enabled: "false"
-        cluster.name: "elasticsearch"
+        cluster.name: "replyts"
         SERVICE_9250_NAME: elasticsearch5
         SERVICE_9250_CHECK_SCRIPT: curl -s http://elasticsearch5:9200/_cat/health?h=status | grep -q green
       volumes:

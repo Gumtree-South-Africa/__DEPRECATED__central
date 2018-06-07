@@ -62,7 +62,7 @@ public class VolumeFilterIntegrationTest {
     }
 
     @Test
-    public void skipsQuotaViolation() throws InterruptedException {
+    public void skipsQuotaViolation() throws Exception {
         rule.registerConfig(VolumeFilterFactory.IDENTIFIER, (ObjectNode) JsonObjects.parse("{\n" +
                 "    rules: [\n" +
                 "        {\"allowance\": 3, \"perTimeValue\": 1, \"perTimeUnit\": \"MINUTES\", \"score\": 100},\n" +

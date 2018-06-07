@@ -13,24 +13,22 @@ import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
-import static org.hamcrest.Matchers.greaterThan;
-import static org.hamcrest.Matchers.greaterThanOrEqualTo;
-import static org.hamcrest.Matchers.lessThan;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 
 public class IntegrationTestRunner extends ExternalResource {
     private final Logger LOGGER = LoggerFactory.getLogger("IntegrationTestRunner");
 
-    private Properties testProperties;
+    private final Properties testProperties;
 
-    private String configResourceDirectory;
+    private final String configResourceDirectory;
 
     private ReplytsRunner replytsRunner;
 
     private FileSystemMailSender mailSender;
 
     private Boolean isRunning = false;
-    private Class<?>[] configurations;
+    private final Class<?>[] configurations;
 
     public IntegrationTestRunner(Properties testProperties, String configResourceDirectory, Class<?> ... configurations) {
         this.testProperties = testProperties;
@@ -39,8 +37,9 @@ public class IntegrationTestRunner extends ExternalResource {
     }
 
     public void start() {
-        if (isRunning)
+        if (isRunning) {
             throw new IllegalStateException("COMaaS is already running - won't be started multiple times");
+        }
 
         try {
             LOGGER.info("Starting COMaaS");
@@ -78,6 +77,12 @@ public class IntegrationTestRunner extends ExternalResource {
         ensureStarted();
 
         return replytsRunner.getSearchClient();
+    }
+
+    public DirectESIndexer getESIndexer() {
+        ensureStarted();
+
+        return replytsRunner.getESIndexer();
     }
 
     public File getDropFolder() {

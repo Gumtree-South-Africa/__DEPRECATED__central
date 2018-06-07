@@ -69,7 +69,7 @@ public class SearchServiceAcceptanceTest {
     }
 
     @Test
-    public void checkSearchByAdId() {
+    public void checkSearchByAdId() throws Exception {
         //send a mail
         rule.waitUntilIndexedInEs(rule.deliver(
                 MailBuilder.aNewMail().
@@ -94,7 +94,7 @@ public class SearchServiceAcceptanceTest {
     }
 
     @Test
-    public void checkSearchByConversationCustomValue() {
+    public void checkSearchByConversationCustomValue() throws Exception {
         //send a mail
         rule.waitUntilIndexedInEs(rule.deliver(
                 MailBuilder.aNewMail().
@@ -123,7 +123,7 @@ public class SearchServiceAcceptanceTest {
     }
 
     @Test
-    public void checkSearchUsingCount() {
+    public void checkSearchUsingCount() throws Exception {
         int count = 2;
 
         for (int i = 0; i <= count; i++) { //count + 1 mails
@@ -151,7 +151,7 @@ public class SearchServiceAcceptanceTest {
     }
 
     @Test
-    public void checkSearchByFilterInstance() {
+    public void checkSearchByFilterInstance() throws Exception {
         //send a mail
         String instanceName = "subjectKeywordFilterFactory_" + uuid;
         ConfigurationId filterConfigId =
@@ -180,7 +180,7 @@ public class SearchServiceAcceptanceTest {
     }
 
     @Test
-    public void checkSearchByFilterName() {
+    public void checkSearchByFilterName() throws Exception {
         //send a mail
         UUID uuid = UUID.randomUUID();
         String instanceName = "subjectKeywordFilterFactory";
@@ -214,7 +214,7 @@ public class SearchServiceAcceptanceTest {
     }
 
     @Test
-    public void checkSearchByFrom() {
+    public void checkSearchByFrom() throws Exception {
         //send a mail
         String fromEmail = uuid + "@from.com";
 
@@ -242,7 +242,7 @@ public class SearchServiceAcceptanceTest {
     }
 
     @Test
-    public void checkSearchByFromWithWildcards() {
+    public void checkSearchByFromWithWildcards() throws Exception {
         //send a mail
         String fromEmail = uuid + "@from.com";
 
@@ -267,7 +267,7 @@ public class SearchServiceAcceptanceTest {
     }
 
     @Test
-    public void checkSearchByTo() {
+    public void checkSearchByTo() throws Exception {
         //send a mail
         String toEmail = uuid + "@to.com";
 
@@ -295,7 +295,7 @@ public class SearchServiceAcceptanceTest {
     }
 
     @Test
-    public void checkSearchByToWithWildcard() {
+    public void checkSearchByToWithWildcard() throws Exception {
         //send a mail
         String toEmail = uuid + "@to.com";
 
@@ -320,7 +320,7 @@ public class SearchServiceAcceptanceTest {
     }
 
     @Test
-    public void checkSearchByHumanResultState() {
+    public void checkSearchByHumanResultState() throws Exception {
         //send a mail
         ProcessedMail check = rule.deliver(
                 MailBuilder.aNewMail().
@@ -346,7 +346,7 @@ public class SearchServiceAcceptanceTest {
 
 
     @Test
-    public void checkSearchByMessageState() {
+    public void checkSearchByMessageState() throws Exception {
         //send a mail
         rule.waitUntilIndexedInEs(rule.deliver(
                 MailBuilder.aNewMail().
@@ -371,7 +371,7 @@ public class SearchServiceAcceptanceTest {
     }
 
     @Test
-    public void checkSearchByMessageTextKeyword() {
+    public void checkSearchByMessageTextKeyword() throws Exception {
         String text = "checkSearchByMessageTextKeyword " + uuid;
         String[] words = {"checkSearchByMessageTextKeyword", uuid};
 
@@ -394,7 +394,7 @@ public class SearchServiceAcceptanceTest {
     }
 
     @Test
-    public void checkSearchUsingOffset() {
+    public void checkSearchUsingOffset() throws Exception  {
         int count = 2;
 
         for (int i = 0; i < count; i++) {
@@ -425,7 +425,7 @@ public class SearchServiceAcceptanceTest {
     }
 
     @Test
-    public void checkSearchUsingAscOrdering() {
+    public void checkSearchUsingAscOrdering() throws Exception {
         int count = 2;
 
         for (int i = 0; i < count; i++) {
@@ -456,7 +456,7 @@ public class SearchServiceAcceptanceTest {
     }
 
     @Test
-    public void checkSearchUsingDescOrdering() {
+    public void checkSearchUsingDescOrdering() throws Exception {
         int count = 2;
 
         for (int i = 0; i < count; i++) {
@@ -487,7 +487,7 @@ public class SearchServiceAcceptanceTest {
     }
 
     @Test
-    public void checkSearchUsingFromDate() {
+    public void checkSearchUsingFromDate() throws Exception {
         //this one will be ignored
         rule.deliver(
                 MailBuilder.aNewMail().

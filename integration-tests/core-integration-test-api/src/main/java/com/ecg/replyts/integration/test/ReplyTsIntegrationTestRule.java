@@ -62,7 +62,7 @@ public class ReplyTsIntegrationTestRule implements TestRule {
 
     public static final boolean ES_ENABLED = true;
 
-    private int deliveryTimeoutSeconds;
+    private final int deliveryTimeoutSeconds;
 
     private String[] cqlFilePaths;
 
@@ -70,11 +70,11 @@ public class ReplyTsIntegrationTestRule implements TestRule {
 
     private ReplyTsConfigClient client;
 
-    private IntegrationTestRunner testRunner;
+    private final IntegrationTestRunner testRunner;
 
-    private CassandraIntegrationTestProvisioner CASDB = CassandraIntegrationTestProvisioner.getInstance();
+    private final CassandraIntegrationTestProvisioner CASDB = CassandraIntegrationTestProvisioner.getInstance();
 
-    private String keyspace = CassandraIntegrationTestProvisioner.createUniqueKeyspaceName();
+    private final String keyspace = CassandraIntegrationTestProvisioner.createUniqueKeyspaceName();
 
     public ReplyTsIntegrationTestRule() {
         this(null, null, DEFAULT_DELIVERY_TIMEOUT_SECONDS, false, new Class[0], "cassandra_schema.cql");
@@ -135,8 +135,7 @@ public class ReplyTsIntegrationTestRule implements TestRule {
         }
 
         testProperties.put("search.es.enabled", esEnabled);
-        testProperties.put("search.es.endpoints", "localhost:9350");
-        testProperties.put("search.es.clustername", "elasticsearch");
+
         testProperties.put("persistence.cassandra.core.keyspace", keyspace);
         testProperties.put("persistence.cassandra.mb.keyspace", keyspace);
         testProperties.put("persistence.skip.mail.storage", true);
@@ -201,6 +200,10 @@ public class ReplyTsIntegrationTestRule implements TestRule {
 
     private Client getSearchClient() {
         return testRunner.getSearchClient();
+    }
+
+    private DirectESIndexer getESIndexer() {
+        return testRunner.getESIndexer();
     }
 
     public void flushSearchIndex() {
@@ -331,8 +334,10 @@ public class ReplyTsIntegrationTestRule implements TestRule {
         }
     }
 
-    public void waitUntilIndexedInEs(MailInterceptor.ProcessedMail mail) {
+    public void waitUntilIndexedInEs(MailInterceptor.ProcessedMail mail) throws Exception {
         Client searchClient = getSearchClient();
+        DirectESIndexer directESIndexer = getESIndexer();
+        directESIndexer.ensureIndexed(mail.getConversation(), 5, TimeUnit.SECONDS);
         String id = mail.getConversation().getId() + "/" + mail.getMessage().getId();
         SearchRequestBuilder searchRequestBuilder = searchClient.prepareSearch("replyts")
                 .setTypes("message")
