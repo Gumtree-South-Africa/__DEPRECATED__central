@@ -1,12 +1,14 @@
 package com.ecg.messagebox.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
 
 import java.util.Map;
 import java.util.Objects;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class MessageMetadata {
 
     private String text;
@@ -18,7 +20,7 @@ public class MessageMetadata {
     public MessageMetadata(@JsonProperty("text") String text,
                            @JsonProperty("senderUserId") String senderUserId,
                            @JsonProperty("customData") String customData,
-                           @JsonProperty("headers")  Map<String,String> headers) {
+                           @JsonProperty("headers") Map<String, String> headers) {
         this.text = text;
         this.senderUserId = senderUserId;
         this.customData = customData;
