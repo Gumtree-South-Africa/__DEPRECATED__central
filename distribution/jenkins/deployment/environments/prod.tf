@@ -14,7 +14,7 @@ variable api_heap_size { default = "2G" }
 variable api_max_parallel { default = 1 }
 
 variable newmsg_count { default = 3 }
-variable newmsg_resources_cpu { default = 6000 }
+variable newmsg_resources_cpu { default = 4000 }
 variable newmsg_resources_mem { default = 4096 }
 variable newmsg_heap_size { default = "3G" }
 variable newmsg_max_parallel { default = 1 }
