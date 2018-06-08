@@ -22,8 +22,7 @@ import static org.hamcrest.Matchers.equalTo;
 public class PostBoxOverviewControllerAcceptanceTest {
     @Rule
     public ReplyTsIntegrationTestRule testRule = new ReplyTsIntegrationTestRule(createProperties(),
-            null, 20, false,
-            new Class[]{PostBoxOverviewControllerAcceptanceTest.class},
+            null, 20, new Class[]{PostBoxOverviewControllerAcceptanceTest.class},
             "cassandra_schema.cql", "cassandra_messagebox_schema.cql", "cassandra_messagecenter_schema.cql");
 
     private Properties createProperties() {
