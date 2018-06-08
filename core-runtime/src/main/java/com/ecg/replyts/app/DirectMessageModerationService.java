@@ -10,7 +10,7 @@ import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.ecg.replyts.core.api.processing.ModerationAction;
 import com.ecg.replyts.core.api.processing.ModerationService;
 import com.ecg.replyts.core.api.processing.ProcessingTimeGuard;
-import com.ecg.replyts.core.runtime.indexer.Document2KafkaSink;
+import com.ecg.replyts.core.runtime.indexer.DocumentSink;
 import com.ecg.replyts.core.runtime.listener.MessageProcessedListener;
 import com.ecg.replyts.core.runtime.mailparser.ParsingException;
 import com.ecg.replyts.core.runtime.persistence.attachment.AttachmentRepository;
@@ -44,7 +44,7 @@ public class DirectMessageModerationService implements ModerationService {
     private MutableConversationRepository conversationRepository;
 
     @Autowired
-    private Document2KafkaSink document2KafkaSink;
+    private DocumentSink documentSink;
 
     @Autowired(required = false)
     private List<MessageProcessedListener> listeners = emptyList();
@@ -94,7 +94,7 @@ public class DirectMessageModerationService implements ModerationService {
 
         heldMailRepository.remove(messageId);
 
-        document2KafkaSink.pushToKafka(conversation);
+        documentSink.sink(conversation);
 
         ((DefaultMutableConversation) conversation).commit(conversationRepository, conversationEventListeners);
 

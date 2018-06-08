@@ -11,7 +11,7 @@ import com.ecg.replyts.core.api.search.RtsSearchResponse.IDHolder;
 import com.ecg.replyts.core.api.search.SearchService;
 import com.ecg.replyts.core.api.webapi.commands.payloads.SearchMessagePayload;
 import com.ecg.replyts.core.api.webapi.model.MessageRtsState;
-import com.ecg.replyts.core.runtime.indexer.Document2KafkaSink;
+import com.ecg.replyts.core.runtime.indexer.DocumentSink;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,7 +27,7 @@ public class MessageSender {
     private static final Logger LOG = LoggerFactory.getLogger(MessageSender.class);
 
     private final ApplicationContext applicationContext;
-    private final Document2KafkaSink document2KafkaSink;
+    private final DocumentSink documentSink;
 
     private final ConversationRepository conversationRepository;
     private final SearchService searchService;
@@ -39,7 +39,7 @@ public class MessageSender {
     @Autowired
     public MessageSender(ApplicationContext applicationContext,
                          SearchService searchService,
-                         Document2KafkaSink document2KafkaSink,
+                         DocumentSink documentSink,
                          ConversationRepository conversationRepository,
                          @Value("${cronjob.sendHeld.retentionTimeHours:12}") int retentionTimeHours,
                          // 24 hours is the default to guard against stuck mails
@@ -47,7 +47,7 @@ public class MessageSender {
                          @Value("${cronjob.sendHeld.processingMaximum:20000}") int processingMaximum) {
         this.applicationContext = applicationContext;
         this.conversationRepository = conversationRepository;
-        this.document2KafkaSink = document2KafkaSink;
+        this.documentSink = documentSink;
         this.retentionTimeHours = retentionTimeHours;
         this.searchService = searchService;
         this.retentionTimeStartHours = retentionTimeStartHours;
@@ -84,7 +84,7 @@ public class MessageSender {
             } catch (MessageNotFoundException e) {
                 LOG.warn("Message with id {} was not found - conversation persistence and index likely out of sync - will reindex the conversation", messageId);
 
-                document2KafkaSink.pushToKafka(conversation);
+                documentSink.sink(conversation);
             }
         }
     }

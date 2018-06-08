@@ -22,7 +22,7 @@ import static org.mockito.Mockito.verify;
 public class Conversation2KafkaTest {
 
     @Mock
-    private Document2KafkaSink document2KafkaSink;
+    private Document2KafkaSink documentSink;
 
     @Mock
     private KafkaSinkService kafkaSinkService;
@@ -37,8 +37,8 @@ public class Conversation2KafkaTest {
 
         conversation2Kafka = new Conversation2Kafka();
 
-        ReflectionTestUtils.setField(conversation2Kafka, "document2KafkaSink", document2KafkaSink);
-        ReflectionTestUtils.setField(document2KafkaSink, "documentSink", kafkaSinkService);
+        ReflectionTestUtils.setField(conversation2Kafka, "documentSink", documentSink);
+        ReflectionTestUtils.setField(documentSink, "documentSink", kafkaSinkService);
 
         ImmutableConversation.Builder cBuilder = makeConversation();
         message0 = defaultMessage("msgid0").build();
@@ -50,7 +50,7 @@ public class Conversation2KafkaTest {
     @Test
     public void updateWithConversation() {
         conversation2Kafka.updateSearchSync(Collections.singletonList(conversation));
-        verify(document2KafkaSink).pushToKafka(Arrays.asList(conversation));
+        verify(documentSink).sink(Arrays.asList(conversation));
     }
 
 }

@@ -3,7 +3,7 @@ package com.ecg.replyts.app;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.conversation.MessageState;
 import com.ecg.replyts.core.api.processing.Termination;
-import com.ecg.replyts.core.runtime.indexer.Document2KafkaSink;
+import com.ecg.replyts.core.runtime.indexer.DocumentSink;
 import com.ecg.replyts.core.runtime.persistence.conversation.DefaultMutableConversation;
 import com.ecg.replyts.core.runtime.persistence.conversation.MutableConversationRepository;
 import org.junit.Before;
@@ -30,7 +30,7 @@ public class ProcessingFinalizerCassandraTest {
     private MutableConversationRepository conversationRepository;
 
     @MockBean
-    private Document2KafkaSink document2KafkaSink;
+    private DocumentSink documentSink;
 
     @MockBean
     private DefaultMutableConversation conv;
@@ -61,7 +61,7 @@ public class ProcessingFinalizerCassandraTest {
 
         verify(conv).commit(conversationRepository, conversationEventListeners);
 
-        verify(document2KafkaSink).pushToKafka(conv, msgId);
+        verify(documentSink).sink(conv, msgId);
     }
 }
 

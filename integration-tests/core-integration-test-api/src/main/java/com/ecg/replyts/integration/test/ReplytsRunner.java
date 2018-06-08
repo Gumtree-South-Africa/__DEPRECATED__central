@@ -3,19 +3,20 @@ package com.ecg.replyts.integration.test;
 import com.ecg.replyts.core.ApplicationReadyEvent;
 import com.ecg.replyts.core.LoggingService;
 import com.ecg.replyts.core.Webserver;
+import com.ecg.replyts.core.runtime.indexer.DocumentSink;
 import com.ecg.replyts.core.runtime.indexer.IndexDataBuilder;
+import com.ecg.replyts.core.runtime.indexer.test.DirectESIndexer;
 import com.ecg.replyts.integration.cassandra.CassandraIntegrationTestProvisioner;
 import com.google.common.io.Files;
 import io.prometheus.client.CollectorRegistry;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.client.transport.TransportClient;
-import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.core.env.PropertiesPropertySource;
@@ -29,7 +30,6 @@ import java.io.File;
 import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.Properties;
-import java.util.UUID;
 
 import static com.ecg.replyts.core.api.model.Tenants.TENANT;
 import static com.ecg.replyts.integration.test.support.IntegrationTestUtils.setEnv;
@@ -37,9 +37,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 public final class ReplytsRunner {
     private static final Logger LOG = LoggerFactory.getLogger(ReplytsRunner.class);
-    private static final String ES_HOST_NAME = "localhost";
-    private static final int ES_HOST_PORT = 9300;
-    private static final String ES_CLUSTER_NAME = "elasticsearch";
 
     private final File dropFolder = Files.createTempDir();
 
@@ -80,14 +77,9 @@ public final class ReplytsRunner {
             properties.put("kafka.core.servers", "localhost:9092");
 
             properties.put("mailreceiver.filesystem.dropfolder", dropFolder.getAbsolutePath());
-
-            Boolean isESEnabled = (Boolean) testProperties.get("search.es.enabled");
-            if (isESEnabled != null && isESEnabled) {
-                searchClient = getElasticSearchClient();
-            }
-
             properties.put("node.run.cronjobs", "false");
             properties.put("cluster.jmx.enabled", "false");
+            properties.put("doc2kafka.sink.enabled", "false");
 
             context.getEnvironment().getPropertySources().addFirst(new PropertiesPropertySource("test", properties));
 
@@ -120,6 +112,7 @@ public final class ReplytsRunner {
             if (!context.getBean(Webserver.class).isStarted()) {
                 throw new IllegalStateException("COMaaS did not start up in its entirety");
             }
+
         } catch (Exception e) {
             throw new IllegalStateException("COMaaS Abnormal Shutdown", e);
         }
@@ -141,31 +134,24 @@ public final class ReplytsRunner {
         return httpPort;
     }
 
-
-    private Client getElasticSearchClient() {
-        System.setProperty("es.set.netty.runtime.available.processors", "false");
-        Settings settings = Settings.builder().put("cluster.name", ES_CLUSTER_NAME).build();
-        LOG.info("Connecting to ElasticSearch on host{}:port{} clustername {}", ES_HOST_NAME, ES_HOST_PORT, ES_CLUSTER_NAME);
-        TransportClient client = new PreBuiltTransportClient(settings);
-        client.addTransportAddress(new InetSocketTransportAddress(new InetSocketAddress(ES_HOST_NAME, ES_HOST_PORT)));
-        return client;
-    }
-
     Client getSearchClient() {
         if (searchClient == null) {
-            throw new IllegalStateException("COMaaS did not start up in its entirety or ElasticSearch was not enabled");
+            searchClient = context.getBean(Client.class);
+
+            if (searchClient == null) {
+                throw new IllegalStateException("COMaaS did not start up in its entirety or ElasticSearch was not enabled");
+            }
         }
         return searchClient;
     }
 
     DirectESIndexer getESIndexer() {
         if (esIndexer == null) {
-            IndexDataBuilder indexDataBuilder = context.getBean(IndexDataBuilder.class);
+            esIndexer = context.getBean(DirectESIndexer.class);
 
-            if (indexDataBuilder == null) {
+            if (esIndexer == null) {
                 throw new IllegalStateException("COMaaS did not start up in its entirety");
             }
-            esIndexer = new DirectESIndexer(getSearchClient(), indexDataBuilder);
         }
         return esIndexer;
     }

@@ -5,7 +5,7 @@ import com.ecg.replyts.core.api.model.conversation.command.MessageTerminatedComm
 import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.processing.Termination;
 import com.ecg.replyts.core.runtime.TimingReports;
-import com.ecg.replyts.core.runtime.indexer.Document2KafkaSink;
+import com.ecg.replyts.core.runtime.indexer.DocumentSink;
 import com.ecg.replyts.core.runtime.listener.MailPublisher;
 import com.ecg.replyts.core.runtime.persistence.attachment.AttachmentRepository;
 import com.ecg.replyts.core.runtime.persistence.conversation.DefaultMutableConversation;
@@ -39,7 +39,7 @@ public class ProcessingFinalizer {
     private AttachmentRepository attachmentRepository;
 
     @Autowired
-    private Document2KafkaSink document2KafkaSink;
+    private DocumentSink documentSink;
 
     @Autowired
     private ConversationEventListeners conversationEventListeners;
@@ -59,7 +59,7 @@ public class ProcessingFinalizer {
 
         CONVERSATION_MESSAGE_COUNT.update(conversation.getMessages().size());
 
-        document2KafkaSink.pushToKafka(conversation, messageId);
+        documentSink.sink(conversation, messageId);
     }
 
     private void processEmail(String messageId, Optional<byte[]> incomingMailContent, Optional<byte[]> outgoingMailContent) {

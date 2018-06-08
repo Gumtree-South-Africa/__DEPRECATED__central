@@ -9,7 +9,7 @@ import com.ecg.replyts.core.api.search.RtsSearchResponse;
 import com.ecg.replyts.core.api.search.RtsSearchResponse.IDHolder;
 import com.ecg.replyts.core.api.search.SearchService;
 import com.ecg.replyts.core.api.webapi.commands.payloads.SearchMessagePayload;
-import com.ecg.replyts.core.runtime.indexer.Document2KafkaSink;
+import com.ecg.replyts.core.runtime.indexer.DocumentSink;
 import com.ecg.replyts.core.runtime.persistence.conversation.MutableConversationRepository;
 import com.google.common.collect.Lists;
 import org.junit.Before;
@@ -39,7 +39,7 @@ public class MessageSenderTest {
     private MutableConversationRepository conversationRepository;
 
     @Mock
-    private Document2KafkaSink document2KafkaSink;
+    private DocumentSink documentSink;
 
     @Mock
     private MutableConversation conv1;
@@ -66,7 +66,7 @@ public class MessageSenderTest {
         when(conversationRepository.getById("321b")).thenReturn(conv2);
         when(conversationRepository.getById("321c")).thenReturn(conv3);
 
-        sender = new MessageSender(applicationContext, searchService, document2KafkaSink, conversationRepository,
+        sender = new MessageSender(applicationContext, searchService, documentSink, conversationRepository,
                 4, 24, 20000);
     }
 
@@ -96,6 +96,6 @@ public class MessageSenderTest {
 
         sender.work();
 
-        verify(document2KafkaSink, times(1)).pushToKafka(conv1);
+        verify(documentSink, times(1)).sink(conv1);
     }
 }

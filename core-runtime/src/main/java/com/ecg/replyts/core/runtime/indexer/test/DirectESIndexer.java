@@ -1,4 +1,4 @@
-package com.ecg.replyts.integration.test;
+package com.ecg.replyts.core.runtime.indexer.test;
 
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;
@@ -11,8 +11,6 @@ import org.elasticsearch.client.Client;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -35,7 +33,6 @@ public class DirectESIndexer {
 
     private final Client elasticSearchClient;
     private final IndexDataBuilder indexDataBuilder;
-
 
     public DirectESIndexer(Client elasticSearchClient, IndexDataBuilder indexDataBuilder) {
         this.elasticSearchClient = elasticSearchClient;

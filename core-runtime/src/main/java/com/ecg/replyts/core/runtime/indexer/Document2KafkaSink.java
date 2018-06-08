@@ -12,16 +12,20 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 
 import static com.ecg.replyts.app.ProcessingFinalizer.KAFKA_KEY_FIELD_SEPARATOR;
 
+
 @Component
-public class Document2KafkaSink {
+@ConditionalOnProperty(name="doc2kafka.sink.enabled:true", havingValue = "true")
+public class Document2KafkaSink implements DocumentSink {
 
     private static final Logger LOG = LoggerFactory.getLogger(Document2KafkaSink.class);
     private static final Counter DOC_COUNT = TimingReports.newCounter("document2KafkaSink.document");
@@ -37,17 +41,20 @@ public class Document2KafkaSink {
     @Value("${replyts.tenant}")
     private String tenant;
 
-    public void pushToKafka(List<Conversation> conversations) {
+    @Override
+    public void sink(List<Conversation> conversations) {
         try (Timer.Context ignore = SAVE2KAFKA_TIMER.time()) {
-            conversations.stream().filter(Objects::nonNull).forEach(this::pushToKafka);
+            conversations.stream().filter(Objects::nonNull).forEach(this::sink);
         }
     }
 
-    public void pushToKafka(Conversation conversation) {
-        conversation.getMessages().stream().map(Message::getId).forEach(id -> this.pushToKafka(conversation, id));
+    @Override
+    public void sink(Conversation conversation) {
+        conversation.getMessages().stream().map(Message::getId).forEach(id -> this.sink(conversation, id));
     }
 
-    public void pushToKafka(Conversation conversation, String messageId) {
+    @Override
+    public void sink(Conversation conversation, String messageId) {
         try {
             Message message = conversation.getMessageById(messageId);
             XContentBuilder indexData = indexDataBuilder.toIndexData(conversation, message);
@@ -61,6 +68,11 @@ public class Document2KafkaSink {
         } catch (IOException e) {
             LOG.error("Failed to store document data in Kafka due to {}", e.getMessage(), e);
         }
+    }
+
+    @PostConstruct
+    private void report() {
+        LOG.info("Document2Kafka sink is activated");
     }
 
 }

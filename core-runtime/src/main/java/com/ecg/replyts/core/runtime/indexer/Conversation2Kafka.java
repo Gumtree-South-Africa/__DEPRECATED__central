@@ -31,7 +31,7 @@ public class Conversation2Kafka {
     private final boolean esEnabled = true;
 
     @Autowired
-    private Document2KafkaSink document2KafkaSink;
+    private DocumentSink documentSink;
     @Autowired
     private ConversationRepository conversationRepository;
 
@@ -39,12 +39,12 @@ public class Conversation2Kafka {
         if (!esEnabled) {
             return;
         }
-        document2KafkaSink.pushToKafka(conversations);
+        documentSink.sink(conversations);
     }
 
     public void indexChunk(Set<String> conversationIds) {
         List<Conversation> conversations = fetchConversations(conversationIds);
-        document2KafkaSink.pushToKafka(conversations);
+        documentSink.sink(conversations);
     }
 
     private List<Conversation> fetchConversations(Set<String> conversationIds) {

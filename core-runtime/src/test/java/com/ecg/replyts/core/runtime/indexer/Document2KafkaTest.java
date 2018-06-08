@@ -27,7 +27,7 @@ import static org.mockito.Mockito.when;
 public class Document2KafkaTest {
 
     private IndexDataBuilder indexDataBuilder;
-    private Document2KafkaSink document2KafkaSink;
+    private DocumentSink documentSink;
     @Mock
     private MailCloakingService mailCloakingService;
     @Mock
@@ -43,11 +43,11 @@ public class Document2KafkaTest {
 
         when(mailCloakingService.createdCloakedMailAddress(anyObject(), anyObject())).thenReturn(new MailAddress("anonymized@test.com"));
         indexDataBuilder = new IndexDataBuilder(mailCloakingService);
-        document2KafkaSink = new Document2KafkaSink();
+        documentSink = new Document2KafkaSink();
 
-        ReflectionTestUtils.setField(document2KafkaSink, "indexDataBuilder", indexDataBuilder);
-        ReflectionTestUtils.setField(document2KafkaSink, "documentSink", kafkaSinkService);
-        ReflectionTestUtils.setField(document2KafkaSink, "tenant", TENANT);
+        ReflectionTestUtils.setField(documentSink, "indexDataBuilder", indexDataBuilder);
+        ReflectionTestUtils.setField(documentSink, "documentSink", kafkaSinkService);
+        ReflectionTestUtils.setField(documentSink, "tenant", TENANT);
 
         ImmutableConversation.Builder cBuilder = makeConversation();
         message0 = defaultMessage("msgid0").build();
@@ -58,20 +58,20 @@ public class Document2KafkaTest {
 
     @Test
     public void pushToKafkaConversations() {
-        document2KafkaSink.pushToKafka(Collections.singletonList(conversation));
+        documentSink.sink(Collections.singletonList(conversation));
         verify(kafkaSinkService).storeAsync(eq(TENANT + "/" + conversation.getId() + "/" + message0.getId()), anyObject());
     }
 
     @Test
     public void pushToKafkaConversation() {
-        document2KafkaSink.pushToKafka(conversation);
+        documentSink.sink(conversation);
         verify(kafkaSinkService).storeAsync(eq(TENANT + "/" + conversation.getId() + "/" + message0.getId()), anyObject());
     }
 
     @Test
     public void pushToKafkaConversationAndMessage() {
-        document2KafkaSink.pushToKafka(conversation, message0.getId());
-        document2KafkaSink.pushToKafka(conversation, message1.getId());
+        documentSink.sink(conversation, message0.getId());
+        documentSink.sink(conversation, message1.getId());
         verify(kafkaSinkService).storeAsync(eq(TENANT + "/" + conversation.getId() + "/" + message0.getId()), anyObject());
         verify(kafkaSinkService).storeAsync(eq(TENANT + "/" + conversation.getId() + "/" + message1.getId()), anyObject());
     }

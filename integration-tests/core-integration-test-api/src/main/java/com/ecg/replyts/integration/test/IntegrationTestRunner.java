@@ -1,5 +1,6 @@
 package com.ecg.replyts.integration.test;
 
+import com.ecg.replyts.core.runtime.indexer.test.DirectESIndexer;
 import io.prometheus.client.CollectorRegistry;
 import org.elasticsearch.client.Client;
 import org.junit.Assert;

@@ -42,7 +42,7 @@ public class ElasticSearchClientConfiguration {
 
     @Bean(destroyMethod = "close")
     public ElasticDeleteClient deleteByQueryClient(
-            @Value("${search.es.endpoints:localhost}") String endpoint,
+            @Value("${search.es.endpoints:localhost:9300}") String endpoint,
             @Value("${search.es.indexname:replyts}") String indexName) {
 
         return new ElasticDeleteClient(endpoint, indexName);

@@ -30,10 +30,11 @@ public class MessageModerationAcceptanceTest {
     private static int counter = 1;
 
     @Before
-    public void setUp() {
+    public void setUp() throws Exception {
         rule.registerConfig(SubjectKeywordFilterFactory.IDENTIFIER, JsonObjects.builder().attr("foo", "bar").build());
 
         processedMail = rule.deliver(MailBuilder.aNewMail().from("a"+(++counter)+"@b.com").to("b@c.com").adId("23222").subject("HELD").plainBody("foobar"));
+        rule.waitUntilIndexedInEs(processedMail);
         Assert.assertEquals(MessageState.HELD, processedMail.getMessage().getState());
     }
 
