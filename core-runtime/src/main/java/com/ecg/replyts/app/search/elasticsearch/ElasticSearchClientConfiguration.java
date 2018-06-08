@@ -47,7 +47,7 @@ public class ElasticSearchClientConfiguration {
             @Value("${search.es.api.endpoint:http://localhost:9200}") String endpoint,
             @Value("#{systemEnvironment['ESAAS_USERNAME'] ?: 'not_used'}") String username,
             @Value("#{systemEnvironment['ESAAS_PASSWORD'] ?: 'not_used'}") String password,
-            @Value("${search.es.indexname}") String indexName) {
+            @Value("${search.es.indexname:replyts}") String indexName) {
 
         return new ElasticDeleteClient(endpoint, indexName);
     }
