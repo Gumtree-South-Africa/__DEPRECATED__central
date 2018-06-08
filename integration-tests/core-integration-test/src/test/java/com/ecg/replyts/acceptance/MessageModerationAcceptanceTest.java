@@ -23,7 +23,7 @@ import static org.hamcrest.Matchers.is;
 
 public class MessageModerationAcceptanceTest {
     @Rule
-    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(true);
+    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule();
 
     private ProcessedMail processedMail;
 
