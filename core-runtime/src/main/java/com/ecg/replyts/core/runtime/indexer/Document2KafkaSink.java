@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -24,7 +24,7 @@ import static com.ecg.replyts.app.ProcessingFinalizer.KAFKA_KEY_FIELD_SEPARATOR;
 
 
 @Component
-@ConditionalOnProperty(name="doc2kafka.sink.enabled:true", havingValue = "true")
+@ConditionalOnExpression("#{'${doc2kafka.sink.enabled:true}' == 'true'}")
 public class Document2KafkaSink implements DocumentSink {
 
     private static final Logger LOG = LoggerFactory.getLogger(Document2KafkaSink.class);
