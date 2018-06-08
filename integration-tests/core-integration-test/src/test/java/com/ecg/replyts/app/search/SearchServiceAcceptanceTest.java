@@ -25,17 +25,13 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import java.util.List;
-import java.util.Properties;
 import java.util.UUID;
 
 import static com.ecg.replyts.core.api.util.JsonObjects.builder;
 import static com.ecg.replyts.core.api.webapi.commands.payloads.SearchMessagePayload.ResultOrdering.NEWEST_FIRST;
 import static com.ecg.replyts.core.api.webapi.commands.payloads.SearchMessagePayload.ResultOrdering.OLDEST_FIRST;
-import static com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule.ES_ENABLED;
 import static com.jayway.restassured.path.json.JsonPath.from;
-import static org.hamcrest.Matchers.greaterThanOrEqualTo;
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 
 /**
@@ -49,7 +45,7 @@ public class SearchServiceAcceptanceTest {
     private final String uuid = UUID.randomUUID().toString();
 
     @Rule
-    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(ES_ENABLED);
+    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule();
 
     @Before
     public void setup() {

@@ -61,8 +61,6 @@ public class ReplyTsIntegrationTestRule implements TestRule {
 
     private static final String DEFAULT_CONFIG_RESOURCE_DIRECTORY = "/integrationtest-conf";
 
-    public static final boolean ES_ENABLED = true;
-
     private final int deliveryTimeoutSeconds;
 
     private String[] cqlFilePaths;
@@ -78,44 +76,33 @@ public class ReplyTsIntegrationTestRule implements TestRule {
     private final String keyspace = CassandraIntegrationTestProvisioner.createUniqueKeyspaceName();
 
     public ReplyTsIntegrationTestRule() {
-        this(null, null, DEFAULT_DELIVERY_TIMEOUT_SECONDS, false, new Class[0], "cassandra_schema.cql");
+        this(null, null, DEFAULT_DELIVERY_TIMEOUT_SECONDS, new Class[0], "cassandra_schema.cql");
     }
 
-    public ReplyTsIntegrationTestRule(boolean esEnabled) {
-        this(null, null, DEFAULT_DELIVERY_TIMEOUT_SECONDS, esEnabled, new Class[0], "cassandra_schema.cql");
-    }
-
-    public ReplyTsIntegrationTestRule(int deliveryTimeoutSeconds, boolean esEnabled) {
-        this(null, null, deliveryTimeoutSeconds, esEnabled, new Class[0], "cassandra_schema.cql");
+    public ReplyTsIntegrationTestRule(int deliveryTimeoutSeconds) {
+        this(null, null, deliveryTimeoutSeconds, new Class[0], "cassandra_schema.cql");
     }
 
     public ReplyTsIntegrationTestRule(Properties testProperties) {
-        this(testProperties, null, DEFAULT_DELIVERY_TIMEOUT_SECONDS, false, new Class[0], "cassandra_schema.cql");
+        this(testProperties, null, DEFAULT_DELIVERY_TIMEOUT_SECONDS, new Class[0], "cassandra_schema.cql");
     }
 
     public ReplyTsIntegrationTestRule(String replyTsConfigurationDir, String... cqlFilePaths) {
-        this(null, replyTsConfigurationDir, DEFAULT_DELIVERY_TIMEOUT_SECONDS, false, new Class[0], cqlFilePaths);
+        this(null, replyTsConfigurationDir, DEFAULT_DELIVERY_TIMEOUT_SECONDS, new Class[0], cqlFilePaths);
     }
 
     public ReplyTsIntegrationTestRule(Properties testProperties, String replyTsConfigurationDir, String... cqlFilePaths) {
-        this(testProperties, replyTsConfigurationDir, DEFAULT_DELIVERY_TIMEOUT_SECONDS, false, new Class[0], cqlFilePaths);
+        this(testProperties, replyTsConfigurationDir, DEFAULT_DELIVERY_TIMEOUT_SECONDS, new Class[0], cqlFilePaths);
     }
 
-    public ReplyTsIntegrationTestRule(Properties testProperties, String replyTsConfigurationDir, boolean esEnabled, String... cqlFilePaths) {
-        this(testProperties, replyTsConfigurationDir, DEFAULT_DELIVERY_TIMEOUT_SECONDS, esEnabled, new Class[0], cqlFilePaths);
-    }
-
-    public ReplyTsIntegrationTestRule(Properties testProperties, String configurationResourceDirectory, int deliveryTimeoutSeconds, boolean esEnabled, String... cqlFilePaths) {
-        this(testProperties, configurationResourceDirectory, deliveryTimeoutSeconds, esEnabled, new Class[0], cqlFilePaths);
+    public ReplyTsIntegrationTestRule(Properties testProperties, String configurationResourceDirectory, int deliveryTimeoutSeconds, String... cqlFilePaths) {
+        this(testProperties, configurationResourceDirectory, deliveryTimeoutSeconds, new Class[0], cqlFilePaths);
     }
 
     public ReplyTsIntegrationTestRule(Properties properties, Class<?>... configuration) {
-        this(properties, null, DEFAULT_DELIVERY_TIMEOUT_SECONDS, false, configuration, "cassandra_schema.cql");
+        this(properties, null, DEFAULT_DELIVERY_TIMEOUT_SECONDS, configuration, "cassandra_schema.cql");
     }
 
-    public ReplyTsIntegrationTestRule(Properties properties, boolean esEnabled) {
-        this(properties, null, DEFAULT_DELIVERY_TIMEOUT_SECONDS, esEnabled, new Class[0], "cassandra_schema.cql");
-    }
 
     /**
      * instantiate a new rule, delivery timeout can be configured
@@ -124,7 +111,7 @@ public class ReplyTsIntegrationTestRule implements TestRule {
      *                               be processed.
      */
     public ReplyTsIntegrationTestRule(
-            Properties testProperties, String configurationResourceDirectory, int deliveryTimeoutSeconds, boolean esEnabled, Class[] configuration, String... cqlFilePaths
+            Properties testProperties, String configurationResourceDirectory, int deliveryTimeoutSeconds, Class[] configuration, String... cqlFilePaths
     ) {
         System.setProperty("logging.service.structured.logging", "false");
 
@@ -135,8 +122,6 @@ public class ReplyTsIntegrationTestRule implements TestRule {
             testProperties = new Properties();
         }
 
-        testProperties.put("search.es.enabled", esEnabled);
-
         testProperties.put("persistence.cassandra.core.keyspace", keyspace);
         testProperties.put("persistence.cassandra.mb.keyspace", keyspace);
         testProperties.put("persistence.skip.mail.storage", true);
@@ -145,8 +130,6 @@ public class ReplyTsIntegrationTestRule implements TestRule {
         testProperties.put("replyts2-messagecenter-plugin.pushmobile.url", "UNSET_PROPERTY");
         testProperties.put("replyts2-messagecenter-plugin.api.host", "UNSET_PROPERTY");
         testProperties.put("kafka.core.servers", "localhost:9092");
-
-        LOG.debug("Running tests with ES enabled: " + esEnabled);
 
         if (!testProperties.containsKey("tenant")) {
             testProperties.put("tenant", "unknown");
@@ -337,7 +320,7 @@ public class ReplyTsIntegrationTestRule implements TestRule {
         DirectESIndexer directESIndexer = getESIndexer();
         List<Conversation> conversations = new ArrayList<>();
         List<String> conversationIds = new ArrayList<>();
-        for(MailInterceptor.ProcessedMail mail : mails) {
+        for (MailInterceptor.ProcessedMail mail : mails) {
             conversations.add(mail.getConversation());
             String id = mail.getConversation().getId() + "/" + mail.getMessage().getId();
             conversationIds.add(id);

@@ -14,13 +14,12 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static com.ecg.replyts.core.api.model.Tenants.TENANT_MX;
-import static com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule.ES_ENABLED;
 import static com.ecg.replyts.integration.test.support.IntegrationTestUtils.propertiesWithTenant;
 import static org.junit.Assert.assertEquals;
 
 public class VolumeFilterIntegrationTest {
     @Rule
-    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(propertiesWithTenant(TENANT_MX), ES_ENABLED);
+    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(propertiesWithTenant(TENANT_MX));
 
     @Test
     public void violatesQuota() throws Exception {

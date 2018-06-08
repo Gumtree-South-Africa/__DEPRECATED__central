@@ -15,14 +15,13 @@ import static com.ecg.messagecenter.gtau.webapi.SyncTestBase.TestValues.SUBJECT;
 import static com.ecg.messagecenter.gtau.webapi.SyncTestBase.TestValues.TO;
 import static com.ecg.replyts.core.api.model.Tenants.TENANT_GTAU;
 import static com.ecg.replyts.integration.test.MailBuilder.aNewMail;
-import static com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule.ES_ENABLED;
 import static com.ecg.replyts.integration.test.support.IntegrationTestUtils.propertiesWithTenant;
 
 public abstract class SyncTestBase {
 
     @Rule
     public ReplyTsIntegrationTestRule testRule = new ReplyTsIntegrationTestRule(createProperties(), null, 20,
-            ES_ENABLED, new Class[] { Object.class }, "cassandra_schema.cql", "cassandra_messagebox_schema.cql",
+            new Class[] { Object.class }, "cassandra_schema.cql", "cassandra_messagebox_schema.cql",
             "cassandra_messagecenter_schema.cql");
 
     private Properties createProperties() {
