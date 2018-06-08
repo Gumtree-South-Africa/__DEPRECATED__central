@@ -5,13 +5,17 @@ import io.swagger.annotations.ApiModelProperty;
 public class PostMessageResponse {
 
     @ApiModelProperty(required = true)
-    private String correlationId;
+    private String messageId;
 
-    public PostMessageResponse(String correlationId) {
-        this.correlationId = correlationId;
+    public PostMessageResponse(String messageId) {
+        this.messageId = messageId;
     }
 
-    public String getCorrelationId() {
-        return correlationId;
+    public String getMessageId() {
+        return messageId;
+    }
+
+    public void setMessageId(String messageId) {
+        this.messageId = messageId;
     }
 }

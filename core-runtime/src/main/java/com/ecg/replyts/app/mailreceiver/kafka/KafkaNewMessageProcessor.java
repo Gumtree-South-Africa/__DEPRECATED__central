@@ -7,7 +7,6 @@ import com.ecg.replyts.core.api.model.conversation.MessageDirection;
 import com.ecg.replyts.core.api.model.conversation.MutableConversation;
 import com.ecg.replyts.core.api.model.conversation.command.AddMessageCommand;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
-import com.ecg.replyts.core.runtime.cluster.Guids;
 import com.ecg.replyts.core.runtime.identifier.UserIdentifierService;
 import com.ecg.replyts.core.runtime.mailparser.ParsingException;
 import com.ecg.replyts.core.runtime.persistence.conversation.MutableConversationRepository;
@@ -91,7 +90,7 @@ public class KafkaNewMessageProcessor extends KafkaMessageProcessor {
             messageProcessingCoordinator.accept(new ByteArrayInputStream(rawEmail.toByteArray()));
         } else {
             MutableConversation conversation = getConversation(kafkaMessage.getPayload().getConversationId());
-            MessageProcessingContext context = createContext(kafkaMessage.getPayload().getUserId(), conversation);
+            MessageProcessingContext context = createContext(kafkaMessage.getPayload().getUserId(), kafkaMessage.getMessageId(), conversation);
             context.addCommand(
                     createAddMessageCommand(kafkaMessage.getPayload().getMessage(), conversation.getId(), context,
                             kafkaMessage.getMetadataMap()));
@@ -107,8 +106,8 @@ public class KafkaNewMessageProcessor extends KafkaMessageProcessor {
         return conversation;
     }
 
-    private MessageProcessingContext createContext(String userId, MutableConversation conversation) {
-        MessageProcessingContext context = processingContextFactory.newContext(null, Guids.next());
+    private MessageProcessingContext createContext(String userId, String messageId, MutableConversation conversation) {
+        MessageProcessingContext context = processingContextFactory.newContext(null, messageId);
         context.setConversation(conversation);
         String sellerId = userIdentifierService.getSellerUserId(conversation)
                 .orElseThrow(() -> new IllegalArgumentException("Failed to infer a seller id"));
