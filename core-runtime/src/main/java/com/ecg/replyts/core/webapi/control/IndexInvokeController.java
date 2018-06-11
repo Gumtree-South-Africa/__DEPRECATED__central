@@ -47,7 +47,7 @@ class IndexInvokeController {
 
     @RequestMapping("/indexConversations")
     @ResponseBody
-    public String indexConversations(@RequestParam(required = true) String conversationList) {
+    public String indexConversations(@RequestParam String conversationList) {
         LOG.debug("Conversations: {}", conversationList);
         final List<String> conversations = CONVERSATION_SPLITTER.splitToList(conversationList);
         LOG.info("Invoke index conversation via Web interface for conversations: " + conversations);
@@ -72,7 +72,7 @@ class IndexInvokeController {
 
     @RequestMapping("/startIndexSince")
     @ResponseBody
-    public String invokeDeltaIndex(String since) {
+    public String invokeIndexSince(@RequestParam("since") String since) {
         final DateTime sinceDate = DateTime.parse(since);
         LOG.info("Invoke Partial Full Index - since {}", sinceDate);
         executorService.execute(setTaskFields(() -> elasticSearchIndexer.indexSince(sinceDate), "IndexInvokeController-indexSince"));
@@ -81,10 +81,11 @@ class IndexInvokeController {
 
     @RequestMapping("/startIndexSinceTo")
     @ResponseBody
-    public String invokeDeltaIndexTo(String since, String to) {
+    public String invokeDeltaIndexTo(@RequestParam("since") String since,
+                                     @RequestParam("to") String to) {
+        LOG.info("Invoke Partial Full Index - since {} to - {}", since, to);
         final DateTime sinceDate = DateTime.parse(since);
         final DateTime toDate = DateTime.parse(to);
-        LOG.info("Invoke Partial Full Index - since {} to - {}", sinceDate, to);
         executorService.execute(setTaskFields(() -> elasticSearchIndexer.doIndexBetween(sinceDate, toDate), "IndexInvokeController-indexSinceTo"));
         return "Rebuilding index since " + sinceDate + " to " + toDate;
     }
