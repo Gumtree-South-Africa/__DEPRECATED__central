@@ -41,7 +41,7 @@ bin/elasticsearch "${es_opts[@]}" &> elasticsearch.log &
 pid=$!
 echo "$pid"
 
-echo "wait 30 sec until elastic up and run"
+echo "wait 20 sec until elastic up and run"
 sleep 20
 
 echo "apply mapping"
