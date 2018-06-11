@@ -7,7 +7,7 @@ services:
     environment:
       SERVICE_9042_NAME: cassandra
   zookeeper:
-    image: wurstmeister/zookeeper
+    image: zookeeper:3.3.6
     ports:
       - "2181:2181"
   kafka:
