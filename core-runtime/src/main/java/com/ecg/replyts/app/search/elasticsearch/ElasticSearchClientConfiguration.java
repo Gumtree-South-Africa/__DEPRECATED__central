@@ -18,7 +18,7 @@ public class ElasticSearchClientConfiguration {
 
     @Bean(destroyMethod = "close")
     public RestClient elasticRestClient(
-            @Value("${search.es.api.endpoint:http://localhost:9200}") String endpoint,
+            @Value("${search.es.endpoint}") String endpoint,
             @Value("#{systemEnvironment['ESAAS_USERNAME'] ?: 'not_used'}") String username,
             @Value("#{systemEnvironment['ESAAS_PASSWORD'] ?: 'not_used'}") String password
     ) {
@@ -33,7 +33,7 @@ public class ElasticSearchClientConfiguration {
 
     @Bean
     public ElasticSearchService elasticService(
-            @Value("${search.es.indexname:replyts}") String indexName,
+            @Value("${search.es.indexname}") String indexName,
             RestClient client,
             ElasticDeleteClient deleteClient) {
 
@@ -44,12 +44,13 @@ public class ElasticSearchClientConfiguration {
     // rrect index and endpoint names for all LP and Prod properties
     @Bean(destroyMethod = "close")
     public ElasticDeleteClient deleteByQueryClient(
-            @Value("${search.es.api.endpoint:http://localhost:9200}") String endpoint,
+            @Value("${search.es.endpoint}") String endpoint,
             @Value("#{systemEnvironment['ESAAS_USERNAME'] ?: 'not_used'}") String username,
             @Value("#{systemEnvironment['ESAAS_PASSWORD'] ?: 'not_used'}") String password,
-            @Value("${search.es.indexname:replyts}") String indexName) {
+            @Value("${search.es.indexname}") String indexName) {
 
-        return new ElasticDeleteClient(endpoint, indexName);
+        URI uri = URI.create(endpoint);
+        return new ElasticDeleteClient(uri, indexName, username, password);
     }
 
 }

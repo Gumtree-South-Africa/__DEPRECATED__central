@@ -45,8 +45,8 @@ echo "wait 30 sec until elastic up and run"
 sleep 20
 
 echo "apply mapping"
-curl -XPUT "http://localhost:9200/replyts"
-curl -XPUT "http://localhost:9200/replyts/message/_mapping?pretty" -d @message_mapping.json
+curl -XPUT "http://localhost:9200/comaasidx"
+curl -XPUT "http://localhost:9200/comaasidx/message/_mapping?pretty" -d @message_mapping.json
 
 echo "tail elasticsearch log"
 tail -f elasticsearch.log

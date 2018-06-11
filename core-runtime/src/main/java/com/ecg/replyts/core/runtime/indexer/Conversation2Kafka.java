@@ -7,7 +7,6 @@ import com.ecg.replyts.core.runtime.TimingReports;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -23,22 +22,12 @@ public class Conversation2Kafka {
 
     final AtomicLong fetchedConvCounter = new AtomicLong(0);
 
-    @Value("${search.es.indexname:replyts}")
-    private final String indexName = "replyts";
-
-    // This can only be disabled in tests
-    @Value("${search.es.enabled:true}")
-    private final boolean esEnabled = true;
-
     @Autowired
     private DocumentSink documentSink;
     @Autowired
     private ConversationRepository conversationRepository;
 
     public void updateSearchSync(List<Conversation> conversations) {
-        if (!esEnabled) {
-            return;
-        }
         documentSink.sink(conversations);
     }
 

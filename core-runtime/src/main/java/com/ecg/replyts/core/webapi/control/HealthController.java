@@ -44,8 +44,8 @@ public class HealthController {
     @Value("#{'${persistence.cassandra.core.endpoint}'.split(',')}")
     private List<String> cassandraHosts;
 
-    @Value("#{'${search.es.endpoints:}'.split(',')}")
-    private List<String> elasticSearchHosts;
+    @Value("${search.es.endpoint:http://localhost:9200}")
+    private String elasticSearchHost;
 
     @Value("${persistence.cassandra.core.keyspace:replyts2}")
     private String cassandraKeyspace;
@@ -91,8 +91,8 @@ public class HealthController {
             return tenant;
         }
 
-        public List<String> getElasticSearchHosts() {
-            return elasticSearchHosts;
+        public String getElasticSearchHosts() {
+            return elasticSearchHost;
         }
 
         public List<String> getCassandraHosts() {

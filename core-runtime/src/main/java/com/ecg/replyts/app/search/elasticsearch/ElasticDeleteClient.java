@@ -1,5 +1,6 @@
 package com.ecg.replyts.app.search.elasticsearch;
 
+import org.apache.http.client.utils.URIBuilder;
 import org.glassfish.jersey.client.JerseyClient;
 import org.glassfish.jersey.client.JerseyClientBuilder;
 import org.glassfish.jersey.client.JerseyWebTarget;
@@ -9,7 +10,6 @@ import org.slf4j.LoggerFactory;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriBuilder;
 import java.net.URI;
 import java.net.URISyntaxException;
 
@@ -23,12 +23,16 @@ public class ElasticDeleteClient implements AutoCloseable {
     private final JerseyClient client;
     private final JerseyWebTarget target;
 
-    public ElasticDeleteClient(String elasticsearchUri, String indexName) {
+    public ElasticDeleteClient(URI elasticsearchUri, String indexName, String user, String password) {
         this.client = JerseyClientBuilder.createClient();
-
         URI uri;
         try {
-            uri = new URI(elasticsearchUri + "/" + indexName + "/_delete_by_query");
+            uri = new URIBuilder()
+                    .setHost(elasticsearchUri.getHost())
+                    .setPort(elasticsearchUri.getPort())
+                    .setPath(indexName + "/_delete_by_query")
+                    .setUserInfo(user, password).build();
+
         } catch (URISyntaxException e) {
             throw new IllegalArgumentException("Incorrect parsing of Elasticsearch URI", e);
         }
