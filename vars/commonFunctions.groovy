@@ -232,31 +232,6 @@ String getUID() {
     ).trim()
 }
 
-boolean isVersionPresentInSwift(String tenant, String version) {
-    withCredentials([[$class          : 'UsernamePasswordMultiBinding', credentialsId: 'swift',
-                      usernameVariable: 'SWIFT_USER', passwordVariable: 'SWIFT_PASS']]) {
-
-        String userId = getUID()
-
-        String requiredFilesFoundInSwift = sh(
-                script: "[ 1 == \$( docker run --rm " +
-                        "--network host " +
-                        "-u $userId " +
-                        "-e OS_AUTH_URL=https://keystone.dus1.cloud.ecg.so/v2.0 " +
-                        "-e OS_TENANT_NAME='comaas-qa' " +
-                        "-e OS_USERNAME='$SWIFT_USER' " +
-                        "-e OS_PASSWORD='$SWIFT_PASS' " +
-                        "-e OS_PROJECT_NAME='comaas-control-prod' " +
-                        "-e OS_REGION_NAME='dus1' " +
-                        "ebayclassifiedsgroup/python-swiftclient:3.5.0 swift list --prefix $tenant comaas " +
-                        "| grep -c $version ) ]",
-                returnStatus: true
-        )
-
-        return requiredFilesFoundInSwift == "0"
-    }
-}
-
 static Integer toIntOrNull(String value) {
     if (value != null) {
         return value as Integer
