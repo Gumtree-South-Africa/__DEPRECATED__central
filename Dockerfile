@@ -4,7 +4,7 @@ LABEL maintainer="Comaas team <DL-eCG-comaas-dev@ebay.com>"
 
 ARG src_dir=docker_image_src
 
-VOLUME /opt/replyts/dropfolder /opt/replyts/logs
+RUN apk add --no-cache ca-certificates
 
 ADD docker/docker-entrypoint.sh /
 
