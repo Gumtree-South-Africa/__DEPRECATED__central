@@ -53,9 +53,17 @@ String activeDcSlackString(final String tenantLong, final String dc, final Strin
 }
 
 boolean isVersionPresentInSwift(String tenant, String version) {
-    withCredentials([[$class          : 'UsernamePasswordMultiBinding', credentialsId: 'swift',
-                      usernameVariable: 'SWIFT_USER', passwordVariable: 'SWIFT_PASS']]) {
-
+    def secrets = [
+        [
+                $class      : 'VaultSecret',
+                path        : 'secret/nomad/control/swift',
+                secretValues: [
+                        [$class: 'VaultSecretValue', envVar: 'SWIFT_USER', vaultKey: 'username'],
+                        [$class: 'VaultSecretValue', envVar: 'SWIFT_PASS', vaultKey: 'password']
+                ],
+        ],
+    ]
+    wrap([$class: 'VaultBuildWrapper', vaultSecrets: secrets]) {
         String userId = commonFunctions.getUID()
 
         String requiredFilesFoundInSwift = sh(
@@ -90,9 +98,17 @@ void notifyAboutPendingUpgrade(final String tenant, final String version, final 
 }
 
 String downloadVersionFromSwift(final String tenant, final String version) {
-    withCredentials([[$class          : 'UsernamePasswordMultiBinding', credentialsId: 'swift',
-                      usernameVariable: 'SWIFT_USER', passwordVariable: 'SWIFT_PASS']]) {
-
+    def secrets = [
+            [
+                    $class      : 'VaultSecret',
+                    path        : 'secret/nomad/control/swift',
+                    secretValues: [
+                            [$class: 'VaultSecretValue', envVar: 'SWIFT_USER', vaultKey: 'username'],
+                            [$class: 'VaultSecretValue', envVar: 'SWIFT_PASS', vaultKey: 'password']
+                    ],
+            ],
+    ]
+    wrap([$class: 'VaultBuildWrapper', vaultSecrets: secrets]) {
         final String userId = commonFunctions.getUID()
         final String artifact = "${tenant}/builds/comaas-${tenant}_${version}.tar.gz"
 
