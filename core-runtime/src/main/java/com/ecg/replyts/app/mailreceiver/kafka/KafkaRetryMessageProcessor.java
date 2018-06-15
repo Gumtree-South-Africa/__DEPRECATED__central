@@ -29,30 +29,21 @@ public class KafkaRetryMessageProcessor extends KafkaMessageProcessor {
     }
 
     @Override
-    protected void processMessage(ConsumerRecord<String, byte[]> messageRecord) {
-        setTaskFields();
-
-        Message retryableMessage;
-        try {
-            retryableMessage = decodeMessage(messageRecord);
-        } catch (IOException e) {
-            return;
-        }
-
-        LOG.debug("Found a message {} in the retry topic with next consumption time {}", retryableMessage.getCorrelationId(), retryableMessage.getNextConsumptionTime());
+    protected void processMessage(Message message) {
+        LOG.debug("Found a message {} in the retry topic with next consumption time {}", message.getCorrelationId(), message.getNextConsumptionTime());
 
         Instant nextConsumptionTime = Instant.ofEpochSecond(
-            retryableMessage.getNextConsumptionTime().getSeconds(),
-            retryableMessage.getNextConsumptionTime().getNanos());
+                message.getNextConsumptionTime().getSeconds(),
+                message.getNextConsumptionTime().getNanos());
         if (!sleepUntilInstant(nextConsumptionTime)) {
-            LOG.warn("The thread has been interrupted while sleeping before making an attempt to retry message with correlationId: {}", retryableMessage.getCorrelationId());
+            LOG.warn("The thread has been interrupted while sleeping before making an attempt to retry message with correlationId: {}", message.getCorrelationId());
             return;
         }
 
         RETRY_LAG.update(ChronoUnit.MILLIS.between(nextConsumptionTime, Instant.now()));
 
-        LOG.debug("Putting message back to incoming topic {}", retryableMessage.getCorrelationId());
-        retryMessage(retryableMessage);
+        LOG.debug("Putting message back to incoming topic {}", message.getCorrelationId());
+        retryMessage(message);
     }
 
     private boolean sleepUntilInstant(Instant until) {

@@ -18,6 +18,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Optional;
 
 
 import static com.ecg.replyts.core.runtime.prometheus.MessageProcessingMetrics.incMsgAbandonedCounter;
@@ -29,6 +30,7 @@ abstract class KafkaMessageProcessor implements MessageProcessor {
     private static final Logger LOG = LoggerFactory.getLogger(KafkaMessageProcessor.class);
 
     private static final long KAFKA_POLL_TIMEOUT_MS = 1000;
+
     private final int retryOnFailedMessagePeriodMinutes;
 
     private final QueueService queueService;
@@ -45,6 +47,7 @@ abstract class KafkaMessageProcessor implements MessageProcessor {
         this.kafkaMessageConsumerFactory = kafkaMessageConsumerFactory;
         this.retryOnFailedMessagePeriodMinutes = retryOnFailedMessagePeriodMinutes;
         this.shortTenant = shortTenant;
+
     }
 
     @Override
@@ -64,41 +67,64 @@ abstract class KafkaMessageProcessor implements MessageProcessor {
             if (consumer == null) {
                 consumer = kafkaMessageConsumerFactory.createConsumer(this.getTopicName());
             }
-
             consumer.poll(KAFKA_POLL_TIMEOUT_MS).forEach(messageRecord -> {
-                try {
-                    processMessage(messageRecord);
-                } finally {
-                    consumer.commitSync();
-                }
+                setTaskFields();
+                decodeMessage(messageRecord).ifPresent(message -> {
+                    try {
+                        processMessage(message);
+                    } catch (HangingThreadException e) {
+                        commitAndShutdown();
+                    } finally {
+                        consumer.commitSync();
+                    }
+                });
             });
         } catch (WakeupException ignored) {
             // This exception is raised when the consumer is in its poll() loop, waking it up. We can ignore it here,
             // because this very likely means that we are shutting down Comaas.
         } catch (Exception e) {
-            try {
-                if (consumer != null) {
-                    consumer.close();
-                }
-            } finally {
-                consumer = null;
-            }
+            closeConsumer();
         }
     }
 
-    Message decodeMessage(ConsumerRecord<String, byte[]> messageRecord) throws IOException {
+    private void commitAndShutdown() {
+        try {
+            consumer.commitSync();
+            closeConsumer();
+        } finally {
+            stopApplication();
+        }
+    }
+
+    private void closeConsumer() {
+        try {
+            if (consumer != null) {
+                consumer.close();
+            }
+        } finally {
+            consumer = null;
+        }
+    }
+
+    void stopApplication() {
+        System.exit(1);
+    }
+
+
+    private Optional<Message> decodeMessage(ConsumerRecord<String, byte[]> messageRecord) {
         final byte[] data = messageRecord.value();
         final Message retryableMessage;
         try {
             retryableMessage = queueService.deserialize(data);
         } catch (IOException e) {
             failMessage(data, e);
-            throw e;
+            return Optional.empty();
         }
-        return retryableMessage;
+        return Optional.of(retryableMessage);
     }
 
-    protected abstract void processMessage(ConsumerRecord<String, byte[]> messageRecord);
+
+    protected abstract void processMessage(Message message);
 
     private void publishToTopic(final String topic, final Message retryableMessage) throws JsonProcessingException {
         queueService.publish(topic, retryableMessage);

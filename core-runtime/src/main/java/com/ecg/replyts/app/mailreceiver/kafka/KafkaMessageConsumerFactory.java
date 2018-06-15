@@ -49,4 +49,8 @@ class KafkaMessageConsumerFactory {
         consumer.subscribe(Collections.singletonList(topicName));
         return consumer;
     }
+
+    public int getMaxPollIntervalMs() {
+        return maxPollIntervalMs;
+    }
 }

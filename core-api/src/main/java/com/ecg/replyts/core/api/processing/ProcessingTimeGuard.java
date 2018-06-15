@@ -47,7 +47,10 @@ public class ProcessingTimeGuard {
      *
      * @throws ProcessingTimeExceededException If processing time exceeded.
      */
-    public void check() throws ProcessingTimeExceededException {
+    public void check() throws ProcessingTimeExceededException, ProcessingInterruptedException {
+        if (Thread.interrupted()) {
+            throw new ProcessingInterruptedException();
+        }
         if (infinite()) {
             return;
         }
