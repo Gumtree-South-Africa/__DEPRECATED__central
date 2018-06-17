@@ -22,7 +22,7 @@ This configuration should NEVER be active in prod
 public class ESClientConfiguration {
     private static final Logger LOG = LoggerFactory.getLogger(DirectESIndexer.class);
 
-    private static final String ES_INDEX_NAME = "comaasidx";
+    public static final String ES_INDEX_NAME = "comaasidx";
     private static final String ES_HOST_NAME = "localhost";
     private static final int ES_HOST_PORT = 9300;
     private static final String ES_CLUSTER_NAME = "elasticsearch";

@@ -6,6 +6,7 @@ import com.ecg.replyts.client.configclient.ReplyTsConfigClient;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.pluginconfiguration.PluginState;
 import com.ecg.replyts.core.runtime.indexer.test.DirectESIndexer;
+import com.ecg.replyts.core.runtime.indexer.test.ESClientConfiguration;
 import com.ecg.replyts.integration.cassandra.CassandraIntegrationTestProvisioner;
 import com.ecg.replyts.integration.test.support.Waiter;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -27,6 +28,8 @@ import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import static com.ecg.replyts.core.runtime.indexer.test.ESClientConfiguration.ES_INDEX_NAME;
 
 /**
  * Junit test rule that starts an embedded ReplyTS instance, configured to communicate to a locally running dev
@@ -327,7 +330,7 @@ public class ReplyTsIntegrationTestRule implements TestRule {
         }
         directESIndexer.ensureIndexed(conversations, 5, TimeUnit.SECONDS);
 
-        SearchRequestBuilder searchRequestBuilder = searchClient.prepareSearch("replyts")
+        SearchRequestBuilder searchRequestBuilder = searchClient.prepareSearch(ES_INDEX_NAME)
                 .setTypes("message")
                 .setQuery(QueryBuilders.termsQuery("_id", conversationIds));
         Waiter.await(
@@ -340,7 +343,7 @@ public class ReplyTsIntegrationTestRule implements TestRule {
         DirectESIndexer directESIndexer = getESIndexer();
         directESIndexer.ensureIndexed(mail.getConversation(), 5, TimeUnit.SECONDS);
         String id = mail.getConversation().getId() + "/" + mail.getMessage().getId();
-        SearchRequestBuilder searchRequestBuilder = searchClient.prepareSearch("replyts")
+        SearchRequestBuilder searchRequestBuilder = searchClient.prepareSearch(ES_INDEX_NAME)
                 .setTypes("message")
                 .setQuery(QueryBuilders.termQuery("_id", id));
 
