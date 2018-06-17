@@ -152,7 +152,7 @@ public class ElasticSearchIndexer {
         doIndexBetween(since, DateTime.now());
     }
 
-    private DateTime startTimeForFullIndex() {
+    DateTime startTimeForFullIndex() {
         return new DateTime(clock.now()).minusDays(maxAgeDays);
     }
 
