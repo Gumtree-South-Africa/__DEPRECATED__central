@@ -20,6 +20,7 @@ import com.ecg.replyts.core.api.webapi.model.ConversationRts;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.identifier.UserIdentifierService;
 import com.ecg.replyts.core.runtime.indexer.Conversation2Kafka;
+import com.ecg.replyts.core.runtime.indexer.Document2KafkaSink;
 import com.ecg.replyts.core.runtime.persistence.conversation.DefaultMutableConversation;
 import com.ecg.replyts.core.runtime.persistence.conversation.MutableConversationRepository;
 import com.ecg.replyts.core.webapi.screeningv2.converter.DomainObjectConverter;
@@ -46,7 +47,7 @@ class ConversationController {
     private final MutableConversationRepository conversationRepository;
     private final DomainObjectConverter converter;
     private final MailCloakingService mailCloakingService;
-    private final Conversation2Kafka searchIndexer;
+    private final Document2KafkaSink document2KafkaSink;
     private final ConversationEventListeners conversationEventListeners;
     private final UserIdentifierService userIdentifierService;
     private final Timer loadConversationTimer = TimingReports.newTimer("core-conversationController.loadConversation");
@@ -55,13 +56,13 @@ class ConversationController {
     ConversationController(MutableConversationRepository conversationRepository,
                            DomainObjectConverter converter,
                            MailCloakingService mailCloakingService,
-                           Conversation2Kafka searchIndexer,
+                           Document2KafkaSink document2KafkaSink,
                            ConversationEventListeners conversationEventListeners,
                            UserIdentifierService userIdentifierService) {
         this.conversationRepository = conversationRepository;
         this.converter = converter;
         this.mailCloakingService = mailCloakingService;
-        this.searchIndexer = searchIndexer;
+        this.document2KafkaSink = document2KafkaSink;
         this.conversationEventListeners = conversationEventListeners;
         this.userIdentifierService = userIdentifierService;
     }
@@ -125,7 +126,7 @@ class ConversationController {
         byId.applyCommand(new AddCustomValueCommand(convId, cmd.getKey(), cmd.getValue()));
 
         ((DefaultMutableConversation)byId).commit(conversationRepository, conversationEventListeners);
-        searchIndexer.updateSearchSync(Collections.singletonList(byId));
+        document2KafkaSink.sink(byId);
 
         return ResponseObject.of(converter.convertConversation(byId));
     }

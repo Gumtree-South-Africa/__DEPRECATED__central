@@ -18,8 +18,7 @@ import java.util.concurrent.atomic.AtomicLong;
 public class Conversation2Kafka {
 
     private static final Logger LOG = LoggerFactory.getLogger(Conversation2Kafka.class);
-    private static final Timer FETCH_TIMER = TimingReports.newTimer("fetch-chunk");
-
+    private static final Timer FETCH_TIMER = TimingReports.newTimer("fetch-conversation");
     final AtomicLong fetchedConvCounter = new AtomicLong(0);
 
     @Autowired
@@ -27,21 +26,16 @@ public class Conversation2Kafka {
     @Autowired
     private ConversationRepository conversationRepository;
 
-    public void updateSearchSync(List<Conversation> conversations) {
-        documentSink.sink(conversations);
+    public void updateElasticSearch(String conversationId) {
+        Conversation conversation = fetchConversation(conversationId);
+        if(conversation!=null) {
+            documentSink.sink(conversation);
+        }
     }
 
-    public void indexChunk(Set<String> conversationIds) {
-        List<Conversation> conversations = fetchConversations(conversationIds);
-        documentSink.sink(conversations);
-    }
-
-    private List<Conversation> fetchConversations(Set<String> conversationIds) {
-        List<Conversation> conversations = new ArrayList<>();
-
+    private Conversation fetchConversation(String conversationId) {
         try (Timer.Context ignore = FETCH_TIMER.time()) {
-            for (String conversationId : conversationIds) {
-                Conversation conversation = null;
+                  Conversation conversation = null;
                 try {
                     // Might be null for very old conversation that have been removed by the cleanup job while the indexer was running
                     conversation = conversationRepository.getById(conversationId);
@@ -50,11 +44,8 @@ public class Conversation2Kafka {
                 }
                 if (conversation != null) {
                     fetchedConvCounter.incrementAndGet();
-                    conversations.add(conversation);
                 }
-            }
-
-            return conversations;
+            return conversation;
         }
     }
 

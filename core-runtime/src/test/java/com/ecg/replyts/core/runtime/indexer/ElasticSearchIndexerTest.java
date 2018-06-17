@@ -5,6 +5,7 @@ import com.ecg.replyts.core.api.model.conversation.MutableConversation;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import com.ecg.replyts.core.api.util.CurrentClock;
 import com.ecg.replyts.core.runtime.workers.InstrumentedCallerRunsPolicy;
+import com.ecg.replyts.core.runtime.workers.InstrumentedExecutorService;
 import com.google.common.collect.Lists;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeComparator;
@@ -22,7 +23,6 @@ import org.springframework.test.util.ReflectionTestUtils;
 import java.util.List;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.stream.Collectors;
 
 import static org.mockito.Mockito.*;
 
@@ -41,7 +41,6 @@ public class ElasticSearchIndexerTest {
     @InjectMocks
     private ElasticSearchIndexer elasticSearchIndexer;
 
-    private final List<String> CONV_IDS = Lists.newArrayList("foo1", "foo2", "foo3");
     private final int MAX_AGE_DAYS = 180;
     private final DateTime NOW = DateTime.now();
 
@@ -49,11 +48,14 @@ public class ElasticSearchIndexerTest {
     public void setup() {
         ArrayBlockingQueue<Runnable> workQueue = new ArrayBlockingQueue<>(10);
         RejectedExecutionHandler rejectionHandler = new InstrumentedCallerRunsPolicy("indexer", ElasticSearchIndexer.class.getSimpleName());
-        executorService = new ThreadPoolExecutor(1, 1, 0, TimeUnit.SECONDS, workQueue, rejectionHandler);
+        ExecutorService executor = new ThreadPoolExecutor(1, 1, 0, TimeUnit.SECONDS, workQueue, rejectionHandler);
+        executorService = new InstrumentedExecutorService(executor, "indexer", ElasticSearchIndexer.class.getSimpleName());
+        CompletionService completionService = new ExecutorCompletionService(executorService);
 
         ReflectionTestUtils.setField(elasticSearchIndexer, "conversationIdBatchSize", 3);
-        ReflectionTestUtils.setField(elasticSearchIndexer, "threadPoolExecutor", executorService);
-        ReflectionTestUtils.setField(elasticSearchIndexer, "taskCompletionTimeoutSec", 10);
+        ReflectionTestUtils.setField(elasticSearchIndexer, "executorService", executorService);
+        ReflectionTestUtils.setField(elasticSearchIndexer, "completionService", completionService);
+        ReflectionTestUtils.setField(elasticSearchIndexer, "taskCompletionTimeoutSec", 5);
         ReflectionTestUtils.setField(elasticSearchIndexer, "maxAgeDays", MAX_AGE_DAYS);
         ReflectionTestUtils.setField(elasticSearchIndexer, "conversationIdBatchSize", 10);
         ReflectionTestUtils.setField(elasticSearchIndexer, "clock", new CurrentClock());
@@ -61,6 +63,7 @@ public class ElasticSearchIndexerTest {
         ReflectionTestUtils.setField(conversation2Kafka, "fetchedConvCounter", new AtomicLong(0));
 
         List<Conversation> conversations = Lists.newArrayList();
+        final List<String> CONV_IDS = Lists.newArrayList("foo1", "foo2", "foo3", "foo4", "foo5", "foo6", "foo7", "foo8", "foo9");
         for (String conversationId : CONV_IDS) {
             MutableConversation mutableConversation = mock(MutableConversation.class);
 
@@ -72,26 +75,36 @@ public class ElasticSearchIndexerTest {
 
     @Test
     public void indexSince() {
+        final List<String> CONV_IDS = Lists.newArrayList("foo1", "foo2", "foo3");
         elasticSearchIndexer.indexConversations(CONV_IDS.stream());
-        verify(conversation2Kafka).indexChunk(CONV_IDS.stream().collect(Collectors.toSet()));
+        verify(conversation2Kafka, times(CONV_IDS.size())).updateElasticSearch(anyString());
     }
+
+    @Test
+    public void duplicatedIdsAreFilteredOut() {
+        final List<String> CONV_IDS = Lists.newArrayList("foo1", "foo2", "foo3", "foo1", "foo2");
+        elasticSearchIndexer.indexConversations(CONV_IDS.stream());
+        verify(conversation2Kafka, times(3)).updateElasticSearch(anyString());
+    }
+
 
     @Test
     public void indexBetween() {
         DateTime FROM = DateTime.now().minusDays(1);
-
+        final List<String> CONV_IDS = Lists.newArrayList("foo4", "foo5", "foo6");
         when(conversationRepository.streamConversationsModifiedBetween(FROM, NOW)).thenReturn(CONV_IDS.stream());
         elasticSearchIndexer.doIndexBetween(FROM, NOW);
 
-        verify(conversation2Kafka).indexChunk(CONV_IDS.stream().collect(Collectors.toSet()));
+        verify(conversation2Kafka, times(CONV_IDS.size())).updateElasticSearch(anyString());
     }
 
     @Test
     public void fullReindex() {
+        final List<String> CONV_IDS = Lists.newArrayList("foo7", "foo8", "foo9");
         when(conversationRepository.streamConversationsModifiedBetween(any(DateTime.class), any(DateTime.class))).thenReturn(CONV_IDS.stream());
         elasticSearchIndexer.fullIndex();
 
-        verify(conversation2Kafka).indexChunk(CONV_IDS.stream().collect(Collectors.toSet()));
+        verify(conversation2Kafka, times(CONV_IDS.size())).updateElasticSearch(anyString());
     }
 
     @Test

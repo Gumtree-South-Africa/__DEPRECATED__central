@@ -1,9 +1,7 @@
 package com.ecg.replyts.core.runtime.indexer;
 
-import com.ecg.replyts.core.api.model.conversation.Conversation;
-import com.ecg.replyts.core.api.model.conversation.Message;
-import com.ecg.replyts.core.runtime.model.conversation.ImmutableConversation;
-import com.ecg.replyts.core.runtime.persistence.kafka.KafkaSinkService;
+import com.ecg.replyts.core.api.model.conversation.MutableConversation;
+import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -11,12 +9,8 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import java.util.Arrays;
-import java.util.Collections;
-
-import static com.ecg.replyts.core.runtime.indexer.TestUtil.defaultMessage;
-import static com.ecg.replyts.core.runtime.indexer.TestUtil.makeConversation;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class Conversation2KafkaTest {
@@ -25,32 +19,26 @@ public class Conversation2KafkaTest {
     private Document2KafkaSink documentSink;
 
     @Mock
-    private KafkaSinkService kafkaSinkService;
+    private ConversationRepository conversationRepository;
 
     private Conversation2Kafka conversation2Kafka;
-    private Conversation conversation;
-    private Message message0;
-    private Message message1;
+    @Mock
+    private MutableConversation conversation;
 
     @Before
     public void setup() {
-
         conversation2Kafka = new Conversation2Kafka();
 
+        ReflectionTestUtils.setField(conversation2Kafka, "conversationRepository", conversationRepository);
         ReflectionTestUtils.setField(conversation2Kafka, "documentSink", documentSink);
-        ReflectionTestUtils.setField(documentSink, "documentSink", kafkaSinkService);
-
-        ImmutableConversation.Builder cBuilder = makeConversation();
-        message0 = defaultMessage("msgid0").build();
-        message1 = defaultMessage("msgid1").build();
-        cBuilder.withMessages(Arrays.asList(message0, message1));
-        conversation = cBuilder.build();
+        when(conversation.getId()).thenReturn("convid1");
+        when(conversationRepository.getById(conversation.getId())).thenReturn(conversation);
     }
 
     @Test
     public void updateWithConversation() {
-        conversation2Kafka.updateSearchSync(Collections.singletonList(conversation));
-        verify(documentSink).sink(Arrays.asList(conversation));
+        conversation2Kafka.updateElasticSearch(conversation.getId());
+        verify(documentSink).sink(conversation);
     }
 
 }
