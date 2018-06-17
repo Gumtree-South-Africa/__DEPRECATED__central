@@ -40,8 +40,6 @@ public class ElasticSearchClientConfiguration {
         return new ElasticSearchService(new RestHighLevelClient(client), deleteClient, indexName);
     }
 
-    // FIXME Get rid of the old ES endpoint names in properties. 2) Intro search.es.indexname as a parameter to docker images to fail fast 3) Pass credintials to new ElasticDeleteClient 4) Configure new esaas queues to all tenants 5) configure co
-    // rrect index and endpoint names for all LP and Prod properties
     @Bean(destroyMethod = "close")
     public ElasticDeleteClient deleteByQueryClient(
             @Value("${search.es.endpoint}") String endpoint,

@@ -75,11 +75,13 @@ public final class ReplytsRunner {
             setEnv("COMAAS_HTTP_PORT", httpPort.toString());
             properties.put("delivery.smtp.port", String.valueOf(smtpOutPort));
             properties.put("kafka.core.servers", "localhost:9092");
+            properties.put("doc2kafka.sink.enabled", false);
+            properties.put("search.es.indexname", "comaasidx");
+            properties.put("search.es.endpoint","http://localhost:9200");
 
             properties.put("mailreceiver.filesystem.dropfolder", dropFolder.getAbsolutePath());
             properties.put("node.run.cronjobs", "false");
             properties.put("cluster.jmx.enabled", "false");
-            properties.put("doc2kafka.sink.enabled", "false");
 
             context.getEnvironment().getPropertySources().addFirst(new PropertiesPropertySource("test", properties));
 

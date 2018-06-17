@@ -19,8 +19,7 @@ import com.ecg.replyts.core.api.webapi.envelope.ResponseObject;
 import com.ecg.replyts.core.api.webapi.model.ConversationRts;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.identifier.UserIdentifierService;
-import com.ecg.replyts.core.runtime.indexer.Conversation2Kafka;
-import com.ecg.replyts.core.runtime.indexer.Document2KafkaSink;
+import com.ecg.replyts.core.runtime.indexer.DocumentSink;
 import com.ecg.replyts.core.runtime.persistence.conversation.DefaultMutableConversation;
 import com.ecg.replyts.core.runtime.persistence.conversation.MutableConversationRepository;
 import com.ecg.replyts.core.webapi.screeningv2.converter.DomainObjectConverter;
@@ -31,7 +30,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Collections;
 import java.util.Optional;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE;
@@ -47,7 +45,7 @@ class ConversationController {
     private final MutableConversationRepository conversationRepository;
     private final DomainObjectConverter converter;
     private final MailCloakingService mailCloakingService;
-    private final Document2KafkaSink document2KafkaSink;
+    private final DocumentSink documentSink;
     private final ConversationEventListeners conversationEventListeners;
     private final UserIdentifierService userIdentifierService;
     private final Timer loadConversationTimer = TimingReports.newTimer("core-conversationController.loadConversation");
@@ -56,13 +54,13 @@ class ConversationController {
     ConversationController(MutableConversationRepository conversationRepository,
                            DomainObjectConverter converter,
                            MailCloakingService mailCloakingService,
-                           Document2KafkaSink document2KafkaSink,
+                           DocumentSink documentSink,
                            ConversationEventListeners conversationEventListeners,
                            UserIdentifierService userIdentifierService) {
         this.conversationRepository = conversationRepository;
         this.converter = converter;
         this.mailCloakingService = mailCloakingService;
-        this.document2KafkaSink = document2KafkaSink;
+        this.documentSink = documentSink;
         this.conversationEventListeners = conversationEventListeners;
         this.userIdentifierService = userIdentifierService;
     }
@@ -126,7 +124,7 @@ class ConversationController {
         byId.applyCommand(new AddCustomValueCommand(convId, cmd.getKey(), cmd.getValue()));
 
         ((DefaultMutableConversation)byId).commit(conversationRepository, conversationEventListeners);
-        document2KafkaSink.sink(byId);
+        documentSink.sink(byId);
 
         return ResponseObject.of(converter.convertConversation(byId));
     }
