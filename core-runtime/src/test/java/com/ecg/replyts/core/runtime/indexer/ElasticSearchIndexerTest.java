@@ -5,7 +5,6 @@ import com.ecg.replyts.core.api.model.conversation.MutableConversation;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import com.ecg.replyts.core.api.util.CurrentClock;
 import com.ecg.replyts.core.runtime.workers.InstrumentedCallerRunsPolicy;
-import com.ecg.replyts.core.runtime.workers.InstrumentedExecutorService;
 import com.google.common.collect.Lists;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeComparator;
@@ -31,19 +30,15 @@ import static org.mockito.Mockito.*;
 @RunWith(MockitoJUnitRunner.class)
 public class ElasticSearchIndexerTest {
 
-    private ExecutorService executorService;
-
-    @Mock
-    private ConversationRepository conversationRepository;
-
-    @Mock
-    private Conversation2Kafka conversation2Kafka;
-
-    @InjectMocks
-    private ElasticSearchIndexer elasticSearchIndexer;
-
     private final int MAX_AGE_DAYS = 180;
     private final DateTime NOW = DateTime.now();
+    private ExecutorService executorService;
+    @Mock
+    private ConversationRepository conversationRepository;
+    @Mock
+    private Conversation2Kafka conversation2Kafka;
+    @InjectMocks
+    private ElasticSearchIndexer elasticSearchIndexer;
 
     @Before
     public void setup() {
