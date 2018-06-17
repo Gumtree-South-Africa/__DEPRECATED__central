@@ -10,6 +10,7 @@ import com.google.common.collect.Lists;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeComparator;
 import org.joda.time.DateTimeFieldType;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -48,14 +49,13 @@ public class ElasticSearchIndexerTest {
     public void setup() {
         ArrayBlockingQueue<Runnable> workQueue = new ArrayBlockingQueue<>(100);
         RejectedExecutionHandler rejectionHandler = new InstrumentedCallerRunsPolicy("indexer", ElasticSearchIndexer.class.getSimpleName());
-        ThreadPoolExecutor executor = new ThreadPoolExecutor(1, 1, 0, TimeUnit.SECONDS, workQueue, rejectionHandler);
-        executorService = new InstrumentedExecutorService(executor, "indexer", ElasticSearchIndexer.class.getSimpleName());
+        executorService = new ThreadPoolExecutor(1, 1, 0, TimeUnit.SECONDS, workQueue, rejectionHandler);
         CompletionService completionService = new ExecutorCompletionService(executorService);
 
-        ReflectionTestUtils.setField(elasticSearchIndexer, "executor", executor);
+        ReflectionTestUtils.setField(elasticSearchIndexer, "executor", executorService);
         ReflectionTestUtils.setField(elasticSearchIndexer, "executorService", executorService);
         ReflectionTestUtils.setField(elasticSearchIndexer, "completionService", completionService);
-        ReflectionTestUtils.setField(elasticSearchIndexer, "taskCompletionTimeoutSec", 10);
+        ReflectionTestUtils.setField(elasticSearchIndexer, "taskCompletionTimeoutSec", 2);
         ReflectionTestUtils.setField(elasticSearchIndexer, "maxAgeDays", MAX_AGE_DAYS);
         ReflectionTestUtils.setField(elasticSearchIndexer, "convIdDedupBufferSize", 100);
         ReflectionTestUtils.setField(elasticSearchIndexer, "clock", new CurrentClock());
@@ -71,6 +71,11 @@ public class ElasticSearchIndexerTest {
 
             when(conversationRepository.getById(conversationId)).thenReturn(mutableConversation);
         }
+    }
+
+    @After
+    public void shutdown() {
+        executorService.shutdownNow();
     }
 
     @Test

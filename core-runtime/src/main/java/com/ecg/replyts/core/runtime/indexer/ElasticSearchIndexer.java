@@ -130,7 +130,7 @@ public class ElasticSearchIndexer {
     private void awaitCompletion(int taskCompletionTimeoutSec, TimeUnit timeUnit) {
         String indexedCid = "";
         Future<String> future = null;
-        while (future != null) {
+        do {
             try {
                 future = completionService.poll(taskCompletionTimeoutSec, timeUnit);
                 // Ignore the result
@@ -138,10 +138,11 @@ public class ElasticSearchIndexer {
             } catch (InterruptedException in) {
                 LOG.warn("Interrupted during waiting for completion on ES index task, indexing conversation {}", indexedCid);
                 Thread.currentThread().interrupt();
+                break;
             } catch (Exception e) {
                 LOG.error("Exception during waiting for completion on ES index task, indexing conversation {}", indexedCid, e);
             }
-        }
+        } while (future != null);
     }
 
     public void fullIndex() {
