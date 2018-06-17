@@ -41,7 +41,7 @@ public class ElasticSearchIndexer {
     private int workQueueSize;
 
     @Value("${replyts.indexer.streaming.conversationid.buffer.size:10000}")
-    private int conversationIdBatchSize;
+    private int convIdDedupBufferSize;
 
     @Value("${replyts.indexer.streaming.timeout.sec:65}")
     private int taskCompletionTimeoutSec;
@@ -99,7 +99,7 @@ public class ElasticSearchIndexer {
     public void indexConversations(Stream<String> conversationIds) {
 
         // Use this as  a temporary buffer to reduce duplication
-        final Set<String> uniqueConvIds = ConcurrentHashMap.newKeySet(conversationIdBatchSize);
+        final Set<String> uniqueConvIds = ConcurrentHashMap.newKeySet(convIdDedupBufferSize);
         conversationIds.parallel().forEach(id -> {
 
             if (uniqueConvIds.add(id)) {
@@ -109,7 +109,7 @@ public class ElasticSearchIndexer {
                     submittedConvCounter.incrementAndGet();
                     completionService.submit(() -> conversation2Kafka.updateElasticSearch(id), id);
 
-                    if (submittedConvCounter.get() % conversationIdBatchSize == 0) {
+                    if (submittedConvCounter.get() % convIdDedupBufferSize == 0) {
                         removeCompleted();
                         uniqueConvIds.clear();
                     }

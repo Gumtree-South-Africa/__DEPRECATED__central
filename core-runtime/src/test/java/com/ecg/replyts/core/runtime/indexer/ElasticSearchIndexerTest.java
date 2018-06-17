@@ -46,18 +46,18 @@ public class ElasticSearchIndexerTest {
 
     @Before
     public void setup() {
-        ArrayBlockingQueue<Runnable> workQueue = new ArrayBlockingQueue<>(10);
+        ArrayBlockingQueue<Runnable> workQueue = new ArrayBlockingQueue<>(100);
         RejectedExecutionHandler rejectionHandler = new InstrumentedCallerRunsPolicy("indexer", ElasticSearchIndexer.class.getSimpleName());
-        ExecutorService executor = new ThreadPoolExecutor(1, 1, 0, TimeUnit.SECONDS, workQueue, rejectionHandler);
+        ThreadPoolExecutor executor = new ThreadPoolExecutor(1, 1, 0, TimeUnit.SECONDS, workQueue, rejectionHandler);
         executorService = new InstrumentedExecutorService(executor, "indexer", ElasticSearchIndexer.class.getSimpleName());
         CompletionService completionService = new ExecutorCompletionService(executorService);
 
-        ReflectionTestUtils.setField(elasticSearchIndexer, "conversationIdBatchSize", 3);
+        ReflectionTestUtils.setField(elasticSearchIndexer, "executor", executor);
         ReflectionTestUtils.setField(elasticSearchIndexer, "executorService", executorService);
         ReflectionTestUtils.setField(elasticSearchIndexer, "completionService", completionService);
-        ReflectionTestUtils.setField(elasticSearchIndexer, "taskCompletionTimeoutSec", 5);
+        ReflectionTestUtils.setField(elasticSearchIndexer, "taskCompletionTimeoutSec", 10);
         ReflectionTestUtils.setField(elasticSearchIndexer, "maxAgeDays", MAX_AGE_DAYS);
-        ReflectionTestUtils.setField(elasticSearchIndexer, "conversationIdBatchSize", 10);
+        ReflectionTestUtils.setField(elasticSearchIndexer, "convIdDedupBufferSize", 100);
         ReflectionTestUtils.setField(elasticSearchIndexer, "clock", new CurrentClock());
 
         ReflectionTestUtils.setField(conversation2Kafka, "fetchedConvCounter", new AtomicLong(0));
@@ -66,7 +66,7 @@ public class ElasticSearchIndexerTest {
         final List<String> CONV_IDS = Lists.newArrayList("foo1", "foo2", "foo3", "foo4", "foo5", "foo6", "foo7", "foo8", "foo9");
         for (String conversationId : CONV_IDS) {
             MutableConversation mutableConversation = mock(MutableConversation.class);
-
+            when(mutableConversation.getId()).thenReturn(conversationId);
             conversations.add(mutableConversation);
 
             when(conversationRepository.getById(conversationId)).thenReturn(mutableConversation);

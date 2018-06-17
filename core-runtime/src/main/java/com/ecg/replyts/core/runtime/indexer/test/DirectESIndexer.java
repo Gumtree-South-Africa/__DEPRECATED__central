@@ -29,12 +29,13 @@ public class DirectESIndexer {
     private static final Logger LOG = LoggerFactory.getLogger(DirectESIndexer.class);
 
     private static final String DOCUMENT_TYPE = "message";
-    private static final String indexName = "replyts";
 
+    private final String indexName;
     private final Client elasticSearchClient;
     private final IndexDataBuilder indexDataBuilder;
 
-    public DirectESIndexer(Client elasticSearchClient, IndexDataBuilder indexDataBuilder) {
+    public DirectESIndexer(String indexName, Client elasticSearchClient, IndexDataBuilder indexDataBuilder) {
+        this.indexName = indexName;
         this.elasticSearchClient = elasticSearchClient;
         this.indexDataBuilder = indexDataBuilder;
     }
