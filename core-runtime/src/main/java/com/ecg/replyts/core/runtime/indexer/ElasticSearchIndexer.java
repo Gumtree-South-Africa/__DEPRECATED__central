@@ -124,8 +124,10 @@ public class ElasticSearchIndexer {
         do {
             try {
                 future = completionService.poll(taskCompletionTimeoutSec, timeUnit);
-                // Ignore the result
-                indexedCid = future.get();
+                if (future != null) {
+                    // Ignore the result
+                    indexedCid = future.get();
+                }
             } catch (InterruptedException in) {
                 LOG.warn("Interrupted during waiting for completion on ES index task, indexing conversation {}", indexedCid);
                 Thread.currentThread().interrupt();
