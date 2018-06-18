@@ -13,11 +13,11 @@ job "comaas-[[ .tenant_short ]]" {
   }
 
   update {
-    max_parallel = 1
+    max_parallel = 3
     auto_revert = "true"
     health_check = "checks"
     min_healthy_time = "10s"
-    healthy_deadline = "90s"
+    healthy_deadline = "120s"
     stagger = "1m"
   }
 
