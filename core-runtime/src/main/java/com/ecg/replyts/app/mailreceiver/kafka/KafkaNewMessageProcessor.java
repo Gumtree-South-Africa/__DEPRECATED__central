@@ -13,15 +13,24 @@ import com.ecg.replyts.core.runtime.persistence.conversation.MutableConversation
 import com.ecg.replyts.core.runtime.persistence.kafka.KafkaTopicService;
 import com.ecg.replyts.core.runtime.persistence.kafka.QueueService;
 import com.google.protobuf.ByteString;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
+
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import static com.ecg.replyts.core.api.model.conversation.command.AddMessageCommandBuilder.anAddMessageCommand;
 
@@ -34,6 +43,7 @@ import static com.ecg.replyts.core.api.model.conversation.command.AddMessageComm
  * https://github.corp.ebay.com/ecg-comaas/kafka-message-producer
  * docker run --rm --net=host dock.es.ecg.tools/comaas/kafka-message-producer:0.0.1 --tenant mp --delay 100 10
  */
+
 public class KafkaNewMessageProcessor extends KafkaMessageProcessor {
     private static final Logger LOG = LoggerFactory.getLogger(KafkaNewMessageProcessor.class);
 
@@ -43,46 +53,85 @@ public class KafkaNewMessageProcessor extends KafkaMessageProcessor {
     private final ProcessingContextFactory processingContextFactory;
     private final UserIdentifierService userIdentifierService;
 
+    private final long messageProcessingTimeoutMs, messageTaskCancellationTimeoutMs;
+
+    private ExecutorService executor = createMessageProcessingExecutor();
+
     KafkaNewMessageProcessor(MessageProcessingCoordinator messageProcessingCoordinator, QueueService queueService,
                              KafkaMessageConsumerFactory kafkaMessageConsumerFactory, int retryOnFailedMessagePeriodMinutes,
                              int maxRetries, String shortTenant,
                              MutableConversationRepository conversationRepository,
-                             ProcessingContextFactory processingContextFactory, UserIdentifierService userIdentifierService) {
+                             ProcessingContextFactory processingContextFactory, UserIdentifierService userIdentifierService,
+                             long messageProcessingTimeoutMs, long messageTaskCancellationTimeoutMs) {
         super(queueService, kafkaMessageConsumerFactory, retryOnFailedMessagePeriodMinutes, shortTenant);
         this.maxRetries = maxRetries;
         this.messageProcessingCoordinator = messageProcessingCoordinator;
         this.conversationRepository = conversationRepository;
         this.processingContextFactory = processingContextFactory;
         this.userIdentifierService = userIdentifierService;
+        this.messageProcessingTimeoutMs = messageProcessingTimeoutMs;
+        this.messageTaskCancellationTimeoutMs = messageTaskCancellationTimeoutMs;
+
+        LOG.info("messageProcessingTimeoutMs = {}, messageTaskCancellationTimeoutMs= {}, maxPollIntervalMs={}", messageProcessingTimeoutMs, messageTaskCancellationTimeoutMs, kafkaMessageConsumerFactory.getMaxPollIntervalMs());
+        Assert.isTrue(messageProcessingTimeoutMs + messageTaskCancellationTimeoutMs < kafkaMessageConsumerFactory.getMaxPollIntervalMs(),
+                "Sum of message processing timeout + message cancellation timeout should be less that kafka max poll timeout");
+    }
+
+    private ExecutorService createMessageProcessingExecutor() {
+        return Executors.newSingleThreadExecutor();
     }
 
     @Override
-    protected void processMessage(ConsumerRecord<String, byte[]> messageRecord) {
-        setTaskFields();
+    protected void processMessage(Message message) {
+        LOG.debug("Found a message in the incoming topic {}, tried so far: {} times", message.getCorrelationId(), message.getRetryCount());
 
-        Message retryableMessage;
+        Future<?> task = executor.submit(() -> {
+            try {
+                chooseStrategyAndProcess(message);
+            } catch (ParsingException e) {
+                unparseableMessage(message);
+            } catch (Exception e) {
+                retryOrAbandon(message, e);
+            }
+        });
+
         try {
-            retryableMessage = decodeMessage(messageRecord);
-        } catch (IOException e) {
-            return;
+            task.get(messageProcessingTimeoutMs, TimeUnit.MILLISECONDS);
+            LOG.debug("Processed message with correlation id {} successfully", message.getCorrelationId());
+        } catch (TimeoutException e) {
+            LOG.info("Message processing time exceeded {} seconds. Trying to stop the thread", messageProcessingTimeoutMs);
+            executor.shutdownNow();
+            try {
+                if (executor.awaitTermination(messageTaskCancellationTimeoutMs, TimeUnit.MILLISECONDS)) {
+                    retryOrAbandon(message, new Exception("Message processing timed out"));
+                } else {
+                    abandonMessage(message, new Exception("Shutting down comaas since we could not stop message processing in time"));
+                    throw new HangingThreadException();
+                }
+
+            } catch (InterruptedException e1) {
+                throw new HangingThreadException();
+            }
+            //create new executor for next message
+            executor = createMessageProcessingExecutor();
+        } catch (InterruptedException e) {
+            retryOrAbandon(message, e);
+            Thread.currentThread().interrupt();
+        } catch (ExecutionException e) {
+            retryOrAbandon(message, e);
         }
 
-        LOG.debug("Found a message in the incoming topic {}, tried so far: {} times", retryableMessage.getCorrelationId(), retryableMessage.getRetryCount());
+    }
 
-        try {
-            processMessage(retryableMessage);
-        } catch (ParsingException e) {
-            unparseableMessage(retryableMessage);
-        } catch (Exception e) {
-            if (retryableMessage.getRetryCount() >= maxRetries) {
-                abandonMessage(retryableMessage, e);
-            } else {
-                delayRetryMessage(retryableMessage);
-            }
+    private void retryOrAbandon(Message message, Exception e) {
+        if (message.getRetryCount() >= maxRetries) {
+            abandonMessage(message, e);
+        } else {
+            delayRetryMessage(message);
         }
     }
 
-    private void processMessage(Message kafkaMessage) throws IOException, ParsingException {
+    private void chooseStrategyAndProcess(Message kafkaMessage) throws IOException, ParsingException {
         ByteString rawEmail = kafkaMessage.getRawEmail();
         if (rawEmail != null && !rawEmail.isEmpty()) {
             // A presence of a raw email represents the deprecated way of ingesting emails

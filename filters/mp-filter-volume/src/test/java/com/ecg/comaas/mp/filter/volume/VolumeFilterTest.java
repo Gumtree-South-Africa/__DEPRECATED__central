@@ -1,14 +1,8 @@
 package com.ecg.comaas.mp.filter.volume;
 
-import com.ecg.comaas.mp.filter.volume.VolumeFilter;
-import com.ecg.comaas.mp.filter.volume.VolumeFilterConfiguration;
 import com.ecg.comaas.mp.filter.volume.VolumeFilterConfiguration.VolumeRule;
 import com.ecg.comaas.mp.filter.volume.persistence.VolumeFilterEventRepository;
-import com.ecg.replyts.core.api.model.conversation.ConversationRole;
-import com.ecg.replyts.core.api.model.conversation.FilterResultState;
-import com.ecg.replyts.core.api.model.conversation.Message;
-import com.ecg.replyts.core.api.model.conversation.MessageDirection;
-import com.ecg.replyts.core.api.model.conversation.MutableConversation;
+import com.ecg.replyts.core.api.model.conversation.*;
 import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
@@ -16,21 +10,18 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InOrder;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
+import static com.ecg.comaas.mp.filter.volume.VolumeFilter.wasPreviousMessageBySameUserDroppedOrHeld;
+import static com.ecg.replyts.core.api.model.conversation.FilterResultState.*;
+import static com.ecg.replyts.core.api.model.conversation.MessageDirection.BUYER_TO_SELLER;
+import static com.ecg.replyts.core.api.model.conversation.MessageDirection.SELLER_TO_BUYER;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.inOrder;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 public class VolumeFilterTest {
     private static final String BUYER_ID = "buyer@mail.com";
@@ -68,13 +59,6 @@ public class VolumeFilterTest {
     }
 
     @Test
-    public void filterDoesNotRecordReplies() throws Exception {
-        setUpTwoMailsInConversation();
-        volumeFilter.filter(messageProcessingContext);
-        verify(vts, never()).record(BUYER_ID, TTL);
-    }
-
-    @Test
     public void filterReturnsEmptyListIfNoRuleIsViolated() throws Exception {
         setUpFirstMailInConversation();
         List<FilterFeedback> filterFeedbacks = volumeFilter.filter(messageProcessingContext);
@@ -93,7 +77,7 @@ public class VolumeFilterTest {
         assertThat(filterFeedback.getUiHint(), is("bla@bla.com>100 mails/1 HOURS +200"));
         assertThat(filterFeedback.getDescription(), is("bla@bla.com sent more than 100 mails the last 1 HOURS"));
         assertThat(filterFeedback.getScore(), is(200));
-        assertThat(filterFeedback.getResultState(), is(FilterResultState.OK));
+        assertThat(filterFeedback.getResultState(), is(OK));
 
         verify(vts).count(BUYER_ID, SECONDS_FOR_RULE1);
         verify(vts, never()).count(BUYER_ID, SECONDS_FOR_RULE2);
@@ -110,7 +94,7 @@ public class VolumeFilterTest {
 
     private void setUpFirstMailInConversation() {
         when(message.getId()).thenReturn("message-1");
-        when(message.getMessageDirection()).thenReturn(MessageDirection.BUYER_TO_SELLER);
+        when(message.getMessageDirection()).thenReturn(BUYER_TO_SELLER);
         when(conversation.getMessages()).thenReturn(singletonList(message));
         when(conversation.getUserId(ConversationRole.Buyer)).thenReturn(BUYER_ID);
         when(mail.getFrom()).thenReturn("bla@bla.com");
@@ -119,7 +103,7 @@ public class VolumeFilterTest {
     private void setUpTwoMailsInConversation() {
         when(firstMessage.getId()).thenReturn("message-1");
         when(message.getId()).thenReturn("message-2");
-        when(message.getMessageDirection()).thenReturn(MessageDirection.BUYER_TO_SELLER);
+        when(message.getMessageDirection()).thenReturn(BUYER_TO_SELLER);
         when(conversation.getMessages()).thenReturn(asList(firstMessage, message));
         when(conversation.getUserId(ConversationRole.Buyer)).thenReturn(BUYER_ID);
         when(mail.getFrom()).thenReturn("bla@bla.com");
@@ -131,5 +115,34 @@ public class VolumeFilterTest {
         when(messageProcessingContext.getMessage()).thenReturn(message);
         when(messageProcessingContext.getMail()).thenReturn(Optional.of(mail));
         return messageProcessingContext;
+    }
+
+    private static final String BUYER_UID = "Mr.Baddie";
+    private static final String SELLER_UID = "Mr.Awesome";
+
+    @Test
+    public void testWasPreviousMessageBySameUserDroppedOrHeld() {
+        assertFalse(wasPreviousMessageBySameUserDroppedOrHeld(conversation(), BUYER_UID));
+        assertFalse(wasPreviousMessageBySameUserDroppedOrHeld(conversation(message(OK, BUYER_TO_SELLER)), BUYER_UID));
+        assertTrue(wasPreviousMessageBySameUserDroppedOrHeld(conversation(message(DROPPED, BUYER_TO_SELLER)), BUYER_UID));
+        assertTrue(wasPreviousMessageBySameUserDroppedOrHeld(conversation(message(HELD, BUYER_TO_SELLER)), BUYER_UID));
+        assertFalse(wasPreviousMessageBySameUserDroppedOrHeld(conversation(message(HELD, BUYER_TO_SELLER), message(OK, BUYER_TO_SELLER)), BUYER_UID));
+        assertFalse(wasPreviousMessageBySameUserDroppedOrHeld(conversation(message(OK, BUYER_TO_SELLER), message(HELD, SELLER_TO_BUYER)), BUYER_UID));
+        assertTrue(wasPreviousMessageBySameUserDroppedOrHeld(conversation(message(HELD, BUYER_TO_SELLER), message(OK, SELLER_TO_BUYER)), BUYER_UID));
+    }
+
+    private static Message message(FilterResultState state, MessageDirection direction) {
+        Message m = mock(Message.class);
+        when(m.getFilterResultState()).thenReturn(state);
+        when(m.getMessageDirection()).thenReturn(direction);
+        return m;
+    }
+
+    private static Conversation conversation(Message... messages) {
+        Conversation c = mock(Conversation.class);
+        when(c.getMessages()).thenReturn(Arrays.asList(messages));
+        when(c.getUserId(ConversationRole.Buyer)).thenReturn(BUYER_UID);
+        when(c.getUserId(ConversationRole.Seller)).thenReturn(SELLER_UID);
+        return c;
     }
 }

@@ -27,8 +27,17 @@ void packageComaas(String tenant, String version) {
 def uploadToSwift(String tenant, String version, String pwd, String retentionDays) {
     echo "Uploading Comaas for $tenant with version $version to Swift (from $pwd)"
 
-    withCredentials([[$class          : 'UsernamePasswordMultiBinding', credentialsId: 'swift',
-                      usernameVariable: 'SWIFT_USER', passwordVariable: 'SWIFT_PASS']]) {
+    def secrets = [
+            [
+                    $class      : 'VaultSecret',
+                    path        : 'secret/nomad/control/swift',
+                    secretValues: [
+                            [$class: 'VaultSecretValue', envVar: 'SWIFT_USER', vaultKey: 'username'],
+                            [$class: 'VaultSecretValue', envVar: 'SWIFT_PASS', vaultKey: 'password']
+                    ],
+            ],
+    ]
+    wrap([$class: 'VaultBuildWrapper', vaultSecrets: secrets]) {
         final String file = "comaas-${tenant}_${version}.tar.gz"
         final String target = "${tenant}/builds/${file}"
 

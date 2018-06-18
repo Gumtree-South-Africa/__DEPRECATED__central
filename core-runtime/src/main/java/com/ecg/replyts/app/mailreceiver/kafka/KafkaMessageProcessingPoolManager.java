@@ -32,6 +32,12 @@ public class KafkaMessageProcessingPoolManager extends MessageProcessingPoolMana
     @Value("${kafka.message.processing.enabled:true}")
     private boolean messageProcessingEnabled;
 
+    @Value("${kafka.new.message.processing.timeout.ms:30000}")
+    private long newMessageProcessingTimeoutMs;
+    //message processing timeout + message cancellation timeout should be less that kafka rebalancing timeout kafka.core.max.poll.interval.ms
+    @Value("${kafka.new.message.task.cancellation.timeout.ms:60000}")
+    private long newMessageTaskCancellationTimeoutMs;
+
     @Autowired
     private MessageProcessingCoordinator messageProcessingCoordinator;
 
@@ -70,7 +76,7 @@ public class KafkaMessageProcessingPoolManager extends MessageProcessingPoolMana
     private KafkaNewMessageProcessor createNewMessageConsumer() {
         return new KafkaNewMessageProcessor(messageProcessingCoordinator, queueService, kafkaMessageConsumerFactory,
                 retryOnFailedMessagePeriodMinutes, maxRetries, shortTenant,
-                mutableConversationRepository, processingContextFactory, userIdentifierService);
+                mutableConversationRepository, processingContextFactory, userIdentifierService, newMessageProcessingTimeoutMs, newMessageTaskCancellationTimeoutMs);
     }
 
     private KafkaRetryMessageProcessor createRetryMessageConsumer() {
