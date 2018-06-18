@@ -3,7 +3,7 @@ instances:
   lp: 2
   prod:
     http:
-      ebayk: 12
+      ebayk: 10
       gtau: 6
       gtuk: 6
       it: 3
@@ -15,7 +15,7 @@ instances:
       mx: 3
       za: 3
     newmsg:
-      ebayk: 54
+      ebayk: 10
       gtau: 6
       gtuk: 6
       it: 3
