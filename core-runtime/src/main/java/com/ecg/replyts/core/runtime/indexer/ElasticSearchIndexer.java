@@ -25,34 +25,25 @@ public class ElasticSearchIndexer {
     private static final Logger LOG = LoggerFactory.getLogger(ElasticSearchIndexer.class);
 
     private static final Timer INDEX_TIMER = TimingReports.newTimer("indexer.streaming-conversation-index-timer");
-
     private final AtomicLong submittedConvCounter = new AtomicLong(0);
-
+    private final CurrentClock clock = new CurrentClock();
     @Autowired
     private ConversationRepository conversationRepository;
-
     @Autowired
     private Conversation2Kafka conversation2Kafka;
-
     @Value("${replyts.indexer.streaming.threadcount:32}")
     private int threadCount;
-
     @Value("${replyts.indexer.streaming.queue.size:5000}")
     private int workQueueSize;
-
     @Value("${replyts.indexer.streaming.conversationid.buffer.size:10000}")
     private int convIdDedupBufferSize;
-
     @Value("${replyts.indexer.streaming.timeout.sec:65}")
     private int taskCompletionTimeoutSec;
-
     @Value("${replyts.maxConversationAgeDays:180}")
     private int maxAgeDays;
-
     private CompletionService completionService;
     private ExecutorService executorService;
     private ThreadPoolExecutor executor;
-    private final CurrentClock clock = new CurrentClock();
 
     @PostConstruct
     public void initialize() {
@@ -69,7 +60,7 @@ public class ElasticSearchIndexer {
         executorService.shutdown();
         try {
             LOG.info("Indexing terminating due to shutdown");
-            if (!executorService.awaitTermination(10, TimeUnit.SECONDS)) {
+            if (!executorService.awaitTermination(taskCompletionTimeoutSec, TimeUnit.SECONDS)) {
                 LOG.warn("Some of the thread haven't completed during the graceful period, going to interrupt them...");
             }
             executorService.shutdownNow();
@@ -82,8 +73,8 @@ public class ElasticSearchIndexer {
 
     public void doIndexBetween(DateTime dateFrom, DateTime dateTo) {
         LOG.info("Started indexing between {} and {}", dateFrom, dateTo);
-        cleanExecutor();
-        indexConversations(conversationRepository.streamConversationsModifiedBetween(dateFrom, dateTo));
+        this.cleanExecutor();
+        this.indexConversations(conversationRepository.streamConversationsModifiedBetween(dateFrom, dateTo));
 
         LOG.info("Indexing completed. Total {} conversations, {} fetched documents", submittedConvCounter.get(), conversation2Kafka.fetchedConvCounter.get());
 
@@ -110,7 +101,7 @@ public class ElasticSearchIndexer {
                     completionService.submit(() -> conversation2Kafka.updateElasticSearch(id), id);
 
                     if (submittedConvCounter.get() % convIdDedupBufferSize == 0) {
-                        removeCompleted();
+                        this.removeCompleted();
                         uniqueConvIds.clear();
                     }
 
@@ -119,12 +110,12 @@ public class ElasticSearchIndexer {
                 LOG.debug("Duplicate id {}, skipping", id);
             }
         });
-        awaitCompletion(taskCompletionTimeoutSec, TimeUnit.SECONDS);
+        this.awaitCompletion(taskCompletionTimeoutSec, TimeUnit.SECONDS);
         LOG.info("Indexing complete, total conversation indexed {}", submittedConvCounter.get());
     }
 
     private void removeCompleted() {
-        awaitCompletion(0, TimeUnit.SECONDS);
+        this.awaitCompletion(0, TimeUnit.SECONDS);
     }
 
     private void awaitCompletion(int taskCompletionTimeoutSec, TimeUnit timeUnit) {
@@ -146,11 +137,11 @@ public class ElasticSearchIndexer {
     }
 
     public void fullIndex() {
-        doIndexBetween(startTimeForFullIndex(), DateTime.now());
+        this.doIndexBetween(this.startTimeForFullIndex(), DateTime.now());
     }
 
     public void indexSince(DateTime since) {
-        doIndexBetween(since, DateTime.now());
+        this.doIndexBetween(since, DateTime.now());
     }
 
     DateTime startTimeForFullIndex() {
