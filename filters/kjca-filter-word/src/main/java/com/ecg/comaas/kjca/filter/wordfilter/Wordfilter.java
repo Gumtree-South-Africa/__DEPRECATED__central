@@ -5,6 +5,7 @@ import com.ecg.comaas.core.filter.activable.Activation;
 import com.ecg.replyts.core.api.model.conversation.FilterResultState;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;
+import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.google.common.collect.ImmutableList;
@@ -82,8 +83,15 @@ class Wordfilter extends ActivableFilter {
     }
 
     private String getProcessText(MessageProcessingContext messageProcessingContext) {
-        return messageProcessingContext.getMail().get().getSubject()
+        return getSubject(messageProcessingContext)
                 + " " + messageProcessingContext.getMessage().getPlainTextBody();
+    }
+
+    private String getSubject(MessageProcessingContext messageProcessingContext) {
+        return messageProcessingContext
+                .getMail()
+                .map(Mail::getSubject)
+                .orElse(""); //TODO: Fix conversation created event to include metadata which has the email subject COMAAS-1149
     }
 
     private List<FilterFeedback> filterByPatterns(String processText, MessageProcessingContext context, Optional<String> conversationCategoryId) {

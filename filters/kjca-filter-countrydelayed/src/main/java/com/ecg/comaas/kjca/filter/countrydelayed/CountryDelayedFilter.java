@@ -3,8 +3,8 @@ package com.ecg.comaas.kjca.filter.countrydelayed;
 import com.ecg.comaas.kjca.coremod.shared.BoxHeaders;
 import com.ecg.comaas.kjca.coremod.shared.TnsApiClient;
 import com.ecg.replyts.core.api.model.conversation.FilterResultState;
-import com.ecg.replyts.core.api.pluginconfiguration.filter.Filter;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
+import com.ecg.replyts.core.api.pluginconfiguration.filter.IpFilter;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang3.StringUtils;
@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 import java.util.Map;
 
-public class CountryDelayedFilter implements Filter {
+public class CountryDelayedFilter implements IpFilter {
 
     private static final Logger LOG = LoggerFactory.getLogger(CountryDelayedFilter.class);
 
@@ -30,7 +30,7 @@ public class CountryDelayedFilter implements Filter {
 
     @Override
     public List<FilterFeedback> filter(MessageProcessingContext context) {
-        String ipAddress = context.getMail().get().getUniqueHeader(BoxHeaders.SENDER_IP_ADDRESS.getHeaderName());
+        String ipAddress = getIp(context, BoxHeaders.SENDER_IP_ADDRESS.getHeaderName());
 
         if (StringUtils.isBlank(ipAddress)) {
             LOG.trace("IP Address is empty -- not scoring");

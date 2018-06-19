@@ -34,6 +34,9 @@ public class MessageBodyAnonymizer implements PostProcessor {
 
     @Override
     public void postProcess(MessageProcessingContext context) {
+        if (!context.getMail().isPresent()) {
+            return;
+        }
         if (!AddresserUtil.shouldAnonymizeConversation(context.getConversation())) {
             LOG.debug("Anonymization is off. Skipping.");
             return;

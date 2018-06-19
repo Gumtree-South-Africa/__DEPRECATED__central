@@ -6,6 +6,7 @@ import com.ecg.replyts.core.api.model.conversation.FilterResultState;
 import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
+import com.google.common.collect.ImmutableMap;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -84,7 +85,7 @@ public class IpBlockedFilterTest {
 
     @Test
     public void whenTnsApiReturnsTrue_shouldReturnFeedback() {
-        when(mailMock.getUniqueHeader(SENDER_IP_ADDRESS.getHeaderName())).thenReturn(IP_ADDRESS);
+        when(mailMock.getUniqueHeaders()).thenReturn(ImmutableMap.of(SENDER_IP_ADDRESS.getHeaderName(), IP_ADDRESS));
         when(tnsApiClientMock.getJsonAsMap(anyString())).thenReturn(Collections.singletonMap(IpBlockedFilter.IS_BLOCKED_KEY, Boolean.TRUE));
 
         List<FilterFeedback> actualFeedback = objectUnderTest.filter(messageContextMock);
