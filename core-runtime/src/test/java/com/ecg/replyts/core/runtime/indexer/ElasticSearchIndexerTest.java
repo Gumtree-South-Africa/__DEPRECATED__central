@@ -30,7 +30,7 @@ import static org.mockito.Mockito.*;
 @RunWith(MockitoJUnitRunner.class)
 public class ElasticSearchIndexerTest {
 
-    private final int MAX_AGE_DAYS = 180;
+    private final int MAX_AGE_DAYS = 1;
     private final DateTime NOW = DateTime.now();
     private ExecutorService executorService;
     @Mock
@@ -51,6 +51,8 @@ public class ElasticSearchIndexerTest {
         ReflectionTestUtils.setField(elasticSearchIndexer, "executorService", executorService);
         ReflectionTestUtils.setField(elasticSearchIndexer, "completionService", completionService);
         ReflectionTestUtils.setField(elasticSearchIndexer, "taskCompletionTimeoutSec", 2);
+        ReflectionTestUtils.setField(elasticSearchIndexer, "maxRetriesOnFailure", 1);
+
         ReflectionTestUtils.setField(elasticSearchIndexer, "maxAgeDays", MAX_AGE_DAYS);
         ReflectionTestUtils.setField(elasticSearchIndexer, "convIdDedupBufferSize", 100);
         ReflectionTestUtils.setField(elasticSearchIndexer, "clock", new CurrentClock());
@@ -87,24 +89,33 @@ public class ElasticSearchIndexerTest {
         verify(conversation2Kafka, times(3)).updateElasticSearch(anyString());
     }
 
-
     @Test
     public void indexBetween() {
         DateTime FROM = DateTime.now().minusDays(1);
-        final List<String> CONV_IDS = Lists.newArrayList("foo4", "foo5", "foo6");
-        when(conversationRepository.streamConversationsModifiedBetween(FROM, NOW)).thenReturn(CONV_IDS.stream());
-        elasticSearchIndexer.doIndexBetween(FROM, NOW);
 
-        verify(conversation2Kafka, times(CONV_IDS.size())).updateElasticSearch(anyString());
+        final List<String> CONV_IDS = Lists.newArrayList("foo4", "foo5", "foo6");
+        List<ElasticSearchIndexer.TimeIntervalPair> intervals = elasticSearchIndexer.getTimeIntervals(FROM, NOW);
+        for (ElasticSearchIndexer.TimeIntervalPair interval : intervals) {
+            when(conversationRepository.streamConversationsModifiedBetween(interval.startInterval, interval.endInterval)).thenReturn(CONV_IDS.stream());
+        }
+
+        elasticSearchIndexer.doIndexBetween(FROM, NOW);
+        verify(conversation2Kafka, times(CONV_IDS.size() * intervals.size())).updateElasticSearch(anyString());
     }
 
     @Test
-    public void fullReindex() {
-        final List<String> CONV_IDS = Lists.newArrayList("foo7", "foo8", "foo9");
-        when(conversationRepository.streamConversationsModifiedBetween(any(DateTime.class), any(DateTime.class))).thenReturn(CONV_IDS.stream());
-        elasticSearchIndexer.fullIndex();
+    public void testGetTimeIntervalPairs() {
+        DateTime NOW = DateTime.now();
+        DateTime dateTo = NOW;
+        DateTime dateFrom = NOW.minusDays(5);
 
-        verify(conversation2Kafka, times(CONV_IDS.size())).updateElasticSearch(anyString());
+        List<ElasticSearchIndexer.TimeIntervalPair> timeIntervalPairs = elasticSearchIndexer.getTimeIntervals(dateFrom, dateTo);
+        ElasticSearchIndexer.TimeIntervalPair firstPair = timeIntervalPairs.get(0);
+        ElasticSearchIndexer.TimeIntervalPair lastPair = timeIntervalPairs.get(timeIntervalPairs.size() - 1);
+
+        Assert.assertEquals(dateFrom, firstPair.startInterval);
+        Assert.assertEquals(dateTo, lastPair.endInterval);
+
     }
 
     @Test
