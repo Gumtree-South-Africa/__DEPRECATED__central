@@ -7,6 +7,7 @@ import com.ecg.messagebox.model.PostBox;
 import com.ecg.messagebox.service.CassandraPostBoxService;
 import com.ecg.messagecenter.core.persistence.simple.SimplePostBoxRepository;
 import com.ecg.messagecenter.kjca.webapi.responses.PostBoxSingleConversationThreadResponse;
+import com.ecg.replyts.core.api.model.conversation.MutableConversation;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.identifier.UserIdentifierService;
@@ -26,6 +27,7 @@ import java.util.Collections;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 @Component
@@ -40,6 +42,8 @@ public class WebApiSyncService {
     private final BlockService blockService;
     private final BlockUserRepository blockUserRepository;
     private final ConversationService conversationService;
+    private final ConversationRepository conversationRepository;
+    private final UserIdentifierService userIdentifierService;
     private final CassandraPostBoxService postBoxService;
     private final PostBoxSyncService postBoxSyncService;
     private final ExecutorService oldExecutor;
@@ -67,6 +71,8 @@ public class WebApiSyncService {
         this.blockUserRepository = blockUserRepository;
         this.conversationService = conversationService;
         this.postBoxService = postBoxService;
+        this.conversationRepository = conversationRepository;
+        this.userIdentifierService = userIdentifierService;
         this.postBoxSyncService = new PostBoxSyncService(conversationRepository, userIdentifierService, session, postBoxRepository);
         this.messagesLimit = messagesLimit;
         this.oldExecutor = customExecutorsFactory.webApiExecutorService("old-webapi-executor");
@@ -102,46 +108,57 @@ public class WebApiSyncService {
     }
 
     public boolean blockConversation(String email, String conversationId) {
-        CompletableFuture<Void> newModelFuture = CompletableFuture
-                .supplyAsync(() -> postBoxSyncService.getUserId(email, Collections.singletonList(conversationId)), newExecutor)
-                .thenAccept(userId -> blockUserRepository.blockUser(email, conversationId))
-                .exceptionally(handleOpt(newModelFailureCounter, "New Block User Failed - email: " + email + " conversation: " + conversationId));
+        try {
+            processWithIdentities((blocker, blockie) -> blockUserRepository.blockUser(blocker, blockie), conversationId, email);
+        } catch (UserIdNotFoundException ex) {
+            LOG.warn("V2 Migration: " + ex.getMessage(), ex.getCause());
+            return false;
+        } catch (Exception ex) {
+            LOG.error("V2 Migration: " + ex.getMessage(), ex);
+            return false;
+        } finally {
+            blockService.blockConversation(email, conversationId);
+        }
 
-        CompletableFuture<Boolean> oldModelFuture = CompletableFuture
-                .supplyAsync(() -> blockService.blockConversation(email, conversationId), oldExecutor)
-                .exceptionally(postBoxSyncService.handle(oldModelFailureCounter, "Old Block User Failed - email: " + email));
-
-        CompletableFuture.allOf(newModelFuture, oldModelFuture).join();
-        return oldModelFuture.join();
+        return true;
     }
 
     public boolean unblockConversation(String email, String conversationId) {
-        CompletableFuture<Void> newModelFuture = CompletableFuture
-                .supplyAsync(() -> postBoxSyncService.getUserId(email, Collections.singletonList(conversationId)), newExecutor)
-                .thenAccept(userId -> blockUserRepository.unblockUser(email, conversationId))
-                .exceptionally(handleOpt(newModelFailureCounter, "New Unblock User Failed - email: " + email + " conversation: " + conversationId));
+        try {
+            processWithIdentities((blocker, blockie) -> blockUserRepository.unblockUser(blocker, blockie), conversationId, email);
+        } catch (UserIdNotFoundException ex) {
+            LOG.warn("V2 Migration: " + ex.getMessage(), ex.getCause());
+            return false;
+        } catch (Exception ex) {
+            LOG.error("V2 Migration: " + ex.getMessage(), ex);
+            return false;
+        } finally {
+            blockService.unblockConversation(email, conversationId);
+        }
 
-        CompletableFuture<Boolean> oldModelFuture = CompletableFuture
-                .supplyAsync(() -> blockService.unblockConversation(email, conversationId), oldExecutor)
-                .exceptionally(postBoxSyncService.handle(oldModelFailureCounter, "Old Unblock User Failed - email: " + email));
-
-        CompletableFuture.allOf(newModelFuture, oldModelFuture).join();
-        return oldModelFuture.join();
+        return true;
     }
 
-    private Function<Throwable, Void> handleOpt(Counter errorCounter, String errorMessage) {
-        return ex -> {
-            if (ex.getCause() instanceof UserIdNotFoundException) {
-                UserIdNotFoundException userEx = (UserIdNotFoundException) ex.getCause();
-                if (userEx.isLoggable()) {
-                    LOG.warn("V2 Migration: " + ex.getMessage(), ex.getCause());
-                }
-                return null;
-            } else {
-                errorCounter.inc();
-                LOG.error(errorMessage, ex);
-                throw new RuntimeException(ex);
-            }
-        };
+    private void processWithIdentities(BiConsumer<String, String> consumer, String conversationId, String email) {
+        MutableConversation conversation = conversationRepository.getById(conversationId);
+        if (conversation == null) {
+            throw new UserIdNotFoundException("Conversation Event not found, e-mail: " + email + ", conversation: " + conversationId);
+        }
+
+        // Store user-id first (if it founds) otherwise use email
+        // it cannot be changed because there is no other way how to
+        // inject user-id into conversation with a new message
+
+        String buyer = userIdentifierService.getBuyerUserId(conversation)
+                .orElse(conversation.getBuyerId());
+
+        String seller = userIdentifierService.getSellerUserId(conversation)
+                .orElse(conversation.getSellerId());
+
+        if (conversation.getBuyerId().equalsIgnoreCase(email)) {
+            consumer.accept(buyer, seller);
+        } else {
+            consumer.accept(seller, buyer);
+        }
     }
 }
