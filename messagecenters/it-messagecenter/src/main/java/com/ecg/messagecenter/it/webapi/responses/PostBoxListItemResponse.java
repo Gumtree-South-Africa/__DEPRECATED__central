@@ -90,6 +90,10 @@ public class PostBoxListItemResponse {
     }
 
     private void logConversationThread(ConversationThread conversationThread) {
+        if (!LOG.isDebugEnabled()) {
+            return;
+        }
+
         try {
             LOG.debug("ConversationThread: " + new ObjectMapper()
                             .writeValueAsString(conversationThread));
@@ -110,8 +114,12 @@ public class PostBoxListItemResponse {
     }
 
     private void logConversation(Conversation conversation) {
+        if (!LOG.isDebugEnabled()) {
+            return;
+        }
+
         try {
-            LOG.debug("Convesation: " + new ObjectMapper().writeValueAsString(conversation));
+            LOG.debug("Conversation: " + new ObjectMapper().writeValueAsString(conversation));
         } catch (Exception e) {
             LOG.debug(e.getMessage(), e);
         }
