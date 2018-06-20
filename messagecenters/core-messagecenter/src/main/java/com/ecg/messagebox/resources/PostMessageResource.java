@@ -137,8 +137,8 @@ public class PostMessageResource {
 
         NewConversationCommand newConversationBuilderCommand = aNewConversationCommand(Guids.next())
                 .withAdId(adId)
-                .withBuyer(buyer.getUserId(), uniqueConversationSecret.nextSecret())
-                .withSeller(seller.getUserId(), uniqueConversationSecret.nextSecret())
+                .withBuyer(buyer.getEmail(), uniqueConversationSecret.nextSecret())
+                .withSeller(seller.getEmail(), uniqueConversationSecret.nextSecret())
                 .withCustomValues(customValues)
                 .build();
 

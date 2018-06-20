@@ -28,14 +28,23 @@ public class IdBasedConversationResumer extends ConversationResumer {
 
         Map<String, String> headers = mail.getCustomHeaders();
         String buyerAddress = Optional.ofNullable(mail.getReplyTo()).orElse(mail.getFrom());
+        String sellerAddress = mail.getDeliveredTo();
         String buyerId = userIdentifierService.getBuyerUserId(headers).orElse(buyerAddress);
-        String sellerId = userIdentifierService.getSellerUserId(headers).orElse(mail.getDeliveredTo());
+        String sellerId = userIdentifierService.getSellerUserId(headers).orElse(sellerAddress);
 
         ConversationIndexKey indexKeyBuyerToSeller = new ConversationIndexKey(buyerId, sellerId, mail.getAdId());
         ConversationIndexKey indexKeySellerToBuyer = new ConversationIndexKey(sellerId, buyerId, mail.getAdId());
 
+        ConversationIndexKey indexKeyBuyerToSellerEmail = new ConversationIndexKey(buyerAddress, sellerAddress, mail.getAdId());
+        ConversationIndexKey indexKeySellerToBuyerEmail = new ConversationIndexKey(sellerAddress, buyerAddress, mail.getAdId());
+
         return tryResume(repository, context, MessageDirection.BUYER_TO_SELLER, indexKeyBuyerToSeller)
-            || tryResume(repository, context, MessageDirection.SELLER_TO_BUYER, indexKeySellerToBuyer);
+                || tryResume(repository, context, MessageDirection.SELLER_TO_BUYER, indexKeySellerToBuyer)
+
+//                when tenant switched from email based conversation id to userid based conversation id, we need to check for existing conversation which were email based before the switch
+                || tryResume(repository, context, MessageDirection.BUYER_TO_SELLER, indexKeyBuyerToSellerEmail)
+                || tryResume(repository, context, MessageDirection.SELLER_TO_BUYER, indexKeySellerToBuyerEmail)
+                ;
     }
 
     @Override
