@@ -7,8 +7,6 @@ import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.workers.InstrumentedCallerRunsPolicy;
 import com.ecg.replyts.core.runtime.workers.InstrumentedExecutorService;
 import org.joda.time.DateTime;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -81,7 +79,8 @@ public class ElasticSearchIndexer {
     public void doIndexBetween(DateTime dateFrom, DateTime dateTo) {
         LOG.info("Started indexing between {} and {}", dateFrom, dateTo);
         this.cleanExecutor();
-        List<TimeIntervalPair> pairs = this.getTimeIntervals(dateFrom, dateTo);
+        /*
+        List<TimeIntervalPair> pairs = this.getTimeIntervals(dateFrom, dateTo);s
         int intervalCount = 0;
 
         for (TimeIntervalPair timeInterval : pairs) {
@@ -107,7 +106,8 @@ public class ElasticSearchIndexer {
             }
             LOG.info("Completed indexing of time interval {} out of {}", intervalCount, pairs.size());
         }
-
+   */
+        this.indexConversations(conversationRepository.streamConversationsModifiedBetween(dateFrom, dateTo));
         LOG.info("Indexing completed. Total {} conversations, {} fetched documents, from {} to {}",
                 submittedConvCounter.get(), conversation2Kafka.fetchedConvCounter.get(),
                 dateFrom, dateTo);
