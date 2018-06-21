@@ -20,48 +20,43 @@ import static org.apache.kafka.clients.producer.ProducerConfig.*;
 public class KafkaProducerConfigBuilder<K, V> {
 
     private static final Logger LOG = LoggerFactory.getLogger(KafkaProducerConfigBuilder.class);
-
+    private final KafkaProducerConfig pconfig = new KafkaProducerConfig();
     @Value("${kafka.core.servers}")
     private String servers;
-
     @Value("${kafka.core.key.serializer:org.apache.kafka.common.serialization.StringSerializer}")
     private String keySerializer;
-
     @Value("${kafka.core.value.serializer:org.apache.kafka.common.serialization.ByteArraySerializer}")
     private String valueSerializer;
-
     @Value("${kafka.core.compressionType:none}")
     private String compressionType;
-
     @Value("${kafka.core.retries:1}")
     private int retries;
 
-    // This parameter controls the amount of memory in bytes (not messages!) that will be used for each batch.
-    @Value("${kafka.core.batch.size:5000000}")
-    private int batchSize;
+    //The total bytes of memory the producer can use to buffer records waiting to be sent to the server. If records are sent faster
+    // than they can be delivered to the server the producer will block for <code>max.block.ms</code> after which it will throw an exception.
+    // <p>This setting should correspond roughly to the total memory the producer will use, but is not a hard bound since not all memory the producer uses is used for buffering.
+    // Some additional memory will be used for compression (if compression is enabled) as well as for maintaining in-flight requests.
+    @Value("${kafka.core.buffer.memory:200000000}")
+    private int bufferMemory;
 
+    // This parameter controls the amount of memory in bytes (not messages!) that will be used for each batch. This value is per partition
+    @Value("${kafka.core.batch.size:2000000}")
+    private int batchSize;
     // The acks parameter controls how many partition replicas must receive the record before the producer can consider the write successful.
     @Value("${kafka.core.ack:1}")
     private String ack;
-
     @Value("${kafka.core.max.request.size:1000000}") // 1 mb
     private int maxRequestSize;
-
-    @Value("${kafka.core.max-in-flight-request-per-connection:10}")
+    @Value("${kafka.core.max-in-flight-request-per-connection:30}")
     private int maxInFlightPerConnection;
-
     @Value("${kafka.core.request.timeout.ms:10000}")
     private int storeTimeoutMs;
-
     // This setting gives the upper bound on the delay for batching: once we get batch.size worth of records for a partition it will be
     // sent immediately regardless of this setting, however if we have fewer than this many bytes accumulated for this partition we will 'linger'
     // for the specified time waiting for more records to show up. This setting defaults to 0 (i.e. no delay).
     @Value("${kafka.core.linger.ms:100}")
     private int lingerMs;
-
     private String topic;
-
-    private final KafkaProducerConfig pconfig = new KafkaProducerConfig();
 
     public KafkaProducerConfig getProducerConfig() {
         return pconfig;
@@ -96,6 +91,7 @@ public class KafkaProducerConfigBuilder<K, V> {
             return this;
         }
 
+
         public int getStoreTimeoutMs() {
             return storeTimeoutMs;
         }
@@ -122,6 +118,11 @@ public class KafkaProducerConfigBuilder<K, V> {
 
         public KafkaProducerConfig withRetries(int retriesVal) {
             retries = retriesVal;
+            return this;
+        }
+
+        public KafkaProducerConfig withBufferMemory(int bufferMemoryVal) {
+            bufferMemory = bufferMemoryVal;
             return this;
         }
 
@@ -165,6 +166,7 @@ public class KafkaProducerConfigBuilder<K, V> {
             configProperties.put(COMPRESSION_TYPE_CONFIG, compressionType);
             configProperties.put(RETRIES_CONFIG, retries);
             configProperties.put(BATCH_SIZE_CONFIG, batchSize);
+            configProperties.put(BUFFER_MEMORY_CONFIG, bufferMemory);
             configProperties.put(ACKS_CONFIG, ack);
             configProperties.put(MAX_REQUEST_SIZE_CONFIG, maxRequestSize);
             configProperties.put(LINGER_MS_CONFIG, lingerMs);
@@ -192,6 +194,10 @@ public class KafkaProducerConfigBuilder<K, V> {
 
         public int getBatchSize() {
             return batchSize;
+        }
+
+        public int getBufferMemory() {
+            return bufferMemory;
         }
 
         public String getAck() {
