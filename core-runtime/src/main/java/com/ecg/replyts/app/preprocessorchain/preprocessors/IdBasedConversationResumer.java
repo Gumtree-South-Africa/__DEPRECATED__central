@@ -52,7 +52,7 @@ public class IdBasedConversationResumer extends ConversationResumer {
         return tryResume(repository, context, MessageDirection.BUYER_TO_SELLER, indexKeyBuyerToSeller)
                 || tryResume(repository, context, MessageDirection.SELLER_TO_BUYER, indexKeySellerToBuyer)
 
-                //when tenant switched from email based conversation id to userid based conversation id, we need to check for existing conversation which were email based before the switch
+                //When tenant switched from email based conversation id to userid based conversation id, we need to check for existing conversation which were email based before the switch
                 //TODO:[COMAAS-1163] Remove below 2 checks once all the emails are sent with id headers. We can check for above log messages
                 || tryResume(repository, context, MessageDirection.BUYER_TO_SELLER, indexKeyBuyerToSellerEmail)
                 || tryResume(repository, context, MessageDirection.SELLER_TO_BUYER, indexKeySellerToBuyerEmail)
