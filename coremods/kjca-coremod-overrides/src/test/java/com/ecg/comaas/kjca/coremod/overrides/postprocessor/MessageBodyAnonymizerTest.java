@@ -94,6 +94,7 @@ public class MessageBodyAnonymizerTest {
         messageBodyAnonymizer.postProcess(context);
 
         verify(context).getConversation();
+        verify(context).getMail();
         verifyNoMoreInteractions(outgoingMail, context, textAnonymizer);
     }
 

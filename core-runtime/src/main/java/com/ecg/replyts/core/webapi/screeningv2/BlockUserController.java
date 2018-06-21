@@ -8,10 +8,9 @@ import com.ecg.replyts.core.runtime.persistence.BlockUserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import static com.ecg.replyts.core.api.model.user.event.BlockAction.BLOCK_USER;
 import static com.ecg.replyts.core.api.model.user.event.BlockAction.UNBLOCK_USER;
@@ -19,7 +18,8 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE;
 import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
-@Controller
+@RestController
+@RequestMapping(value = "/block-users/{blockerId}/{blockeeId}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
 public class BlockUserController {
     private static final Logger LOG = LoggerFactory.getLogger(BlockUserController.class);
 
@@ -29,8 +29,7 @@ public class BlockUserController {
     @Autowired(required = false)
     private UserEventListener userEventListener;
 
-    @RequestMapping(value = "/block-users/{blockerId}/{blockeeId}", produces = APPLICATION_JSON_UTF8_VALUE, method = POST)
-    @ResponseBody
+    @PostMapping
     ResponseObject<?> blockUser(@PathVariable String blockerId, @PathVariable String blockeeId) {
         LOG.trace("Blocking user, blockerId: %s blockeeId: %s", blockerId, blockeeId);
 
@@ -43,8 +42,7 @@ public class BlockUserController {
         return ResponseObject.of(RequestState.OK);
     }
 
-    @RequestMapping(value = "/block-users/{blockerId}/{blockeeId}", produces = APPLICATION_JSON_UTF8_VALUE, method = DELETE)
-    @ResponseBody
+    @DeleteMapping
     ResponseObject<?> unblockUser(@PathVariable String blockerId, @PathVariable String blockeeId) {
         LOG.trace("Unblocking user, blockerId: %s blockeeId: %s", blockerId, blockeeId);
 
@@ -55,5 +53,10 @@ public class BlockUserController {
         }
 
         return ResponseObject.of(RequestState.OK);
+    }
+
+    @GetMapping
+    boolean isblocked(@PathVariable String blockerId, @PathVariable String blockeeId) {
+        return blockUserRepository.areUsersBlocked(blockerId, blockeeId);
     }
 }

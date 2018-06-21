@@ -2,6 +2,7 @@ package com.ecg.replyts.acceptance;
 
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import com.jayway.restassured.RestAssured;
+import org.hamcrest.Matchers;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -45,5 +46,28 @@ public class BlockUserControllerAcceptanceTest {
                 .expect()
                 .statusCode(200)
                 .delete("http://localhost:" + rule.getHttpPort() + "/screeningv2/block-users/u54231/u12562");
+    }
+
+    @Test
+    public void userIsNotBlocked() {
+        RestAssured
+                .expect()
+                .content(Matchers.is("false"))
+                .statusCode(200)
+                .get("http://localhost:" + rule.getHttpPort() + "/screeningv2/block-users/u54231/u12562");
+    }
+
+    @Test
+    public void userIsBlocked() {
+        RestAssured
+                .expect()
+                .statusCode(200)
+                .post("http://localhost:" + rule.getHttpPort() + "/screeningv2/block-users/u54231/u12562");
+
+        RestAssured
+                .expect()
+                .content(Matchers.is("true"))
+                .statusCode(200)
+                .get("http://localhost:" + rule.getHttpPort() + "/screeningv2/block-users/u54231/u12562");
     }
 }

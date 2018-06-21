@@ -46,6 +46,11 @@ public class Addresser implements PostProcessor {
     }
 
     @Override
+    public boolean isApplicable(MessageProcessingContext context) {
+        return context.getMail().isPresent();
+    }
+
+    @Override
     public void postProcess(MessageProcessingContext context) {
         Conversation convo = context.getConversation();
         Mail incomingMail = context.getMail().get();
