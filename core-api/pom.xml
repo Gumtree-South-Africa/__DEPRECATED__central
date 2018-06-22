@@ -102,7 +102,7 @@
             <plugin>
                 <groupId>com.github.os72</groupId>
                 <artifactId>protoc-jar-maven-plugin</artifactId>
-                <version>3.5.1.1</version>
+                <version>${maven-protoc-plugin.version}</version>
                 <configuration>
                     <includeStdTypes>true</includeStdTypes>
                     <includeDirectories>

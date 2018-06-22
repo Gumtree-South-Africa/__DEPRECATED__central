@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+package tns;
+
+option java_multiple_files = true;
+option java_package = "com.ecg.comaas.core.filter.remote.api";
+option java_outer_classname = "FilterProto";
+
+import "google/protobuf/timestamp.proto";
+
+service Filter {
+    rpc Apply (FilterRequest) returns (FilterResponse) {
+    }
+}
+
+message FilterRequest {
+    string correlationId = 1;
+    google.protobuf.Timestamp processing_deadline = 2;
+
+    string senderId = 3;
+    string receiverId = 4;
+    string conversationId = 5;
+    string messageId = 6;
+    string message = 7;
+    map<string, string> metadata = 8;
+}
+
+
+message FilterResponse {
+    int32 score = 1;
+    string description = 2;
+}
