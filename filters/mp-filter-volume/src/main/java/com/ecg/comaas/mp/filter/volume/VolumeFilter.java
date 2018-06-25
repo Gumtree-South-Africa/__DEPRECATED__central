@@ -5,6 +5,7 @@ import com.ecg.comaas.mp.filter.volume.persistence.VolumeFilterEventRepository;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.FilterResultState;
 import com.ecg.replyts.core.api.model.conversation.Message;
+import com.ecg.replyts.core.api.model.conversation.MessageState;
 import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.Filter;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
@@ -45,7 +46,7 @@ public class VolumeFilter implements Filter {
             return Collections.emptyList();
         }
 
-        if (!isFirstMailInConversation(conv, message) && !wasPreviousMessageBySameUserDroppedOrHeld(conv, extractFrom(message, conv))) {
+        if (!isFirstMailInConversation(conv, message) && !wasPreviousMessageBySameUserDroppedOrHeld(conv, extractFrom(message, conv), message.getId())) {
             return Collections.emptyList();
         }
 
@@ -57,8 +58,8 @@ public class VolumeFilter implements Filter {
             if (sentActually > rule.getMaxCount()) {
                 Optional<Mail> mail = context.getMail();
                 if (mail.isPresent()) {
-                    String uiHint = toUiHint(rule, mail.get().getFrom());
-                    String description = toDescription(rule, mail.get().getFrom());
+                    String uiHint = toUiHint(rule, mail.get().getReplyTo());
+                    String description = toDescription(rule, mail.get().getReplyTo());
                     return Collections.singletonList(new FilterFeedback(uiHint, description, rule.getScore(), FilterResultState.OK));
                 } else {
                     String uiHint = toUiHint(rule, userId);
@@ -87,18 +88,19 @@ public class VolumeFilter implements Filter {
     }
 
     @VisibleForTesting
-    static boolean wasPreviousMessageBySameUserDroppedOrHeld(Conversation conv, String userId) {
+    static boolean wasPreviousMessageBySameUserDroppedOrHeld(Conversation conv, String userId, String currentMessageId) {
         if (conv.getMessages() == null || conv.getMessages().size() == 0) {
             return false;
         }
         List<Message> messagesByUser = conv.getMessages().stream()
                 .filter(m -> userId.equals(extractFrom(m, conv)))
+                .filter(m -> !currentMessageId.equals(m.getId()))
                 .collect(Collectors.toList());
         if (messagesByUser.size() == 0) {
             return false;
         }
         Message lastMessage = Iterables.getLast(messagesByUser);
-        return EnumSet.of(FilterResultState.DROPPED, FilterResultState.HELD).contains(lastMessage.getFilterResultState());
+        return EnumSet.of(MessageState.BLOCKED, MessageState.HELD, MessageState.DISCARDED).contains(lastMessage.getState());
     }
 
     private void recordMessage(Message message, Conversation conversation) {
