@@ -46,7 +46,7 @@ public class VolumeFilter implements Filter {
             return Collections.emptyList();
         }
 
-        if (!isFirstMailInConversation(conv, message) && !wasPreviousMessageBySameUserDroppedOrHeld(conv, extractFrom(message, conv), message.getId())) {
+        if (!isFirstMailInConversation(conv, message) && !wasPreviousMessageBySameUserBad(conv, extractFrom(message, conv), message.getId())) {
             return Collections.emptyList();
         }
 
@@ -88,7 +88,7 @@ public class VolumeFilter implements Filter {
     }
 
     @VisibleForTesting
-    static boolean wasPreviousMessageBySameUserDroppedOrHeld(Conversation conv, String userId, String currentMessageId) {
+    static boolean wasPreviousMessageBySameUserBad(Conversation conv, String userId, String currentMessageId) {
         if (conv.getMessages() == null || conv.getMessages().size() == 0) {
             return false;
         }
