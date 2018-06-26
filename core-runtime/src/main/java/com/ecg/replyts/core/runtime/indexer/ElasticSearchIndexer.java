@@ -42,7 +42,7 @@ public class ElasticSearchIndexer {
     private int convIdDedupBufferSize;
     @Value("${replyts.indexer.timeout.sec:65}")
     private int taskCompletionTimeoutSec;
-    @Value("${replyts.indexer.onfailure.maxRetries:10}")
+    @Value("${replyts.indexer.onfailure.maxRetries:5}")
     private int maxRetriesOnFailure;
     @Value("${replyts.maxConversationAgeDays:180}")
     private int maxAgeDays;
@@ -58,6 +58,7 @@ public class ElasticSearchIndexer {
         executor = new ThreadPoolExecutor(threadCount, threadCount, 0, TimeUnit.SECONDS, workQueue, rejectionHandler);
         executorService = new InstrumentedExecutorService(executor, "indexer", ElasticSearchIndexer.class.getSimpleName());
         completionService = new ExecutorCompletionService(executorService);
+        LOG.info("Using java.util.concurrent.ForkJoinPool.common.parallelism={}", System.getProperty("java.util.concurrent.ForkJoinPool.common.parallelism"));
     }
 
     @PreDestroy
@@ -108,12 +109,10 @@ public class ElasticSearchIndexer {
         }
    */
         this.indexConversations(conversationRepository.streamConversationsModifiedBetween(dateFrom, dateTo));
-        LOG.info("Indexing completed. Total {} conversations, {} fetched documents, from {} to {}",
-                submittedConvCounter.get(), conversation2Kafka.fetchedConvCounter.get(),
-                dateFrom, dateTo);
+        LOG.info("Indexing completed. Total {} conversations from {} to {}",
+                submittedConvCounter.get(), dateFrom, dateTo);
 
         submittedConvCounter.set(0);
-        conversation2Kafka.fetchedConvCounter.set(0);
     }
 
     private void cleanExecutor() {

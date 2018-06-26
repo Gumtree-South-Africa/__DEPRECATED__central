@@ -9,25 +9,19 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicLong;
-
 @Component
 public class Conversation2Kafka {
 
     private static final Logger LOG = LoggerFactory.getLogger(Conversation2Kafka.class);
     private static final Timer FETCH_TIMER = TimingReports.newTimer("fetch-conversation");
-    final AtomicLong fetchedConvCounter = new AtomicLong(0);
-
+    
     @Autowired
     private DocumentSink documentSink;
     @Autowired
     private ConversationRepository conversationRepository;
 
     public void updateElasticSearch(String conversationId) {
-        Conversation conversation = fetchConversation(conversationId);
+        Conversation conversation = this.fetchConversation(conversationId);
         if(conversation!=null) {
             documentSink.sink(conversation);
         }
@@ -41,9 +35,6 @@ public class Conversation2Kafka {
                     conversation = conversationRepository.getById(conversationId);
                 } catch (Exception e) {
                     LOG.warn("Indexer could not load conversation '{}' from repository - skipping it", conversationId, e);
-                }
-                if (conversation != null) {
-                    fetchedConvCounter.incrementAndGet();
                 }
             return conversation;
         }

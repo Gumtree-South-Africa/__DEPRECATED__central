@@ -27,6 +27,10 @@ public class EsKafkaConfig {
     @Value("${kafka.es.batch.size:5000000}")
     private int batchSize;
 
+    // Sending in batch more efficiently
+    @Value("${kafka.es.buffer.memory:300000000}")
+    private int bufferMemory;
+
     @Bean
     KafkaProducerConfigBuilder<String, byte[]> defaultKafkaProducerConfig() {
         return new KafkaProducerConfigBuilder<>();
@@ -42,6 +46,7 @@ public class EsKafkaConfig {
                 .getProducerConfig()
                 .withMaxInFlightPerConnection(maxInFlightRequests)
                 .withBatchSize(batchSize)
+                .withBufferMemory(bufferMemory)
                 .withLingerMs(1000)
                 .withTopic(topic);
 

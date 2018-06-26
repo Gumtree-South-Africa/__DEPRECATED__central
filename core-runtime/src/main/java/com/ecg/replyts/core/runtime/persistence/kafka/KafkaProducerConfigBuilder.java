@@ -36,7 +36,7 @@ public class KafkaProducerConfigBuilder<K, V> {
     // than they can be delivered to the server the producer will block for <code>max.block.ms</code> after which it will throw an exception.
     // <p>This setting should correspond roughly to the total memory the producer will use, but is not a hard bound since not all memory the producer uses is used for buffering.
     // Some additional memory will be used for compression (if compression is enabled) as well as for maintaining in-flight requests.
-    @Value("${kafka.core.buffer.memory:200000000}")
+    @Value("${kafka.core.buffer.memory:100000000}")
     private int bufferMemory;
 
     // This parameter controls the amount of memory in bytes (not messages!) that will be used for each batch. This value is per partition
