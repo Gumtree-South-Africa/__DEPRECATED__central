@@ -9,8 +9,8 @@ variable vault_policy { default = "nomad-secret-readonly" }
 
 variable api_count { default = 3 }
 variable api_resources_cpu { default = 1500 }
-variable api_resources_mem { default = 4096 }
-variable api_heap_size { default = "2G" }
+variable api_resources_mem { default = 9096 }
+variable api_heap_size { default = "6G" }
 variable api_max_parallel { default = 1 }
 
 variable newmsg_count { default = 3 }
