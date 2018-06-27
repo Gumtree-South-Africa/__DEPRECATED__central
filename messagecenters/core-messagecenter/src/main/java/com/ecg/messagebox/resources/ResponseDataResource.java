@@ -54,6 +54,7 @@ public class ResponseDataResource {
             tags = "Conversations")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Success"),
+            @ApiResponse(code = 404, message = "Aggregation Response Data Not Found", response = ErrorResponse.class),
             @ApiResponse(code = 500, message = "Internal Error", response = ErrorResponse.class)
     })
     @GetMapping("/users/{userId}/aggregated-response-data")

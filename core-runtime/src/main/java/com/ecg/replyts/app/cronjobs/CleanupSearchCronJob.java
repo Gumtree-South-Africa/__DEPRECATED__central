@@ -27,11 +27,10 @@ public class CleanupSearchCronJob implements CronJobExecutor {
     public CleanupSearchCronJob(CleanupConfiguration config, MutableSearchService searchService) {
         this.config = config;
         this.searchService = searchService;
-        LOG.warn("Cronjob started");
     }
 
     @Override
-    public void execute() throws Exception {
+    public void execute() {
         LocalDate now = now();
         LocalDate deleteEverythingBefore = now.minusDays(config.getMaxConversationAgeDays());
 
