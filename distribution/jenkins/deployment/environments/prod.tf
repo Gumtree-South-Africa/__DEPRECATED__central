@@ -24,6 +24,7 @@ variable cronjob_resources_mem { default = 20480 }
 variable cronjob_heap_size { default = "16G" }
 
 variable restart_jenkins_job_nr { default = "none" }
+variable hazelcast_group_name { default = "dev" }
 
 variable filebeat_config {
     type = "string"

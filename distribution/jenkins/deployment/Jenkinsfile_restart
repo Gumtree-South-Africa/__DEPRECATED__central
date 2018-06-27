@@ -139,6 +139,8 @@ node("master") {
                             urlprefixes += ",\"urlprefix-au-rts2-api:8080/\",\"urlprefix-au-rts2-api.intern.gumtree.com.au:8080/\""
                         }
                     }
+    
+                    final String hazelcastGroupName = UUID.randomUUID().toString()
 
                     final String vars = "-var-file=/deployment/environments/${environment}.tf " +
                             "-var='version=${version}' " +
@@ -151,7 +153,8 @@ node("master") {
                             "-var='region=${dc}' " +
                             "-var='api_max_parallel=${maxParallelHttp}' " +
                             "-var='newmsg_max_parallel=${maxParallelNewMsg}' " +
-                            "-var='restart_jenkins_job_nr=${restartJenkinsJob}' "
+                            "-var='restart_jenkins_job_nr=${restartJenkinsJob}' " +
+                            "-var='hazelcast_group_name=${hazelcastGroupName}'"
                     final String levantCmd = "docker run --network host --rm -v \$(pwd)/distribution/jenkins/deployment/:/deployment:ro jrasell/levant:0.0.4 levant"
 
                     sh "$levantCmd render ${vars} /deployment/comaas.nomad"

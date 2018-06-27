@@ -50,6 +50,7 @@ job "comaas-[[ .tenant_short ]]" {
         JAVA_OPTS = ""
         TENANT = "[[ .tenant ]]"
         MAIL_PROVIDER_STRATEGY = "kafka"
+        HAZELCAST_GROUP_NAME = "[[.hazelcast_group_name]]"
       }
 
       service {
@@ -153,6 +154,7 @@ EOH
         HEAP_SIZE = "[[ .api_heap_size ]]"
         JAVA_OPTS = ""
         TENANT = "[[ .tenant ]]"
+        HAZELCAST_GROUP_NAME = "[[.hazelcast_group_name]]"
       }
 
       service {
@@ -261,6 +263,7 @@ EOH
         JAVA_OPTS = ""
         TENANT = "[[ .tenant ]]"
         COMAAS_RUN_CRON_JOBS = "true"
+        HAZELCAST_GROUP_NAME = "[[.hazelcast_group_name]]"
       }
 
       service {
