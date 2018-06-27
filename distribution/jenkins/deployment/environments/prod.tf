@@ -19,10 +19,9 @@ variable newmsg_resources_mem { default = 4096 }
 variable newmsg_heap_size { default = "3G" }
 variable newmsg_max_parallel { default = 1 }
 
-variable cronjob_count { default = 1 }
-variable cronjob_resources_cpu { default = 100 }
-variable cronjob_resources_mem { default = 1024 }
-variable cronjob_heap_size { default = "768M" }
+variable cronjob_resources_cpu { default = 4000 }
+variable cronjob_resources_mem { default = 20480 }
+variable cronjob_heap_size { default = "16G" }
 
 variable restart_jenkins_job_nr { default = "none" }
 
