@@ -203,12 +203,11 @@ void deployNomad(final String tenant, final String environment, final String ver
             }
         }
 
-        // temporarily disabling cronjob nodes for avoiding OOM errors, when switching on the cron jobs in nomad, remove the "-var='cronjob_count=${nrOfInstancesCron}' " + to use the default value
-        final Integer nrOfInstancesCron = 0
-
         // Have a maximum of 1/4th of the allocations restart at once, to reduce rebalancing load on Kafka
         final Integer maxParallelHttp = nrOfInstancesHttp.intdiv(4) <= 1 ? 1 : nrOfInstancesHttp.intdiv(4)
         final Integer maxParallelNewMsg = nrOfInstancesNewMsg.intdiv(4) <= 1 ? 1 : nrOfInstancesNewMsg.intdiv(4)
+
+        final String hazelcastGroupName = UUID.randomUUID().toString()
 
         final String vars = "-var-file=/deployment/environments/${environment}.tf " +
                 "-var='version=${version}' " +
@@ -223,7 +222,7 @@ void deployNomad(final String tenant, final String environment, final String ver
                 "-var='api_max_parallel=${maxParallelHttp}' " +
                 "-var='newmsg_count=${nrOfInstancesNewMsg}' " +
                 "-var='newmsg_max_parallel=${maxParallelNewMsg}' " +
-                "-var='cronjob_count=${nrOfInstancesCron}' "
+                "-var='hazelcast_group_name=${hazelcastGroupName}'"
         final String levantCmd = "docker run --network host --rm -v \$(pwd)/distribution/jenkins/deployment/:/deployment:ro jrasell/levant:0.0.4 levant"
 
         sh "$levantCmd render ${vars} /deployment/comaas.nomad"

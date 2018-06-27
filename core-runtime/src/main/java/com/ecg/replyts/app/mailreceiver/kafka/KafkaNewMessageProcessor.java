@@ -8,6 +8,7 @@ import com.ecg.replyts.core.api.model.conversation.MutableConversation;
 import com.ecg.replyts.core.api.model.conversation.command.AddMessageCommand;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.ecg.replyts.core.runtime.identifier.UserIdentifierService;
+import com.ecg.replyts.core.runtime.logging.MDCConstants;
 import com.ecg.replyts.core.runtime.mailparser.ParsingException;
 import com.ecg.replyts.core.runtime.persistence.conversation.MutableConversationRepository;
 import com.ecg.replyts.core.runtime.persistence.kafka.KafkaTopicService;
@@ -86,7 +87,7 @@ public class KafkaNewMessageProcessor extends KafkaMessageProcessor {
     protected void processMessage(Message message) {
         LOG.debug("Found a message in the incoming topic {}, tried so far: {} times", message.getCorrelationId(), message.getRetryCount());
 
-        Future<?> task = executor.submit(() -> {
+        Future<?> task = executor.submit(MDCConstants.setTaskFields(() -> {
             try {
                 chooseStrategyAndProcess(message);
             } catch (ParsingException e) {
@@ -94,7 +95,7 @@ public class KafkaNewMessageProcessor extends KafkaMessageProcessor {
             } catch (Exception e) {
                 retryOrAbandon(message, e);
             }
-        });
+        }, Thread.currentThread().getName() + "-tns"));
 
         try {
             task.get(messageProcessingTimeoutMs, TimeUnit.MILLISECONDS);
@@ -144,6 +145,7 @@ public class KafkaNewMessageProcessor extends KafkaMessageProcessor {
             context.addCommand(
                     createAddMessageCommand(kafkaMessage.getPayload().getMessage(), conversation.getId(), context,
                             kafkaMessage.getMetadataMap()));
+
             messageProcessingCoordinator.handleContext(Optional.empty(), context);
         }
     }

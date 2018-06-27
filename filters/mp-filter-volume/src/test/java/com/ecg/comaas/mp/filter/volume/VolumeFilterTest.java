@@ -13,7 +13,7 @@ import org.mockito.InOrder;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
-import static com.ecg.comaas.mp.filter.volume.VolumeFilter.wasPreviousMessageBySameUserDroppedOrHeld;
+import static com.ecg.comaas.mp.filter.volume.VolumeFilter.wasPreviousMessageBySameUserBad;
 import static com.ecg.replyts.core.api.model.conversation.MessageDirection.BUYER_TO_SELLER;
 import static com.ecg.replyts.core.api.model.conversation.MessageDirection.SELLER_TO_BUYER;
 import static com.ecg.replyts.core.api.model.conversation.MessageState.*;
@@ -122,14 +122,14 @@ public class VolumeFilterTest {
 
     @Test
     public void testWasPreviousMessageBySameUserDroppedOrHeld() {
-        assertFalse(wasPreviousMessageBySameUserDroppedOrHeld(conversation(), BUYER_UID, "1"));
-        assertFalse(wasPreviousMessageBySameUserDroppedOrHeld(conversation(message(SENT, BUYER_TO_SELLER)), BUYER_UID, "1"));
-        assertTrue(wasPreviousMessageBySameUserDroppedOrHeld(conversation(message(BLOCKED, BUYER_TO_SELLER)), BUYER_UID, "1"));
-        assertTrue(wasPreviousMessageBySameUserDroppedOrHeld(conversation(message(HELD, BUYER_TO_SELLER)), BUYER_UID, "1"));
-        assertFalse(wasPreviousMessageBySameUserDroppedOrHeld(conversation(message(HELD, BUYER_TO_SELLER), message(SENT, BUYER_TO_SELLER)), BUYER_UID, "1"));
-        assertFalse(wasPreviousMessageBySameUserDroppedOrHeld(conversation(message(SENT, BUYER_TO_SELLER), message(HELD, SELLER_TO_BUYER)), BUYER_UID, "1"));
-        assertTrue(wasPreviousMessageBySameUserDroppedOrHeld(conversation(message(HELD, BUYER_TO_SELLER), message(SENT, SELLER_TO_BUYER)), BUYER_UID, "1"));
-        assertTrue(wasPreviousMessageBySameUserDroppedOrHeld(conversation(message(BLOCKED, BUYER_TO_SELLER, "1"), message(UNDECIDED, BUYER_TO_SELLER, "2")), BUYER_UID, "2"));
+        assertFalse(wasPreviousMessageBySameUserBad(conversation(), BUYER_UID, "1"));
+        assertFalse(wasPreviousMessageBySameUserBad(conversation(message(SENT, BUYER_TO_SELLER)), BUYER_UID, "1"));
+        assertTrue(wasPreviousMessageBySameUserBad(conversation(message(BLOCKED, BUYER_TO_SELLER)), BUYER_UID, "1"));
+        assertTrue(wasPreviousMessageBySameUserBad(conversation(message(HELD, BUYER_TO_SELLER)), BUYER_UID, "1"));
+        assertFalse(wasPreviousMessageBySameUserBad(conversation(message(HELD, BUYER_TO_SELLER), message(SENT, BUYER_TO_SELLER)), BUYER_UID, "1"));
+        assertFalse(wasPreviousMessageBySameUserBad(conversation(message(SENT, BUYER_TO_SELLER), message(HELD, SELLER_TO_BUYER)), BUYER_UID, "1"));
+        assertTrue(wasPreviousMessageBySameUserBad(conversation(message(HELD, BUYER_TO_SELLER), message(SENT, SELLER_TO_BUYER)), BUYER_UID, "1"));
+        assertTrue(wasPreviousMessageBySameUserBad(conversation(message(BLOCKED, BUYER_TO_SELLER, "1"), message(UNDECIDED, BUYER_TO_SELLER, "2")), BUYER_UID, "2"));
     }
 
     private static Message message(MessageState state, MessageDirection direction) {

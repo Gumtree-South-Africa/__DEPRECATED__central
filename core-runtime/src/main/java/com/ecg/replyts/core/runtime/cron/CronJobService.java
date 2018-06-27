@@ -30,7 +30,7 @@ import java.util.List;
 import static com.ecg.replyts.core.runtime.logging.MDCConstants.setTaskFields;
 
 @Service
-@ConditionalOnProperty(value = "node.run.cronjobs", havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(value = "node.run.cronjobs", havingValue = "true")
 public class CronJobService implements CheckProvider {
     private static final Logger LOG = LoggerFactory.getLogger(CronJobService.class);
 

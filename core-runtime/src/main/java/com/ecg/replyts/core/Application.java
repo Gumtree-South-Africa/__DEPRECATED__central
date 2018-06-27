@@ -37,6 +37,8 @@ import static java.lang.String.format;
 public class Application {
     private static final Logger LOG = LoggerFactory.getLogger(Application.class);
 
+    private static final String HAZELCAST_GROUP_NAME_ENV_VAR = "HAZELCAST_GROUP_NAME";
+
     static {
         java.security.Security.setProperty("networkaddress.cache.ttl" , "60");
 
@@ -56,7 +58,12 @@ public class Application {
             @Value("${hazelcast.port.increment:false}") boolean hazelcastPortIncrement) {
         Config config = new Config();
 
-        config.getGroupConfig().setName(format("comaas_%s", tenant));
+        if (System.getenv(HAZELCAST_GROUP_NAME_ENV_VAR) != null) {
+            config.getGroupConfig().setName(System.getenv(HAZELCAST_GROUP_NAME_ENV_VAR));
+        } else {
+            config.getGroupConfig().setName(format("comaas_%s", tenant));
+        }
+
         config.getGroupConfig().setPassword(hazelcastPassword);
 
         config.getProperties().setProperty("hazelcast.jmx", "true");
