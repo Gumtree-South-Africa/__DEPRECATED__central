@@ -5,7 +5,8 @@ import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Timer;
 import com.ecg.replyts.app.Mails;
 import com.ecg.replyts.core.api.model.mail.Mail;
-import com.ecg.replyts.core.api.model.mail.TypedContent;
+import com.ecg.replyts.core.api.processing.Attachment;
+import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.mailparser.ParsingException;
 import com.ecg.replyts.core.runtime.persistence.kafka.KafkaSinkService;
@@ -14,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
+import java.util.Collection;
 import java.util.List;
 
 // Interface to Swift repository for reading attachments and Kafka repository for writing them
@@ -68,37 +70,34 @@ public class AttachmentRepository {
         return container + "/" + messageId + "/" + attachmentName;
     }
 
-    public void storeAttachments(String messageId, Mail mail) {
+    public void storeAttachments(String messageId, Collection<Attachment> attachments) {
         MAIL_WITH_ATTACHMENTS_COUNTER.inc();
 
         try (Timer.Context ignored = STORE_MAIL.time()) {
             long totalSize = 0;
-            LOG.trace("Storing attachments {}", mail.getAttachmentNames());
-            for (String aname : mail.getAttachmentNames()) {
-
-                TypedContent<byte[]> attachment = mail.getAttachment(aname);
-                if (attachment.getContent().length > 0) {
-
-                    storeAttachment(messageId, aname, attachment);
-                    totalSize +=attachment.getContent().length;
+            LOG.trace("Storing attachments {}", attachments);
+            for (Attachment attachment : attachments) {
+                if (attachment.getPayload().length > 0) {
+                    storeAttachment(messageId, attachment.getName(), attachment.getPayload());
+                    totalSize += attachment.getPayload().length;
                 } else {
-                    LOG.debug("Empty attachment name {} for messageid {}", aname, messageId);
+                    LOG.debug("Empty attachment name {} for messageid {}", attachment.getName(), messageId);
                 }
             }
 
             MAIL_SIZE_HISTOGRAM.update(totalSize);
         }
-        ATT_PER_MAIL_HISTOGRAM.update(mail.getAttachmentNames().size());
+        ATT_PER_MAIL_HISTOGRAM.update(attachments.size());
     }
 
-    public void storeAttachment(String messageId, String aname, TypedContent<byte[]> attachment) {
+    private void storeAttachment(String messageId, String aname, byte[] payload) {
         try (Timer.Context ignored = STORE_ATTACHMENT.time()) {
             String key = getCompositeKey(messageId, aname);
-            LOG.debug("Storing message {}, attachment {}, size {} bytes, as {}", messageId, aname, attachment.getContent().length, key);
-            attachmentKafkaSinkService.store(key, attachment.getContent());
+            LOG.debug("Storing message {}, attachment {}, size {} bytes, as {}", messageId, aname, payload.length, key);
+            attachmentKafkaSinkService.store(key, payload);
         }
 
-        ATTACHMENT_SIZE_HISTOGRAM.update(attachment.getContent().length);
+        ATTACHMENT_SIZE_HISTOGRAM.update(payload.length);
     }
 
 }

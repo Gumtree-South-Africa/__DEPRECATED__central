@@ -37,9 +37,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
+import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -125,7 +123,7 @@ public class MessageProcessingCoordinatorTest {
             coordinator.accept(is);
         });
 
-        verify(persister).persistAndIndex(eq(deadConversation), anyString(), receivedBytesCaptor.capture(), eq(Optional.empty()), eq(Termination.unparseable(exception)));
+        verify(persister).persistAndIndex(eq(deadConversation), anyString(), receivedBytesCaptor.capture(), eq(Optional.empty()), eq(Termination.unparseable(exception)), anyCollection());
         assertThat(receivedBytesCaptor.getValue().get()).isEqualTo(RECEIVED_BYTES);
     }
 
@@ -150,7 +148,7 @@ public class MessageProcessingCoordinatorTest {
     public void persistsUnassignableMailAsOrphaned() throws Exception {
         terminateWith(MessageState.ORPHANED, this, "orphaned", false);
         coordinator.accept(is);
-        verify(persister).persistAndIndex(eq(deadConversation), eq("1"), receivedBytesCaptor.capture(), sentBytesCaptor.capture(), eq(new Termination(MessageState.ORPHANED, MessageProcessingCoordinatorTest.class, "orphaned")));
+        verify(persister).persistAndIndex(eq(deadConversation), eq("1"), receivedBytesCaptor.capture(), sentBytesCaptor.capture(), eq(new Termination(MessageState.ORPHANED, MessageProcessingCoordinatorTest.class, "orphaned")), anyCollection());
         assertThat(receivedBytesCaptor.getValue()).contains(RECEIVED_BYTES);
         assertThat(sentBytesCaptor.getValue()).isEmpty();
     }
@@ -159,7 +157,7 @@ public class MessageProcessingCoordinatorTest {
     public void persistsTerminatedMail() throws Exception {
         terminateWith(MessageState.BLOCKED, this, "blocked", true);
         coordinator.accept(is);
-        verify(persister).persistAndIndex(eq(conversation), eq("1"), receivedBytesCaptor.capture(), sentBytesCaptor.capture(), eq(new Termination(MessageState.BLOCKED, MessageProcessingCoordinatorTest.class, "blocked")));
+        verify(persister).persistAndIndex(eq(conversation), eq("1"), receivedBytesCaptor.capture(), sentBytesCaptor.capture(), eq(new Termination(MessageState.BLOCKED, MessageProcessingCoordinatorTest.class, "blocked")), anyCollection());
         assertThat(receivedBytesCaptor.getValue()).contains(RECEIVED_BYTES);
         assertThat(sentBytesCaptor.getValue()).isEmpty();
     }
@@ -171,7 +169,7 @@ public class MessageProcessingCoordinatorTest {
         when(context.mutableConversation()).thenReturn(conversation);
 
         coordinator.accept(is);
-        verify(persister).persistAndIndex(eq(conversation), eq("1"), receivedBytesCaptor.capture(), sentBytesCaptor.capture(), eq(Termination.sent()));
+        verify(persister).persistAndIndex(eq(conversation), eq("1"), receivedBytesCaptor.capture(), sentBytesCaptor.capture(), eq(Termination.sent()), anyCollection());
         assertThat(receivedBytesCaptor.getValue()).contains(RECEIVED_BYTES);
         assertThat(sentBytesCaptor.getValue()).contains(SENT_BYTES);
     }

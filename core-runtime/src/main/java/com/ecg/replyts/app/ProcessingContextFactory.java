@@ -5,6 +5,7 @@ import com.ecg.replyts.core.api.model.conversation.command.AddMessageCommand;
 import com.ecg.replyts.core.api.model.conversation.command.NewConversationCommand;
 import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.model.mail.MailAddress;
+import com.ecg.replyts.core.api.processing.Attachment;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.ecg.replyts.core.api.processing.ProcessingTimeGuard;
 import com.ecg.replyts.core.runtime.mailcloaking.AnonymizedMailConverter;
@@ -14,11 +15,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import javax.annotation.Nonnull;
+import java.util.*;
 import java.util.function.BiPredicate;
+import java.util.stream.Collectors;
 
 import static com.ecg.replyts.core.api.model.conversation.command.AddMessageCommandBuilder.anAddMessageCommand;
 import static com.ecg.replyts.core.api.model.conversation.command.NewConversationCommandBuilder.aNewDeadConversationCommand;
@@ -41,15 +41,32 @@ public class ProcessingContextFactory {
     /**
      * Creates and returns a new MessageProcessingContext, that holds the given mail and the given message id. messageId must be globally unique.
      */
-    public MessageProcessingContext newContext(Mail mail, String messageId) {
-        return newContext(mail, messageId, new ProcessingTimeGuard(maxMessageProcessingTimeSeconds));
+    public MessageProcessingContext newContext(@Nonnull Mail mail, String messageId) {
+        return newContext(mail, messageId, newProcessingTimeGuard());
     }
 
     /**
      * Creates and returns a new MessageProcessingContext, that holds the given mail and the given message id. messageId must be globally unique.
      */
-    public MessageProcessingContext newContext(Mail mail, String messageId, ProcessingTimeGuard processingTimeGuard) {
-        BiPredicate<MailAddress, MailAddress> overrideRecipientPredicate = (toRecipient, storedRecipient) -> {
+    public MessageProcessingContext newContext(@Nonnull Mail mail, String messageId, ProcessingTimeGuard processingTimeGuard) {
+        Collection<Attachment> attachments = mail.getAttachmentNames().stream()
+                .map(name -> new Attachment(name, mail.getAttachment(name).getContent()))
+                .collect(Collectors.toSet());
+        return new MessageProcessingContext(mail, messageId, processingTimeGuard, createOverrideRecipientOverride(),
+                attachments);
+    }
+
+    public MessageProcessingContext newContext(String messageId, @Nonnull Collection<Attachment> attachments) {
+        return new MessageProcessingContext(null, messageId, newProcessingTimeGuard(), createOverrideRecipientOverride(),
+                attachments);
+    }
+
+    private ProcessingTimeGuard newProcessingTimeGuard() {
+        return new ProcessingTimeGuard(maxMessageProcessingTimeSeconds);
+    }
+
+    private BiPredicate<MailAddress, MailAddress> createOverrideRecipientOverride() {
+        return (toRecipient, storedRecipient) -> {
             if (overrideRecipient && !anonymizedMailConverter.isCloaked(toRecipient)) {
                 String toRecipientAddress = toRecipient.getAddress();
                 String storedRecipientAddress = storedRecipient.getAddress();
@@ -59,8 +76,6 @@ public class ProcessingContextFactory {
 
             return false;
         };
-
-        return new MessageProcessingContext(mail, messageId, processingTimeGuard, overrideRecipientPredicate);
     }
 
     /**

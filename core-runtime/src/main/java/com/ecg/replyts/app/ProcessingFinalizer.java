@@ -4,6 +4,7 @@ import com.codahale.metrics.Counter;
 import com.codahale.metrics.Histogram;
 import com.ecg.replyts.core.api.model.conversation.command.MessageTerminatedCommand;
 import com.ecg.replyts.core.api.model.mail.Mail;
+import com.ecg.replyts.core.api.processing.Attachment;
 import com.ecg.replyts.core.api.processing.Termination;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.indexer.Document2KafkaSink;
@@ -19,7 +20,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
+import java.util.Collection;
 import java.util.Optional;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -62,7 +65,12 @@ public class ProcessingFinalizer {
     @Autowired(required = false)
     private MailPublisher mailPublisher;
 
-    public void persistAndIndex(DefaultMutableConversation conversation, String messageId, Optional<byte[]> incomingMailContent, Optional<byte[]> outgoingMailContent, Termination termination) {
+    public void persistAndIndex(DefaultMutableConversation conversation,
+                                String messageId,
+                                Optional<byte[]> incomingMailContent,
+                                Optional<byte[]> outgoingMailContent,
+                                Termination termination,
+                                @Nonnull Collection<Attachment> attachments) {
         checkNotNull(termination);
         checkNotNull(conversation);
 
@@ -71,6 +79,11 @@ public class ProcessingFinalizer {
         conversation.commit(conversationRepository, conversationEventListeners);
 
         processEmail(messageId, incomingMailContent, outgoingMailContent);
+
+
+        if (attachmentRepository != null && !attachments.isEmpty()) {
+                attachmentRepository.storeAttachments(messageId, attachments);
+        }
 
         CONVERSATION_MESSAGE_COUNT.update(conversation.getMessages().size());
 
@@ -92,19 +105,9 @@ public class ProcessingFinalizer {
             return;
         }
 
-        byte[] mailData = incomingMailContent.get();
-
-        if (attachmentRepository != null) {
-            Mail parsedMail = attachmentRepository.hasAttachments(messageId, mailData);
-            if (parsedMail != null) {
-
-                // This stores incoming mail attachments only
-                attachmentRepository.storeAttachments(messageId, parsedMail);
-            }
-        }
-
         if (mailPublisher != null) {
-            mailPublisher.publishMail(messageId, mailData, outgoingMailContent);
+            // Haha, no, this is not sending an email from COMaaS.
+            mailPublisher.publishMail(messageId, incomingMailContent.get(), outgoingMailContent);
         }
     }
 

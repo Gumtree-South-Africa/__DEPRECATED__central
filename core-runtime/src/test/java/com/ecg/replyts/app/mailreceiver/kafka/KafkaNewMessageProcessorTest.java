@@ -34,8 +34,7 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -116,7 +115,7 @@ public class KafkaNewMessageProcessorTest {
         when(mutableConversation.getId()).thenReturn("conversationId");
         when(mutableConversation.getBuyerId()).thenReturn("userId");
 
-        when(processingContextFactory.newContext(any(), any())).thenReturn(messageProcessingContext);
+        when(processingContextFactory.newContext(anyString(), anyCollection())).thenReturn(messageProcessingContext);
         when(messageProcessingContext.getMessageDirection()).thenReturn(MessageDirection.BUYER_TO_SELLER);
 
         when(userIdentifierService.getBuyerUserId(any(Conversation.class))).thenReturn(Optional.of("userId"));

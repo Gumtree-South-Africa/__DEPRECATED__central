@@ -74,23 +74,21 @@ public class DirectMessageModerationService implements ModerationService {
 
         if (moderationAction.getModerationResultState().allowsSending()) {
             byte[] inboundMailData = heldMailRepository.read(messageId);
-
-            MessageProcessingContext processingContext = putIntoFlow(conversation, inboundMailData, messageId);
-
-            try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
-                processingContext.getOutgoingMail().writeTo(outputStream);
-
-                if (attachmentRepository != null) {
-
-                    Mail parsedMail = attachmentRepository.hasAttachments(messageId, inboundMailData);
-                    if (parsedMail != null) {
-
-                        attachmentRepository.storeAttachments(messageId, parsedMail);
-                    }
-                }
-
-            } catch (IOException e) {
+            Mail mail;
+            try {
+                mail = Mails.readMail(inboundMailData);
+            } catch (ParsingException e) {
+                // Assume we can parse the mail, as it was parsed before it was inserted into persistence in first place. If
+                // the mail is unparseable now, this is a weird case, that we cannot handle correctly.
                 throw new RuntimeException(e);
+            }
+            MessageProcessingContext processingContext = putIntoFlow(conversation, mail, messageId);
+
+            if (attachmentRepository != null) {
+                Mail parsedMail = attachmentRepository.hasAttachments(messageId, inboundMailData);
+                if (parsedMail != null) {
+                    attachmentRepository.storeAttachments(messageId, processingContext.getAttachments());
+                }
             }
         }
 
@@ -107,20 +105,14 @@ public class DirectMessageModerationService implements ModerationService {
         }
     }
 
-    private MessageProcessingContext putIntoFlow(MutableConversation conversation, byte[] mail, String messageId) {
-        try {
-            MessageProcessingContext context = processingContextFactory.newContext(Mails.readMail(mail), messageId, new ProcessingTimeGuard(MAX_MESSAGE_PROCESSING_TIME_SECONDS));
+    private MessageProcessingContext putIntoFlow(MutableConversation conversation, Mail mail, String messageId) {
+        MessageProcessingContext context = processingContextFactory.newContext(mail, messageId, new ProcessingTimeGuard(MAX_MESSAGE_PROCESSING_TIME_SECONDS));
 
-            context.setConversation(conversation);
-            context.setMessageDirection(conversation.getMessageById(messageId).getMessageDirection());
+        context.setConversation(conversation);
+        context.setMessageDirection(conversation.getMessageById(messageId).getMessageDirection());
 
-            flow.inputForPostProcessor(context);
+        flow.inputForPostProcessor(context);
 
-            return context;
-        } catch (ParsingException e) {
-            // Assume we can parse the mail, as it was parsed before it was inserted into persistence in first place. If
-            // the mail is unparseable now, this is a weird case, that we cannot handle correctly.
-            throw new RuntimeException(e);
-        }
+        return context;
     }
 }
