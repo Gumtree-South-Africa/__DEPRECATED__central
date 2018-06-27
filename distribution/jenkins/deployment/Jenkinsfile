@@ -231,7 +231,7 @@ void deployNomad(final String tenant, final String environment, final String ver
 }
 
 void deployToEnv(final String tenant, final String artifact, final String environment, final String version, final String dc, final Integer nrOfInstancesHttp, final Integer nrOfInstancesNewMsg, final String providedPipelineBranch) {
-    deployCoreNodes(tenant, artifact)
+//    deployCoreNodes(tenant, artifact)
     deployNomad(tenant, environment, version, dc, nrOfInstancesHttp, nrOfInstancesNewMsg, providedPipelineBranch)
 }
 

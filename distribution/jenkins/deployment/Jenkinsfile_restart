@@ -106,12 +106,12 @@ node("master") {
             final String version = getOriginalVersion(tenantShort, environment, dc)
             final String restartJenkinsJob = env.BUILD_NUMBER
 
-            parallel core: {
-                ansiColor('xterm') {
-                    sh "PYTHONWARNINGS='ignore' servicecontrol.py --logdir ~ --config /etc/comaas/comaas-${tenantLong}.yaml --restartservice comaas-${tenantLong}"
-                }
-            },
-            nomad: {
+//            parallel core: {
+//                ansiColor('xterm') {
+//                    sh "PYTHONWARNINGS='ignore' servicecontrol.py --logdir ~ --config /etc/comaas/comaas-${tenantLong}.yaml --restartservice comaas-${tenantLong}"
+//                }
+//            },
+//            nomad: {
                 final Integer maxParallelNewMsg = getMaxParallel(tenantShort, "newmsg")
                 final Integer maxParallelHttp = getMaxParallel(tenantShort, "http")
 
@@ -139,7 +139,7 @@ node("master") {
                             urlprefixes += ",\"urlprefix-au-rts2-api:8080/\",\"urlprefix-au-rts2-api.intern.gumtree.com.au:8080/\""
                         }
                     }
-    
+
                     final String hazelcastGroupName = UUID.randomUUID().toString()
 
                     final String vars = "-var-file=/deployment/environments/${environment}.tf " +
@@ -159,7 +159,7 @@ node("master") {
 
                     sh "$levantCmd render ${vars} /deployment/comaas.nomad"
                     sh "$levantCmd deploy ${vars} -log-level=debug -address='http://http.nomad.service.consul:4646' /deployment/comaas.nomad"
-                }
+//                }
             }
         }
     }
