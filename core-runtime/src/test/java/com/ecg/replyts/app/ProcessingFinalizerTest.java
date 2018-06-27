@@ -57,13 +57,13 @@ public class ProcessingFinalizerTest {
 
     @Test
     public void alwaysTerminatesMessageWhenCompleted() {
-        messagePersister.persistAndIndex(conv, "1", Optional.of("incoming".getBytes()), Optional.empty(), termination);
+        messagePersister.persistAndIndex(conv, "1", Optional.of("incoming".getBytes()), Optional.empty(), termination, Collections.emptySet());
         verify(conv).applyCommand(any(MessageTerminatedCommand.class));
     }
 
     @Test
     public void persistsData() {
-        messagePersister.persistAndIndex(conv, "1", Optional.of("incoming".getBytes()), Optional.of("outgoing".getBytes()), termination);
+        messagePersister.persistAndIndex(conv, "1", Optional.of("incoming".getBytes()), Optional.of("outgoing".getBytes()), termination, Collections.emptySet());
 
         verify(conv).commit(conversationRepository, conversationEventListeners);
 

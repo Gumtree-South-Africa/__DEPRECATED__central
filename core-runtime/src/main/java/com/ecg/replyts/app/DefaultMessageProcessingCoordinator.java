@@ -5,6 +5,7 @@ import com.codahale.metrics.Timer;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.mail.Mail;
+import com.ecg.replyts.core.api.processing.Attachment;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.ecg.replyts.core.api.processing.Termination;
 import com.ecg.replyts.core.runtime.TimingReports;
@@ -21,13 +22,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.Nonnull;
 import javax.annotation.WillNotClose;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import static com.ecg.replyts.core.runtime.logging.MDCConstants.*;
@@ -105,7 +104,8 @@ public class DefaultMessageProcessingCoordinator implements MessageProcessingCoo
             return Optional.of(handleContext(Optional.of(bytes), context));
         } catch (ParsingException e) {
             LOG.warn("Could not parse mail with id {}", messageId, e);
-            handleTermination(Termination.unparseable(e), messageId, Optional.empty(), Optional.empty(), Optional.of(bytes));
+            handleTermination(Termination.unparseable(e), messageId, Optional.empty(), Optional.empty(), Optional.of(bytes),
+                    Collections.emptySet());
             throw e;
         } finally {
             LOG.debug("Message processed", keyValue("processingTime", stopwatch.elapsed(TimeUnit.MILLISECONDS)));
@@ -135,7 +135,8 @@ public class DefaultMessageProcessingCoordinator implements MessageProcessingCoo
                     context.getMessageId(),
                     context.getMail(),
                     Optional.ofNullable(((DefaultMutableConversation) context.mutableConversation())),
-                    bytes);
+                    bytes,
+                    context.getAttachments());
         } else {
             handleSuccess(context, bytes);
         }
@@ -160,13 +161,15 @@ public class DefaultMessageProcessingCoordinator implements MessageProcessingCoo
                 context.getMessageId(),
                 messageBytes,
                 Optional.ofNullable(outgoing),
-                Termination.sent());
+                Termination.sent(),
+                context.getAttachments());
 
         onMessageProcessed(context.getConversation(), context.getMessage());
     }
 
     private void handleTermination(Termination termination, String messageId, Optional<Mail> mail,
-                                   Optional<DefaultMutableConversation> conversation, Optional<byte[]> messageBytes) {
+                                   Optional<DefaultMutableConversation> conversation, Optional<byte[]> messageBytes,
+                                   @Nonnull Collection<Attachment> attachments) {
         checkNotNull(termination);
         checkNotNull(messageId);
         checkNotNull(messageBytes);
@@ -174,7 +177,7 @@ public class DefaultMessageProcessingCoordinator implements MessageProcessingCoo
         DefaultMutableConversation c = conversation.orElseGet(() ->
                 processingContextFactory.deadConversationForMessageIdConversationId(messageId, Guids.next(), mail));
 
-        persister.persistAndIndex(c, messageId, messageBytes, Optional.empty(), termination);
+        persister.persistAndIndex(c, messageId, messageBytes, Optional.empty(), termination, attachments);
 
         onMessageProcessed(c, c.getMessageById(messageId));
     }
