@@ -40,6 +40,10 @@ public class UserIdentifierConfiguration {
             LOG.info("Tenant {} use UkUserIdentifierServiceByUserIdHeaders", tenant);
 
             return new UkUserIdentifierServiceByUserIdHeaders(buyerUserIdName, sellerUserIdName);
+        } else if (userIdentifierType == UserIdentifierType.BY_CA_USER_ID) {
+            LOG.info("Tenant {} use CaUserIdentifierServiceByUserIdHeaders", tenant);
+
+            return new CaUserIdentifierServiceByUserIdHeaders(buyerUserIdName, sellerUserIdName);
         } else {
             LOG.info("Tenant {} use UserIdentifierServiceByUserIdHeaders", tenant);
 
