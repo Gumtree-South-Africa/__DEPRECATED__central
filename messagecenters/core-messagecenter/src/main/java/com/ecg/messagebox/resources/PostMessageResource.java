@@ -1,5 +1,6 @@
 package com.ecg.messagebox.resources;
 
+import com.ecg.comaas.protobuf.MessageOuterClass;
 import com.ecg.comaas.protobuf.MessageOuterClass.Message;
 import com.ecg.comaas.protobuf.MessageOuterClass.Payload;
 import com.ecg.messagebox.controllers.requests.CreateConversationRequest;
@@ -26,6 +27,7 @@ import com.ecg.replyts.core.runtime.identifier.UserIdentifierService;
 import com.ecg.replyts.core.runtime.persistence.conversation.MutableConversationRepository;
 import com.ecg.replyts.core.runtime.persistence.kafka.KafkaTopicService;
 import com.ecg.replyts.core.runtime.persistence.kafka.QueueService;
+import com.google.protobuf.ByteString;
 import com.google.protobuf.Timestamp;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -38,13 +40,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.HashMap;
@@ -166,15 +173,63 @@ public class PostMessageResource {
             @ApiResponse(code = 200, message = "Success"),
             @ApiResponse(code = 500, message = "Internal Error", response = ErrorResponse.class)
     })
-    @PostMapping("/users/{userId}/conversations/{conversationId}")
+    @PostMapping(value = "/users/{userId}/conversations/{conversationId}", consumes = "application/json")
     public PostMessageResponse postMessage(
             @ApiParam(value = "User ID", required = true) @PathVariable("userId") String userId,
             @ApiParam(value = "Conversation ID", required = true) @PathVariable("conversationId") String conversationId,
             @ApiParam(value = "Message payload", required = true) @RequestBody PostMessageRequest postMessageRequest,
             @RequestHeader(value = "X-Correlation-ID", required = false) String correlationIdHeader) {
+
+        Message.Builder kafkaMessage = getMessage(userId, conversationId, postMessageRequest, correlationIdHeader);
+
+        queueService.publish(KafkaTopicService.getTopicIncoming(shortTenant), kafkaMessage.build());
+        return new PostMessageResponse(kafkaMessage.getMessageId());
+    }
+
+
+    @ApiOperation(
+            value = "Post a message with attachment",
+            notes = "Post a message with attachment to an existing conversation. It allows one attachment and the total size of the request (message + attachment) must not exceed 10 MBytes.",
+            nickname = "postMessage",
+            tags = "Conversations")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Success"),
+            @ApiResponse(code = 400, message = "Bad Request", response = ErrorResponse.class),
+            @ApiResponse(code = 500, message = "Internal Error", response = ErrorResponse.class)
+    })
+    @PostMapping(value = "/users/{userId}/conversations/{conversationId}/attachment", consumes = "multipart/form-data")
+    public PostMessageResponse postMessageWithAttachment(
+            @ApiParam(value = "User ID", required = true) @PathVariable("userId") String userId,
+            @ApiParam(value = "Conversation ID", required = true) @PathVariable("conversationId") String conversationId,
+            @ApiParam(value = "Message payload and metadata", required = true) @RequestPart (value = "message") PostMessageRequest postMessageRequest,
+            @ApiParam(value = "Attachment", required = true) @RequestPart(value = "attachment") MultipartFile attachment,
+            @RequestHeader(value = "X-Correlation-ID", required = false) String correlationIdHeader) throws IOException {
+
+        Message.Builder kafkaMessage = getMessage(userId, conversationId, postMessageRequest, correlationIdHeader);
+
+        kafkaMessage
+                .addAttachments(MessageOuterClass.Attachment
+                        .newBuilder()
+                        .setFileName(attachment.getName())
+                        .setBody(ByteString.readFrom(attachment.getInputStream()))
+                );
+
+        queueService.publish(KafkaTopicService.getTopicIncoming(shortTenant), kafkaMessage.build());
+        return new PostMessageResponse(kafkaMessage.getMessageId());
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public String handleIllegalArgumentException(IllegalArgumentException ex) {
+        return ex.getMessage();
+    }
+
+    private Message.Builder getMessage(String userId, String conversationId, PostMessageRequest postMessageRequest, String correlationIdHeader) {
+
         Instant now = Instant.now();
         String correlationId = correlationIdHeader != null ? correlationIdHeader : XidFactory.nextXid();
-        Message retryableMessage = Message
+
+        return Message
                 .newBuilder()
                 .setMessageId(Guids.next())
                 .setReceivedTime(Timestamp
@@ -183,15 +238,12 @@ public class PostMessageResource {
                         .setNanos(now.getNano())
                         .build())
                 .setCorrelationId(correlationId)
-                .setPayload(Payload.newBuilder()
-                        .setConversationId(conversationId)
-                        .setUserId(userId)
-                        .setMessage(postMessageRequest.message)
-                        .build())
-                .putAllMetadata(postMessageRequest.metadata == null ? Collections.emptyMap() : postMessageRequest.metadata)
-                .build();
-
-        queueService.publish(KafkaTopicService.getTopicIncoming(shortTenant), retryableMessage);
-        return new PostMessageResponse(retryableMessage.getMessageId());
+                .setPayload(Payload
+                    .newBuilder()
+                    .setConversationId(conversationId)
+                    .setUserId(userId)
+                    .setMessage(postMessageRequest.message)
+                    .build())
+                .putAllMetadata(postMessageRequest.metadata);
     }
 }
