@@ -84,11 +84,8 @@ public class DirectMessageModerationService implements ModerationService {
             }
             MessageProcessingContext processingContext = putIntoFlow(conversation, mail, messageId);
 
-            if (attachmentRepository != null) {
-                Mail parsedMail = attachmentRepository.hasAttachments(messageId, inboundMailData);
-                if (parsedMail != null) {
-                    attachmentRepository.storeAttachments(messageId, processingContext.getAttachments());
-                }
+            if (attachmentRepository != null && processingContext.getAttachments().size() > 0) {
+                attachmentRepository.storeAttachments(messageId, processingContext.getAttachments());
             }
         }
 
