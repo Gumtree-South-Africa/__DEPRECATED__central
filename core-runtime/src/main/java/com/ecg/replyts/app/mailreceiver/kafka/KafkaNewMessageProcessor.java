@@ -133,7 +133,7 @@ public class KafkaNewMessageProcessor extends KafkaMessageProcessor {
         } else {
             MutableConversation conversation = getConversation(kafkaMessage.getPayload().getConversationId());
             Collection<Attachment> attachments = kafkaMessage.getAttachmentsList().stream()
-                    .map(a -> new Attachment(UUID.randomUUID().toString(), a.getBody().toByteArray()))
+                    .map(a -> new Attachment(a.getFileName(), a.getBody().toByteArray()))
                     .collect(Collectors.toSet());
             MessageProcessingContext context = createContext(kafkaMessage.getPayload().getUserId(), kafkaMessage.getMessageId(),
                     conversation, attachments);
