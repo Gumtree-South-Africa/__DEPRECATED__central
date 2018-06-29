@@ -26,7 +26,14 @@ public class CaUserIdentifierServiceByUserIdHeaders extends UserIdentifierServic
     @Override
     public Optional<String> getBuyerUserId(Conversation conversation) {
         Optional<String> userId = getBuyerUserId(conversation.getCustomValues());
-        return userId.isPresent() ? userId : getRawHeader(conversation, RAW_BUYER_HEADER);
+        userId = userId.isPresent() ? userId : getRawHeader(conversation, RAW_BUYER_HEADER);
+
+        // Use email as the last option
+        // Reason: We want to keep running annonymous messages where Seller-ID is known and seller uses MessageBox
+        // which means we know his user-id (in conversation events). Therefore, we need to have even an user-id for a buyer
+        // otherwise new message in the anonymous conversation is going to be ignored by MessageBox and even seller does not get
+        // the message into the V2.
+        return userId.isPresent() ? userId : Optional.ofNullable(conversation.getBuyerId());
     }
 
     @Override

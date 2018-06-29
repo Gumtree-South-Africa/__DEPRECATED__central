@@ -61,7 +61,7 @@ public class PostBoxSyncService {
             throw new UserIdNotFoundException("No conversations to process", false);
         }
 
-        for (String conversationId : convIds) {
+        for (String conversationId: convIds) {
             MutableConversation conversation = conversationRepository.getById(conversationId);
 
             if (conversation == null) {
@@ -102,7 +102,7 @@ public class PostBoxSyncService {
             return Collections.singletonList(conversationId);
         }
 
-        return Collections.emptyList();
+        throw new UserIdNotFoundException("Conversation Events not found. Email: " + email + ", Conversation-ID: " + conversationId);
     }
 
     /**
