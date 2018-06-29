@@ -8,6 +8,7 @@ import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.conversation.MutableConversation;
 import com.ecg.replyts.core.api.model.conversation.command.ConversationDeletedCommand;
 import com.ecg.replyts.core.api.model.conversation.event.ConversationEventId;
+import com.ecg.replyts.core.runtime.DataCenterAwareness;
 import com.ecg.replyts.core.runtime.logging.MDCConstants;
 import com.ecg.replyts.core.runtime.model.conversation.InvalidConversationException;
 import com.ecg.replyts.core.runtime.persistence.attachment.AttachmentRepository;
@@ -75,6 +76,9 @@ public class CassandraCleanupConversationCronJob implements CronJobExecutor {
     @Autowired
     private CleanupConfiguration config;
 
+    @Autowired
+    private DataCenterAwareness dataCenterAwareness;
+
     private ExecutorService threadPoolExecutor;
 
     private RateLimiter rateLimiter;
@@ -94,6 +98,10 @@ public class CassandraCleanupConversationCronJob implements CronJobExecutor {
 
     @Override
     public void execute() throws Exception {
+        if (dataCenterAwareness.runningInActiveDc()) {
+            return;
+        }
+
         LOG.info("Started Cleanup Conversation Cronjob");
         DateTime cleanupDate = cleanupDateCalculator.getCleanupDate(config.getMaxConversationAgeDays(), CLEANUP_CONVERSATION_JOB_NAME);
 

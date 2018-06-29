@@ -32,9 +32,9 @@ public class CleanupDateCalculator {
 
     @Autowired
     public CleanupDateCalculator(CronJobClockRepository cronJobClockRepository,
-            @Value("${replyts.tenant.timezone:Europe/Amsterdam}") String timeZone,
-            @Value("${replyts.cleanup.quietTime.start:16:00}") String quietTimeStart,
-            @Value("${replyts.cleanup.quietTime.end:23:00}") String quietTimeEnd) {
+                                 @Value("${replyts.tenant.timezone:Europe/Amsterdam}") String timeZone,
+                                 @Value("${replyts.cleanup.quietTime.start:16:00}") String quietTimeStart,
+                                 @Value("${replyts.cleanup.quietTime.end:23:00}") String quietTimeEnd) {
         this.cronJobClockRepository = cronJobClockRepository;
         this.timeZone = TimeZone.getTimeZone(timeZone);
         this.quietTimeStart = LocalTime.parse(quietTimeStart);
@@ -42,8 +42,7 @@ public class CleanupDateCalculator {
     }
 
     @PostConstruct
-    public void postConstruct()
-    {
+    public void postConstruct() {
         LOG.info("Cleanup quiet time: {}-{} {}", quietTimeStart, quietTimeEnd, timeZone.getID());
     }
 

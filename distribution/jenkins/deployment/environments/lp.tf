@@ -26,6 +26,8 @@ variable cronjob_heap_size { default = "8G" }
 variable restart_jenkins_job_nr { default = "none" }
 variable hazelcast_group_name { default = "dev" }
 
+variable environment { default = "lp" }
+
 variable filebeat_config {
     type = "string"
     default = <<EOF
