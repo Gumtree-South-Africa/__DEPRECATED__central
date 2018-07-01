@@ -33,7 +33,12 @@ public class CaUserIdentifierServiceByUserIdHeaders extends UserIdentifierServic
         // which means we know his user-id (in conversation events). Therefore, we need to have even an user-id for a buyer
         // otherwise new message in the anonymous conversation is going to be ignored by MessageBox and even seller does not get
         // the message into the V2.
-        return userId.isPresent() ? userId : Optional.ofNullable(conversation.getBuyerId());
+        if (!userId.isPresent()) {
+            LOG.info("User ID not found, fallback to an E-mail: " + conversation.getBuyerId() + ", Conversation-ID: " + conversation.getId());
+            userId = Optional.ofNullable(conversation.getBuyerId());
+        }
+
+        return userId;
     }
 
     @Override

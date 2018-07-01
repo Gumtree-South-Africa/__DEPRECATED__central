@@ -61,6 +61,7 @@ public class PostBoxSyncService {
             throw new UserIdNotFoundException("No conversations to process", false);
         }
 
+        boolean eventsFound = false;
         for (String conversationId: convIds) {
             MutableConversation conversation = conversationRepository.getById(conversationId);
 
@@ -68,6 +69,8 @@ public class PostBoxSyncService {
                 LOG.debug("V2 Migration: Conversation Event not found, e-mail: {}, conversation: {}", email, conversationId);
                 continue;
             }
+
+            eventsFound = true;
 
             if (email.equalsIgnoreCase(conversation.getBuyerId())) {
                 Optional<String> userId = userIdentifierService.getBuyerUserId(conversation);
@@ -86,7 +89,7 @@ public class PostBoxSyncService {
             }
         }
 
-        throw new UserIdNotFoundException("Cannot find 'userId' for email: " + email);
+        throw new UserIdNotFoundException("Cannot find 'userId' for email: " + email + ", Events: " + eventsFound + ", Conversations: " + convIds);
     }
 
     /**
@@ -102,7 +105,7 @@ public class PostBoxSyncService {
             return Collections.singletonList(conversationId);
         }
 
-        throw new UserIdNotFoundException("Conversation Events not found. Email: " + email + ", Conversation-ID: " + conversationId);
+        throw new UserIdNotFoundException("Conversation in Postbox not found. Email: " + email + ", Conversation-ID: " + conversationId);
     }
 
     /**
