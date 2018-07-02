@@ -1,41 +1,44 @@
 package com.ecg.comaas.core.filter.ebayservices.ip2country;
 
-import com.ecg.comaas.core.filter.ebayservices.ip2country.Ip2CountryFilterFactory;
+import com.ecg.comaas.core.filter.ebayservices.TestPropertiesUtils;
+import com.ecg.replyts.core.api.model.conversation.ProcessingFeedback;
 import com.ecg.replyts.core.api.util.JsonObjects;
 import com.ecg.replyts.integration.test.MailBuilder;
 import com.ecg.replyts.integration.test.MailInterceptor;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
-import static junit.framework.Assert.assertEquals;
+import java.util.List;
 
-/**
- * User: acharton
- * Date: 12/17/12
- */
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_EBAYK;
+import static org.assertj.core.api.Assertions.assertThat;
+
 public class Ip2CountryFilterIntegrationTest {
 
     @Rule
-    public ReplyTsIntegrationTestRule itRule = new ReplyTsIntegrationTestRule();
+    public ReplyTsIntegrationTestRule itRule = new ReplyTsIntegrationTestRule(TestPropertiesUtils.getProperties(TENANT_EBAYK));
 
     @Before
     public void setUp() throws Exception {
-          itRule.registerConfig(
-                  Ip2CountryFilterFactory.IDENTIFIER,
-                  JsonObjects.builder().attr("DEFAULT","50").attr("DE", "0").attr("NL", "200").build());
+        ObjectNode config = JsonObjects.builder().attr("DEFAULT", 50).attr("DE", 0).attr("NL", 200).build();
+        itRule.registerConfig(Ip2CountryFilterFactory.IDENTIFIER, config);
     }
 
-    // Test deactivated, use only for manual testing.
-    @Ignore
     @Test
-    public void ip2CountryFilterHits() throws Exception {
-        MailInterceptor.ProcessedMail processedMail = itRule.deliver(
-                MailBuilder.aNewMail().header("X-CUST-IP","91.211.73.240").adId("123").from("buyer@test.de").to("seller@test.de").htmlBody("hello world!"));
+    public void whenCountryHitsFilter_shouldGenerateProperFeedback() throws Exception {
+        MailInterceptor.ProcessedMail processedMail = itRule.deliver(MailBuilder.aNewMail()
+                .header("X-CUST-IP", "91.211.73.240")
+                .adId("123")
+                .from("buyer@test.de")
+                .to("seller@test.de")
+                .htmlBody("hello world!")
+        );
+        List<ProcessingFeedback> actualFeedback = processedMail.getMessage().getProcessingFeedback();
 
-        assertEquals(1, processedMail.getMessage().getProcessingFeedback().size());
-        assertEquals(200, processedMail.getMessage().getProcessingFeedback().get(0).getScore().intValue());
+        assertThat(actualFeedback).hasSize(1);
+        assertThat(actualFeedback.get(0).getScore()).isEqualTo(200);
     }
 }

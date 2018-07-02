@@ -1,100 +1,76 @@
 package com.ecg.comaas.core.filter.ebayservices.userstate;
 
-import com.ecg.comaas.core.filter.ebayservices.userstate.UserStateFilter;
+import com.ebay.marketplace.user.v1.services.UserEnum;
+import com.ecg.comaas.core.filter.ebayservices.userstate.provider.UserStateProvider;
 import com.ecg.replyts.core.api.model.conversation.FilterResultState;
 import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
-import com.google.common.collect.ImmutableMap;
 import de.mobile.ebay.service.ServiceException;
-import de.mobile.ebay.service.UserProfileService;
-import de.mobile.ebay.service.userprofile.domain.AccountStatus;
-import de.mobile.ebay.service.userprofile.domain.User;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Answers;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.List;
 import java.util.Optional;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertTrue;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-/**
- * User: acharton
- * Date: 12/18/12
- */
 @RunWith(MockitoJUnitRunner.class)
 public class UserStateFilterTest {
 
-    @Mock
-    private UserProfileService userProfileService;
-    @Mock
-    private User userFromService;
-    @Mock(answer = Answers.RETURNS_DEEP_STUBS)
-    private MessageProcessingContext mpc;
-    @Mock
-    private Mail mail;
     private UserStateFilter userStateFilter;
 
+    @Mock
+    private UserStateFilterConfigHolder configHolderMock;
+
+    @Mock
+    private UserStateProvider userStateProviderMock;
+
+    @Mock
+    private MessageProcessingContext contextMock;
+
     @Before
-    public void setUp() throws Exception {
-        when(userProfileService.getUser(anyString())).thenReturn(userFromService);
-        when(mpc.getMail()).thenReturn(Optional.of(mail));
-        when(mail.getFrom()).thenReturn("sender@test.de");
-        userStateFilter = new UserStateFilter(ImmutableMap.of("UNKNOWN", 0, "CONFIRMED", -50, "SUSPENDED", 100), userProfileService);
+    public void setUp() throws ServiceException {
+        Mail mailMock = mock(Mail.class);
+        when(mailMock.getFrom()).thenReturn("buyer@example.com");
+        when(contextMock.getMail()).thenReturn(Optional.of(mailMock));
+        when(userStateProviderMock.getSenderState("buyer@example.com")).thenReturn(UserEnum.CONFIRMED);
+        when(configHolderMock.getUserStateScore(UserEnum.CONFIRMED)).thenReturn(50);
+        userStateFilter = new UserStateFilter(configHolderMock, userStateProviderMock);
     }
 
     @Test
-    public void rateBadUser() throws Exception {
-        when(userFromService.getUserAccountStatus()).thenReturn(AccountStatus.SUSPENDED);
-
-        List<FilterFeedback> feedbacks = userStateFilter.filter(mpc);
-
-        assertEquals(1, feedbacks.size());
-        FilterFeedback filterFeedback = feedbacks.get(0);
-        assertThat(filterFeedback.getDescription()).isEqualTo("User state is: SUSPENDED");
-        assertThat(filterFeedback.getResultState()).isEqualTo(FilterResultState.OK);
-        assertThat(filterFeedback.getScore()).isEqualTo(100);
-        assertThat(filterFeedback.getUiHint()).isEqualTo("sender@test.de");
+    public void whenNoMail_shouldReturnEmptyFeedback() {
+        when(contextMock.getMail()).thenReturn(Optional.empty());
+        List<FilterFeedback> actual = userStateFilter.filter(contextMock);
+        assertThat(actual).isEmpty();
     }
 
     @Test
-    public void ignoreUnknown() throws Exception {
-        when(userFromService.getUserAccountStatus()).thenReturn(AccountStatus.UNCONFIRMED);
-
-        UserStateFilter userStateFilter = new UserStateFilter(ImmutableMap.of("UNKNOWN", 0, "CONFIRMED", -50, "SUSPENDED", 100), userProfileService);
-
-        List<FilterFeedback> feedbacks = userStateFilter.filter(mpc);
-
-        assertTrue(feedbacks.isEmpty());
+    public void whenUserStateNull_shouldReturnEmptyFeedback() {
+        when(userStateProviderMock.getSenderState(anyString())).thenReturn(null);
+        List<FilterFeedback> actual = userStateFilter.filter(contextMock);
+        assertThat(actual).isEmpty();
     }
 
     @Test
-    public void ignoreEmptyUserState() throws Exception {
-        when(userProfileService.getUser(anyString())).thenReturn(null);
-
-        UserStateFilter userStateFilter = new UserStateFilter(ImmutableMap.of("UNKNOWN", 0, "CONFIRMED", -50, "SUSPENDED", 100), userProfileService);
-
-        List<FilterFeedback> feedbacks = userStateFilter.filter(mpc);
-
-        assertTrue(feedbacks.isEmpty());
+    public void whenUserStateScoreIsZero_shouldReturnEmptyFeedback() throws ServiceException {
+        when(configHolderMock.getUserStateScore(UserEnum.CONFIRMED)).thenReturn(0);
+        List<FilterFeedback> actual = userStateFilter.filter(contextMock);
+        assertThat(actual).isEmpty();
     }
 
     @Test
-    public void ignoreEbayServiceExceptions() throws Exception {
-        when(userProfileService.getUser(anyString())).thenThrow(new ServiceException("Test"));
-
-        UserStateFilter userStateFilter = new UserStateFilter(ImmutableMap.of("UNKNOWN", 0, "CONFIRMED", -50, "SUSPENDED", 100), userProfileService);
-
-        List<FilterFeedback> feedbacks = userStateFilter.filter(mpc);
-
-        assertTrue(feedbacks.isEmpty());
+    public void whenUserStateScoreIsNotZero_shouldReturnProperFeedback() throws ServiceException {
+        List<FilterFeedback> actual = userStateFilter.filter(contextMock);
+        assertThat(actual).hasSize(1);
+        assertThat(actual.get(0)).isEqualToComparingFieldByField(new FilterFeedback("buyer@example.com",
+                "User state is: CONFIRMED", 50, FilterResultState.OK));
     }
 }

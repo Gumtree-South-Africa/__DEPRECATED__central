@@ -35,11 +35,11 @@ Check's if the sender's mail address is unknown to eBay, has an eBay account or 
 These filters will need valid eBay API credentials in order to work. (IAF tokens, app names and proxy settings for talking to that API). The filters will expect to find them in the global `replyts.properties` at:
 
 ```
-replyts2-ebayservicesfilters-plugin.ip.appname
+comaas.filter.ebayservices.iprisk.appName
 
  # attention: normally different IAF tokens apply for the user filter than for the IP filters.
-replyts2-ebayservicesfilters-plugin.user.appname
-replyts2-ebayservicesfilters-plugin.user.iaftoken
+comaas.filter.ebayservices.userstate.appName
+comaas.filter.ebayservices.userstate.iafToken
 ```
 
 

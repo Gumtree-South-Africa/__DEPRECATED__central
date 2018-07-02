@@ -37,6 +37,19 @@
         <profile>
             <id>core</id>
 
+            <repositories>
+                <repository>
+                    <id>gtauNexus</id>
+                    <url>https://nexus.au.ecg.so/repository/Releases/</url>
+                    <releases>
+                        <enabled>true</enabled>
+                    </releases>
+                    <snapshots>
+                        <enabled>false</enabled>
+                    </snapshots>
+                </repository>
+            </repositories>
+
             <modules>
                 <module>filters/core-filter-bankaccount</module>
                 <module>filters/core-filter-belenblockedad</module>
@@ -93,7 +106,7 @@
                 <module>filters/core-filter-user</module>
                 <module>filters/core-filter-word</module>
                 <module>filters/core-filter-belenblockeduser</module>
-                <module>filters/gtau-filter-ebayservices</module>
+                <module>filters/core-filter-ebayservices</module>
                 <module>filters/gtau-filter-volume</module>
                 <module>filters/gtau-filter-blockedip</module>
                 <module>filters/gtau-filter-echelon</module>
@@ -197,6 +210,19 @@
 
         <profile>
             <id>ebayk</id>
+
+            <repositories>
+                <repository>
+                    <id>gtauNexus</id>
+                    <url>https://nexus.au.ecg.so/repository/Releases/</url>
+                    <releases>
+                        <enabled>true</enabled>
+                    </releases>
+                    <snapshots>
+                        <enabled>false</enabled>
+                    </snapshots>
+                </repository>
+            </repositories>
 
             <modules>
                 <module>filters/ebayk-filter-emailaddress</module>
@@ -361,7 +387,9 @@
                 <repository>
                     <id>bolt-nexus</id>
                     <name>Bolt-Nexus</name>
-                    <url>http://bolt-ci-nexus-v2-11-9025.phx01.dev.ebayc3.com:8081/nexus/content/repositories/bolt-hosted-ecg-releases</url>
+                    <url>
+                        http://bolt-ci-nexus-v2-11-9025.phx01.dev.ebayc3.com:8081/nexus/content/repositories/bolt-hosted-ecg-releases
+                    </url>
                     <layout>default</layout>
                 </repository>
             </distributionManagement>
@@ -407,7 +435,9 @@
                 <repository>
                     <id>bolt-nexus</id>
                     <name>Bolt-Nexus</name>
-                    <url>http://bolt-ci-nexus-v2-11-9025.phx01.dev.ebayc3.com:8081/nexus/content/repositories/bolt-hosted-ecg-releases</url>
+                    <url>
+                        http://bolt-ci-nexus-v2-11-9025.phx01.dev.ebayc3.com:8081/nexus/content/repositories/bolt-hosted-ecg-releases
+                    </url>
                     <layout>default</layout>
                 </repository>
             </distributionManagement>
@@ -453,7 +483,9 @@
                 <repository>
                     <id>bolt-nexus</id>
                     <name>Bolt-Nexus</name>
-                    <url>http://bolt-ci-nexus-v2-11-9025.phx01.dev.ebayc3.com:8081/nexus/content/repositories/bolt-hosted-ecg-releases</url>
+                    <url>
+                        http://bolt-ci-nexus-v2-11-9025.phx01.dev.ebayc3.com:8081/nexus/content/repositories/bolt-hosted-ecg-releases
+                    </url>
                     <layout>default</layout>
                 </repository>
             </distributionManagement>
@@ -499,7 +531,9 @@
                 <repository>
                     <id>bolt-nexus</id>
                     <name>Bolt-Nexus</name>
-                    <url>http://bolt-ci-nexus-v2-11-9025.phx01.dev.ebayc3.com:8081/nexus/content/repositories/bolt-hosted-ecg-releases</url>
+                    <url>
+                        http://bolt-ci-nexus-v2-11-9025.phx01.dev.ebayc3.com:8081/nexus/content/repositories/bolt-hosted-ecg-releases
+                    </url>
                     <layout>default</layout>
                 </repository>
             </distributionManagement>
@@ -622,6 +656,7 @@
         <yammer.metrics.version>2.2.0</yammer.metrics.version>
         <protobuf-version>3.5.1</protobuf-version>
         <json-version>20180130</json-version>
+        <commons-validator-version>1.6</commons-validator-version>
 
         <!-- gtau artifact dependencies -->
         <jsoup.version>1.9.1</jsoup.version>
@@ -1971,6 +2006,25 @@
                 <groupId>com.google.protobuf</groupId>
                 <artifactId>protobuf-java</artifactId>
                 <version>${protobuf-version}</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-validator</groupId>
+                <artifactId>commons-validator</artifactId>
+                <version>${commons-validator-version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>commons-logging</groupId>
+                        <artifactId>commons-logging</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>commons-collections</groupId>
+                        <artifactId>commons-collections</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>commons-beanutils</groupId>
+                        <artifactId>commons-beanutils</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
 
 

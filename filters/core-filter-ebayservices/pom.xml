@@ -17,12 +17,20 @@
     <dependencies>
         <dependency>
             <groupId>ecg.comaas</groupId>
+            <artifactId>core-runtime</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ecg.comaas</groupId>
             <artifactId>core-api</artifactId>
         </dependency>
 
         <dependency>
             <groupId>de.mobile.ebay.service</groupId>
             <artifactId>ebay-services</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.ebay.ecg.australia</groupId>
+            <artifactId>gumtree-au-lbs2-client</artifactId>
         </dependency>
 
         <dependency>
@@ -32,6 +40,10 @@
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>commons-validator</groupId>
+            <artifactId>commons-validator</artifactId>
         </dependency>
 
         <dependency>
