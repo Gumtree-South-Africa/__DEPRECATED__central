@@ -20,8 +20,8 @@ variable newmsg_heap_size { default = "3G" }
 variable newmsg_max_parallel { default = 1 }
 
 variable cronjob_resources_cpu { default = 4000 }
-variable cronjob_resources_mem { default = 20480 }
-variable cronjob_heap_size { default = "16G" }
+variable cronjob_resources_mem { default = 16384 }
+variable cronjob_heap_size { default = "12G" }
 
 variable restart_jenkins_job_nr { default = "none" }
 variable hazelcast_group_name { default = "dev" }
