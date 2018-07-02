@@ -52,39 +52,6 @@ String activeDcSlackString(final String tenantLong, final String dc, final Strin
     return commonFunctions.getActiveDC(tenantLong, environmentShort) == dc ? "*active DC*" : "_passive DC_"
 }
 
-boolean isVersionPresentInSwift(String tenant, String version) {
-    def secrets = [
-        [
-                $class      : 'VaultSecret',
-                path        : 'secret/nomad/control/swift',
-                secretValues: [
-                        [$class: 'VaultSecretValue', envVar: 'SWIFT_USER', vaultKey: 'username'],
-                        [$class: 'VaultSecretValue', envVar: 'SWIFT_PASS', vaultKey: 'password']
-                ],
-        ],
-    ]
-    wrap([$class: 'VaultBuildWrapper', vaultSecrets: secrets]) {
-        String userId = commonFunctions.getUID()
-
-        String requiredFilesFoundInSwift = sh(
-                script: "[ 1 == \$( docker run --rm " +
-                        "--network host " +
-                        "-u $userId " +
-                        "-e OS_AUTH_URL=https://keystone.dus1.cloud.ecg.so/v2.0 " +
-                        "-e OS_TENANT_NAME='comaas-qa' " +
-                        "-e OS_USERNAME='$SWIFT_USER' " +
-                        "-e OS_PASSWORD='$SWIFT_PASS' " +
-                        "-e OS_PROJECT_NAME='comaas-control-prod' " +
-                        "-e OS_REGION_NAME='dus1' " +
-                        "ebayclassifiedsgroup/python-swiftclient:3.5.0 swift list --prefix $tenant comaas " +
-                        "| grep -c \"${version}.tar.gz\$\" ) ]",
-                returnStatus: true
-        )
-
-        return requiredFilesFoundInSwift == "0"
-    }
-}
-
 void notifyAboutPendingUpgrade(final String tenant, final String version, final String dc,
                                final String environmentShort) {
     final String currentVersion = commonFunctions.getCurrentlyDeployedVersion(tenant, dc, environmentShort)
@@ -95,49 +62,6 @@ void notifyAboutPendingUpgrade(final String tenant, final String version, final 
     String slackMessage = "Upgrading Comaas for `$tenant` from version `$currentVersion` to `$version` on `$environmentShort` " +
             "in `$dc` $dcState (<https://github.corp.ebay.com/ecg-comaas/central/compare/$currentVersion...$version|Diff>) (<$BUILD_URL|Build>)"
     sendToSlack('#FFFF00', tenant, slackMessage, environmentShort)
-}
-
-String downloadVersionFromSwift(final String tenant, final String version) {
-    def secrets = [
-            [
-                    $class      : 'VaultSecret',
-                    path        : 'secret/nomad/control/swift',
-                    secretValues: [
-                            [$class: 'VaultSecretValue', envVar: 'SWIFT_USER', vaultKey: 'username'],
-                            [$class: 'VaultSecretValue', envVar: 'SWIFT_PASS', vaultKey: 'password']
-                    ],
-            ],
-    ]
-    wrap([$class: 'VaultBuildWrapper', vaultSecrets: secrets]) {
-        final String userId = commonFunctions.getUID()
-        final String artifact = "${tenant}/builds/comaas-${tenant}_${version}.tar.gz"
-
-        sh """
-                docker run \\
-                --rm \\
-                --network host \\
-                -u $userId \\
-                -v \$PWD:/objects \\
-                -e OS_AUTH_URL=https://keystone.dus1.cloud.ecg.so/v2.0 \\
-                -e OS_TENANT_NAME="comaas-qa" \\
-                -e OS_USERNAME="$SWIFT_USER" \\
-                -e OS_PASSWORD="$SWIFT_PASS" \\
-                -e OS_PROJECT_NAME="comaas-control-prod" \\
-                -e OS_REGION_NAME="dus1" \\
-                ebayclassifiedsgroup/python-swiftclient:3.5.0 \\
-                swift download --output-dir /objects --skip-identical --prefix $artifact comaas
-            """
-
-        final String moveStatus = sh(
-                script: "mv -v $artifact .",
-                returnStatus: true
-        )
-        if (moveStatus != "0") {
-            error("Could not find artifact $artifact in Swift")
-        }
-    }
-
-    return "comaas-${tenant}_${version}.tar.gz"
 }
 
 void downloadFileFromGithub(final String version, final String tenant, final String environmentShort) {
@@ -167,12 +91,6 @@ void loadPropsIntoConsul(final String tenant, final String version, final String
     )
     if (status != "0") {
         error("Could not load properties into Consul, tenant $tenant, version $version, environment $environmentShort")
-    }
-}
-
-void deployCoreNodes(final String tenant, final String artifact) {
-    ansiColor('xterm') {
-        sh "PYTHONWARNINGS='ignore' deploy.py --config /etc/comaas/comaas-${tenant}.yaml --logdir ~ --component $artifact"
     }
 }
 
@@ -230,8 +148,7 @@ void deployNomad(final String tenant, final String environment, final String ver
     }
 }
 
-void deployToEnv(final String tenant, final String artifact, final String environment, final String version, final String dc, final Integer nrOfInstancesHttp, final Integer nrOfInstancesNewMsg, final String providedPipelineBranch) {
-    deployCoreNodes(tenant, artifact)
+void deployToEnv(final String tenant, final String environment, final String version, final String dc, final Integer nrOfInstancesHttp, final Integer nrOfInstancesNewMsg, final String providedPipelineBranch) {
     deployNomad(tenant, environment, version, dc, nrOfInstancesHttp, nrOfInstancesNewMsg, providedPipelineBranch)
 }
 
@@ -303,14 +220,9 @@ node("master") {
                     echo "About to deploy Comaas version $versionToDeploy to $environmentShort in $dc for $tenant"
                     notifyAboutPendingUpgrade(tenant, versionToDeploy, dc, environmentShort)
 
-                    if (!isVersionPresentInSwift(tenant, versionToDeploy)) {
-                        error("Version $versionToDeploy for tenant $tenant was not found in Swift")
-                    }
-
-                    final String artifact = downloadVersionFromSwift(tenant, versionToDeploy)
                     loadPropsIntoConsul(tenant, versionToDeploy, environmentShort)
 
-                    deployToEnv(tenant, artifact, environmentShort, versionToDeploy, dc, nrOfInstancesHttp, nrOfInstancesNewMsg, PROVIDED_PIPELINE_BRANCH as String)
+                    deployToEnv(tenant, environmentShort, versionToDeploy, dc, nrOfInstancesHttp, nrOfInstancesNewMsg, PROVIDED_PIPELINE_BRANCH as String)
 
                     commonFunctions.sendGrafanaMetric(commonFunctions.getAlias(tenant), dc, environmentShort, "finished", "deployed $versionToDeploy")
 
