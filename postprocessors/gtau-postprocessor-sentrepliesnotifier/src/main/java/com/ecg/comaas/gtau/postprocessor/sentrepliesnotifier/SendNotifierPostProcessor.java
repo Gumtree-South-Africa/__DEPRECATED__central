@@ -22,9 +22,8 @@ import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.util.stream.Collectors;
 
-import static com.ecg.replyts.core.runtime.prometheus.PrometheusFailureHandler.reportExternalServiceFailure;
-
 import static com.ecg.replyts.core.api.model.Tenants.TENANT_GTAU;
+import static com.ecg.replyts.core.runtime.prometheus.PrometheusFailureHandler.reportExternalServiceFailure;
 
 @ComaasPlugin
 @Profile(TENANT_GTAU)
@@ -47,7 +46,7 @@ public class SendNotifierPostProcessor implements PostProcessor {
             @Value("${replyts.sendnotifier.maxConnectionsPerRoute:100}") int maxConnectionsPerRoute,
             @Value("${replyts.sendnotifier.maxConnections:100}") int maxConnections
     ) {
-        this.httpClient = HttpClientFactory.createCloseableHttpClient(connectionTimeout, connectionManagerTimeout,
+        this.httpClient = HttpClientFactory.createCloseableHttpClientWithDisabledCookies(connectionTimeout, connectionManagerTimeout,
                 socketTimeout, maxConnectionsPerRoute, maxConnections);
         this.endpointUrl = endpointUrl;
     }
