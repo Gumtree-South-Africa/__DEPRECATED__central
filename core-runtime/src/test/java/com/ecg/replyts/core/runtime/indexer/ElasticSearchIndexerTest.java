@@ -57,7 +57,7 @@ public class ElasticSearchIndexerTest {
         ReflectionTestUtils.setField(elasticSearchIndexer, "convIdDedupBufferSize", 100);
         ReflectionTestUtils.setField(elasticSearchIndexer, "clock", new CurrentClock());
 
-        ReflectionTestUtils.setField(conversation2Kafka, "fetchedConvCounter", new AtomicLong(0));
+        ReflectionTestUtils.setField(conversation2Kafka, "submittedConvCounter", new AtomicLong(0));
 
         List<Conversation> conversations = Lists.newArrayList();
         final List<String> CONV_IDS = Lists.newArrayList("foo1", "foo2", "foo3", "foo4", "foo5", "foo6", "foo7", "foo8", "foo9");
