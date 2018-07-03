@@ -57,8 +57,6 @@ public class ElasticSearchIndexerTest {
         ReflectionTestUtils.setField(elasticSearchIndexer, "convIdDedupBufferSize", 100);
         ReflectionTestUtils.setField(elasticSearchIndexer, "clock", new CurrentClock());
 
-        ReflectionTestUtils.setField(conversation2Kafka, "submittedConvCounter", new AtomicLong(0));
-
         List<Conversation> conversations = Lists.newArrayList();
         final List<String> CONV_IDS = Lists.newArrayList("foo1", "foo2", "foo3", "foo4", "foo5", "foo6", "foo7", "foo8", "foo9");
         for (String conversationId : CONV_IDS) {
@@ -96,11 +94,11 @@ public class ElasticSearchIndexerTest {
         final List<String> CONV_IDS = Lists.newArrayList("foo4", "foo5", "foo6");
         List<ElasticSearchIndexer.TimeIntervalPair> intervals = elasticSearchIndexer.getTimeIntervals(FROM, NOW);
         for (ElasticSearchIndexer.TimeIntervalPair interval : intervals) {
-            when(conversationRepository.streamConversationsModifiedBetween(interval.startInterval, interval.endInterval)).thenReturn(CONV_IDS.stream());
+            when(conversationRepository.streamConversationsModifiedBetween(interval.startInterval, NOW)).thenReturn(CONV_IDS.stream());
         }
 
         elasticSearchIndexer.doIndexBetween(FROM, NOW);
-        verify(conversation2Kafka, times(CONV_IDS.size() * intervals.size())).updateElasticSearch(anyString());
+        verify(conversation2Kafka, times(CONV_IDS.size())).updateElasticSearch(anyString());
     }
 
     @Test
