@@ -6,6 +6,7 @@ import com.ecg.replyts.core.api.util.CurrentClock;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.workers.InstrumentedCallerRunsPolicy;
 import com.ecg.replyts.core.runtime.workers.InstrumentedExecutorService;
+import com.google.common.collect.EvictingQueue;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,7 +59,7 @@ public class ElasticSearchIndexer {
         executor = new ThreadPoolExecutor(threadCount, threadCount, 0, TimeUnit.SECONDS, workQueue, rejectionHandler);
         executorService = new InstrumentedExecutorService(executor, "indexer", ElasticSearchIndexer.class.getSimpleName());
         completionService = new ExecutorCompletionService(executorService);
-        LOG.info("Using java.util.concurrent.ForkJoinPool.common.parallelism={}", System.getProperty("java.util.concurrent.ForkJoinPool.common.parallelism"));
+        LOG.info("Using java.util.concurrent.ForkJoinPool.common.parallelism={}", Runtime.getRuntime().availableProcessors());
     }
 
     @PreDestroy
