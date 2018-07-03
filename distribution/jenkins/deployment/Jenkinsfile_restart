@@ -106,14 +106,8 @@ node("master") {
             final String version = getOriginalVersion(tenantShort, environment, dc)
             final String restartJenkinsJob = env.BUILD_NUMBER
 
-            parallel core: {
-                ansiColor('xterm') {
-                    sh "PYTHONWARNINGS='ignore' servicecontrol.py --logdir ~ --config /etc/comaas/comaas-${tenantLong}.yaml --restartservice comaas-${tenantLong}"
-                }
-            },
-            nomad: {
-                final Integer maxParallelNewMsg = getMaxParallel(tenantShort, "newmsg")
-                final Integer maxParallelHttp = getMaxParallel(tenantShort, "http")
+            final Integer maxParallelNewMsg = getMaxParallel(tenantShort, "newmsg")
+            final Integer maxParallelHttp = getMaxParallel(tenantShort, "http")
 
                 // Is this really necessary? Can we pass the files to the builder instead?
                 checkout scm
@@ -148,6 +142,8 @@ node("master") {
                         }
                     }
 
+                    final String hazelcastGroupName = UUID.randomUUID().toString()
+
                     final String vars = "-var-file=/deployment/environments/${environment}.tf " +
                             "-var='version=${version}' " +
                             "-var='urlprefixes=${urlprefixes}' " +
@@ -162,11 +158,11 @@ node("master") {
                             "-var='api_max_parallel=${maxParallelHttp}' " +
                             "-var='newmsg_max_parallel=${maxParallelNewMsg}' " +
                             "-var='restart_jenkins_job_nr=${restartJenkinsJob}' "
+                            "-var='hazelcast_group_name=${hazelcastGroupName}'"
                     final String levantCmd = "docker run --network host --rm -v \$(pwd)/distribution/jenkins/deployment/:/deployment:ro jrasell/levant:0.0.4 levant"
 
-                    sh "$levantCmd render ${vars} /deployment/comaas.nomad"
-                    sh "$levantCmd deploy ${vars} -log-level=debug -address='http://http.nomad.service.consul:4646' /deployment/comaas.nomad"
-                }
+                sh "$levantCmd render ${vars} /deployment/comaas.nomad"
+                sh "$levantCmd deploy ${vars} -log-level=debug -address='http://http.nomad.service.consul:4646' /deployment/comaas.nomad"
             }
         }
     }

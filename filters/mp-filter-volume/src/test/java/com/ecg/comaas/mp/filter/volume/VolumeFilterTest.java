@@ -13,10 +13,10 @@ import org.mockito.InOrder;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
-import static com.ecg.comaas.mp.filter.volume.VolumeFilter.wasPreviousMessageBySameUserDroppedOrHeld;
-import static com.ecg.replyts.core.api.model.conversation.FilterResultState.*;
+import static com.ecg.comaas.mp.filter.volume.VolumeFilter.wasPreviousMessageBySameUserBad;
 import static com.ecg.replyts.core.api.model.conversation.MessageDirection.BUYER_TO_SELLER;
 import static com.ecg.replyts.core.api.model.conversation.MessageDirection.SELLER_TO_BUYER;
+import static com.ecg.replyts.core.api.model.conversation.MessageState.*;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.hamcrest.core.Is.is;
@@ -77,7 +77,7 @@ public class VolumeFilterTest {
         assertThat(filterFeedback.getUiHint(), is("bla@bla.com>100 mails/1 HOURS +200"));
         assertThat(filterFeedback.getDescription(), is("bla@bla.com sent more than 100 mails the last 1 HOURS"));
         assertThat(filterFeedback.getScore(), is(200));
-        assertThat(filterFeedback.getResultState(), is(OK));
+        assertThat(filterFeedback.getResultState(), is(FilterResultState.OK));
 
         verify(vts).count(BUYER_ID, SECONDS_FOR_RULE1);
         verify(vts, never()).count(BUYER_ID, SECONDS_FOR_RULE2);
@@ -97,7 +97,7 @@ public class VolumeFilterTest {
         when(message.getMessageDirection()).thenReturn(BUYER_TO_SELLER);
         when(conversation.getMessages()).thenReturn(singletonList(message));
         when(conversation.getUserId(ConversationRole.Buyer)).thenReturn(BUYER_ID);
-        when(mail.getFrom()).thenReturn("bla@bla.com");
+        when(mail.getReplyTo()).thenReturn("bla@bla.com");
     }
 
     private void setUpTwoMailsInConversation() {
@@ -122,19 +122,25 @@ public class VolumeFilterTest {
 
     @Test
     public void testWasPreviousMessageBySameUserDroppedOrHeld() {
-        assertFalse(wasPreviousMessageBySameUserDroppedOrHeld(conversation(), BUYER_UID));
-        assertFalse(wasPreviousMessageBySameUserDroppedOrHeld(conversation(message(OK, BUYER_TO_SELLER)), BUYER_UID));
-        assertTrue(wasPreviousMessageBySameUserDroppedOrHeld(conversation(message(DROPPED, BUYER_TO_SELLER)), BUYER_UID));
-        assertTrue(wasPreviousMessageBySameUserDroppedOrHeld(conversation(message(HELD, BUYER_TO_SELLER)), BUYER_UID));
-        assertFalse(wasPreviousMessageBySameUserDroppedOrHeld(conversation(message(HELD, BUYER_TO_SELLER), message(OK, BUYER_TO_SELLER)), BUYER_UID));
-        assertFalse(wasPreviousMessageBySameUserDroppedOrHeld(conversation(message(OK, BUYER_TO_SELLER), message(HELD, SELLER_TO_BUYER)), BUYER_UID));
-        assertTrue(wasPreviousMessageBySameUserDroppedOrHeld(conversation(message(HELD, BUYER_TO_SELLER), message(OK, SELLER_TO_BUYER)), BUYER_UID));
+        assertFalse(wasPreviousMessageBySameUserBad(conversation(), BUYER_UID, "1"));
+        assertFalse(wasPreviousMessageBySameUserBad(conversation(message(SENT, BUYER_TO_SELLER)), BUYER_UID, "1"));
+        assertTrue(wasPreviousMessageBySameUserBad(conversation(message(BLOCKED, BUYER_TO_SELLER)), BUYER_UID, "1"));
+        assertTrue(wasPreviousMessageBySameUserBad(conversation(message(HELD, BUYER_TO_SELLER)), BUYER_UID, "1"));
+        assertFalse(wasPreviousMessageBySameUserBad(conversation(message(HELD, BUYER_TO_SELLER), message(SENT, BUYER_TO_SELLER)), BUYER_UID, "1"));
+        assertFalse(wasPreviousMessageBySameUserBad(conversation(message(SENT, BUYER_TO_SELLER), message(HELD, SELLER_TO_BUYER)), BUYER_UID, "1"));
+        assertTrue(wasPreviousMessageBySameUserBad(conversation(message(HELD, BUYER_TO_SELLER), message(SENT, SELLER_TO_BUYER)), BUYER_UID, "1"));
+        assertTrue(wasPreviousMessageBySameUserBad(conversation(message(BLOCKED, BUYER_TO_SELLER, "1"), message(UNDECIDED, BUYER_TO_SELLER, "2")), BUYER_UID, "2"));
     }
 
-    private static Message message(FilterResultState state, MessageDirection direction) {
+    private static Message message(MessageState state, MessageDirection direction) {
+        return message(state, direction, "");
+    }
+
+    private static Message message(MessageState state, MessageDirection direction, String msgId) {
         Message m = mock(Message.class);
-        when(m.getFilterResultState()).thenReturn(state);
+        when(m.getState()).thenReturn(state);
         when(m.getMessageDirection()).thenReturn(direction);
+        when(m.getId()).thenReturn(msgId);
         return m;
     }
 

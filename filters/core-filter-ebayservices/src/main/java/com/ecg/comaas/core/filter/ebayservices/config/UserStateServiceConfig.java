@@ -2,10 +2,8 @@ package com.ecg.comaas.core.filter.ebayservices.config;
 
 import de.mobile.ebay.service.userprofile.Config;
 
-/**
- * Created by johndavis on 13.10.17.
- */
-public class UserStateServiceConfig implements Config {
+public final class UserStateServiceConfig implements Config {
+
     private final String endpointUrl;
     private final String oauthUrl;
     private final String clientId;

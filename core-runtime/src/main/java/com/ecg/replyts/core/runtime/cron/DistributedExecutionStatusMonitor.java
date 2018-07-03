@@ -12,7 +12,7 @@ import javax.annotation.PostConstruct;
 import java.util.List;
 
 @Component
-@ConditionalOnProperty(value = "node.run.cronjobs", havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(value = "node.run.cronjobs", havingValue = "true")
 public class DistributedExecutionStatusMonitor implements ExecutionStatusMonitor {
     @Autowired
     private HazelcastInstance hazelcast;

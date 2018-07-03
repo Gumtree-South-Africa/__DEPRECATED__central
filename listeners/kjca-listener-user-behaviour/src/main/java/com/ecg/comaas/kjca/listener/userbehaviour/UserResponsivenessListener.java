@@ -62,9 +62,11 @@ public class UserResponsivenessListener implements MessageProcessedListener {
         ResponsivenessRecord record = createRecord(conversation, message);
         if (record == null) {
             noRecordCounter.inc();
+            LOG.trace("UserResponsivness Record was dropped: Message-ID: {}, Conversation-ID: {}", message.getId(), conversation.getId());
             return;
         }
 
+        LOG.trace("Sending UserResponsivness Record: User-ID: {}, Conversation-ID: {}", record.getUserId(), record.getConversationId());
         try {
             SendResponsivenessToServiceCommand sendResponsivenessCommand = createHystrixCommand();
             sendResponsivenessCommand.setResponsivenessRecord(record);

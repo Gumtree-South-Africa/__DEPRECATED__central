@@ -36,6 +36,25 @@ public class HttpClientFactory {
                 .build();
     }
 
+    public static CloseableHttpClient createCloseableHttpClientWithDisabledCookies(
+            int connectionTimeout,
+            int connectionRequestTimeout,
+            int socketTimeout,
+            int maxConnectionsPerHost,
+            int maxTotalConnections
+    ) {
+        return HttpClientBuilder.create()
+                .setMaxConnPerRoute(maxConnectionsPerHost)
+                .setMaxConnTotal(maxTotalConnections)
+                .disableCookieManagement()
+                .setDefaultRequestConfig(RequestConfig.custom()
+                        .setConnectionRequestTimeout(connectionRequestTimeout)
+                        .setConnectTimeout(connectionTimeout)
+                        .setSocketTimeout(socketTimeout)
+                        .build())
+                .build();
+    }
+
     public static CloseableHttpClient createCloseableHttpClientWithProxy(
             int connectionTimeout,
             int connectionRequestTimeout,

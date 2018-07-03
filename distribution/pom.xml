@@ -171,11 +171,6 @@
                 </dependency>
                 <dependency>
                     <groupId>ecg.comaas</groupId>
-                    <artifactId>gtau-filter-ebayservices</artifactId>
-                    <version>${project.version}</version>
-                </dependency>
-                <dependency>
-                    <groupId>ecg.comaas</groupId>
                     <artifactId>gtau-filter-echelon</artifactId>
                     <version>${project.version}</version>
                 </dependency>

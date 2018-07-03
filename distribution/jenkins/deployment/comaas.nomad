@@ -13,11 +13,11 @@ job "comaas-[[ .tenant_short ]]" {
   }
 
   update {
-    max_parallel = 3
+    max_parallel = 1
     auto_revert = "true"
     health_check = "checks"
     min_healthy_time = "10s"
-    healthy_deadline = "120s"
+    healthy_deadline = "90s"
     stagger = "1m"
   }
 
@@ -52,6 +52,7 @@ job "comaas-[[ .tenant_short ]]" {
         JAVA_OPTS = ""
         TENANT = "[[ .tenant ]]"
         MAIL_PROVIDER_STRATEGY = "kafka"
+        HAZELCAST_GROUP_NAME = "[[.hazelcast_group_name]]"
       }
 
       service {
@@ -155,6 +156,7 @@ EOH
         HEAP_SIZE = "[[ .api_heap_size ]]"
         JAVA_OPTS = ""
         TENANT = "[[ .tenant ]]"
+        HAZELCAST_GROUP_NAME = "[[.hazelcast_group_name]]"
         ESAAS_USERNAME = "[[ .esaas_username ]]"
         ESAAS_PASSWORD = "[[ .esaas_password ]]"
       }
@@ -207,6 +209,92 @@ EOH
             port "http" {}
             port "hazelcast" {}
             port "prometheus" {}
+        }
+      }
+    }
+
+    task "filebeat" {
+      driver = "docker"
+      config {
+        image = "ebayclassifiedsgroup/filebeat:5.6.4"
+        args = [
+          "-c", "/local/config/filebeat.yml"
+        ]
+
+        network_mode = "host"
+      }
+
+      template {
+        data = <<EOH
+[[ .filebeat_config ]]
+EOH
+        destination = "local/config/filebeat.yml"
+      }
+
+      resources {
+        cpu = 100
+        memory = 256
+        network {
+          mbits = 1
+        }
+      }
+    }
+  },
+  group "cronjob" {
+
+    count = 1
+
+    constraint {
+      attribute = "${node.class}"
+      value = "services"
+    }
+
+    task "cronjob" {
+      driver = "docker"
+
+      config {
+        image = "[[.registry_namespace]]/comaas-[[ .tenant ]]:[[.version]]"
+        network_mode = "host"
+
+        auth {
+          username = "[[.docker_username]]"
+          password = "[[.docker_password]]"
+        }
+      }
+
+      env {
+        HEAP_SIZE = "[[ .cronjob_heap_size ]]"
+        JAVA_OPTS = ""
+        TENANT = "[[ .tenant ]]"
+        COMAAS_RUN_CRON_JOBS = "true"
+        HAZELCAST_GROUP_NAME = "[[.hazelcast_group_name]]"
+      }
+
+      service {
+        name = "${JOB}"
+        tags = [
+          "version-[[.version]]",
+          "cronjob"
+        ]
+      }
+
+      service {
+        name = "${JOB}"
+        port = "prometheus"
+        tags = [
+          "prometheus"
+        ]
+      }
+
+      resources {
+        cpu    = [[.cronjob_resources_cpu]]
+        memory = [[.cronjob_resources_mem]]
+        network {
+          mbits = 100
+          // keep this, Comaas needs it to start up
+          port "http" {}
+          port "hazelcast" {}
+          port "prometheus" {}
         }
       }
     }
