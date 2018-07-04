@@ -38,7 +38,7 @@ public class PostBoxOverviewControllerTest {
 
     @Before
     public void setUp() throws Exception {
-        controller = new PostBoxOverviewController(postBoxRepository, conversationBlockRepository, 180);
+        controller = new PostBoxOverviewController(postBoxRepository, conversationBlockRepository, 180, false);
     }
 
     @Test
