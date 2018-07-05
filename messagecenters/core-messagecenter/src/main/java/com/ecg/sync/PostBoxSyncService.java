@@ -44,7 +44,7 @@ public class PostBoxSyncService {
         this.userIdentifierService = userIdentifierService;
         this.session = session;
         this.postBoxRepository = postBoxRepository;
-        this.conversationStatement = this.session.prepare("SELECT conversation_id FROM mb_postbox WHERE postbox_id = ? LIMIT 1");
+        this.conversationStatement = this.session.prepare("SELECT conversation_id FROM mb_postbox WHERE postbox_id = ? AND conversation_id = ? LIMIT 1");
     }
 
     /**
@@ -100,7 +100,7 @@ public class PostBoxSyncService {
      * @return conversation ID in list if conversation exists.
      */
     public List<String> conversationExists(String email, String conversationId) {
-        ResultSet resultSet = session.execute(conversationStatement.bind(email));
+        ResultSet resultSet = session.execute(conversationStatement.bind(email, conversationId));
         if (resultSet.iterator().hasNext()) {
             return Collections.singletonList(conversationId);
         }
