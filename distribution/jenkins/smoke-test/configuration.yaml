@@ -3,12 +3,6 @@ tenants:
 smokeTest:
   version:
       lp:
-        default: 0.1.28
+        default: 0.1.36
       prod:
-        default: 0.1.28
-  runPostMessageTests:
-      lp:
-        mp: true
-        default: false
-      prod:
-        default: false
+        default: 0.1.36
