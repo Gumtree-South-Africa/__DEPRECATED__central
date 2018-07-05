@@ -34,7 +34,6 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.function.BiConsumer;
-import java.util.function.Function;
 
 @Component
 @ConditionalOnProperty(name = "webapi.sync.ca.enabled", havingValue = "true")
@@ -111,8 +110,10 @@ public class WebApiSyncService {
                 .thenApply(postBox -> responseBuilder.buildPostBox(email, size, page, null, postBox))
                 .exceptionally(postBoxSyncService.handle(oldModelFailureCounter, "Old GetPostBox Failed - email: " + email));
 
-        CompletableFuture.allOf(newModelFuture, oldModelFuture).join();
-        Diffing.diffPostBox(newModelFuture.join(), oldModelFuture.join(), email);
+        oldModelFuture.thenCombine(newModelFuture, (oldbox, newbox) -> {
+            Diffing.diffPostBox(newbox, oldbox, email);
+            return oldbox;
+        });
 
         return ResponseObject.of(oldModelFuture.join());
     }
