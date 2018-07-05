@@ -9,9 +9,14 @@ get_region () {
     echo ${ip} | egrep -q '^10\.32\.56\.' && echo -n dus1
 }
 
-# tenant region dc
+# tenant env dc
 get_info () {
-    echo $(curl -m 1 -s ${3}.${1}.${2}.comaas.cloud/health)
+    if [ ${2} == "lp" ]; then
+        uri=${1}.${2}.comaas.cloud/health
+    else
+        uri=${3}.${1}.${2}.comaas.cloud/health
+    fi
+    echo $(curl --max-time 1 --silent ${uri})
 }
 
 # tenant active_dc ams1_version ams1_mode dus1_version dus1_mode
