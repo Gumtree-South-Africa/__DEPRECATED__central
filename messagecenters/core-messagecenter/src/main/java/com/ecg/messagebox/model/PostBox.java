@@ -8,10 +8,10 @@ import java.util.Objects;
 
 public class PostBox {
 
-    private String userId;
-    private List<ConversationThread> conversations;
-    private UserUnreadCounts unreadCounts;
-    private int conversationsTotalCount;
+    private final String userId;
+    private final List<ConversationThread> conversations;
+    private final UserUnreadCounts unreadCounts;
+    private final int conversationsTotalCount;
 
     public PostBox(String userId, List<ConversationThread> conversations, UserUnreadCounts unreadCounts, int conversationsTotalCount) {
         this.userId = userId;
