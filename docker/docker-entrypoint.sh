@@ -32,7 +32,6 @@ export COMAAS_PROMETHEUS_PORT=${NOMAD_PORT_prometheus}
 export region=${NOMAD_REGION}
 export http_proxy=http://proxy.${region}.cloud.ecg.so:3128
 export https_proxy=http://proxy.${region}.cloud.ecg.so:3128
-export swift_authentication_url=https://keystone.${region}.cloud.ecg.so/v2.0
 
 /usr/bin/java \
     -Djava.security.egd=file:/dev/urandom \

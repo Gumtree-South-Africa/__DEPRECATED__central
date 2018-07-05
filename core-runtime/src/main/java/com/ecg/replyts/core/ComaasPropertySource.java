@@ -22,6 +22,9 @@ class ComaasPropertySource extends MapPropertySource {
         putEnvIfNotNull(properties, "COMAAS_PROMETHEUS_PORT", "prometheus.port");
         putEnvIfNotNull(properties, "COMAAS_RUN_CRON_JOBS", "node.run.cronjobs");
         putEnvIfNotNull(properties, "MAIL_PROVIDER_STRATEGY", "mail.provider.strategy");
+        putEnvIfNotNull(properties, "SWIFT_KEYSTONE", "swift.authentication.url");
+        putEnvIfNotNull(properties, "SWIFT_USERNAME", "swift.username");
+        putEnvIfNotNull(properties, "SWIFT_PASSWORD", "swift.password");
 
         if (System.getProperty("tenant") != null) {
             // XXX: Once everyone is over to the ecg-salt-comaas PR #108 we can s/replyts\.tenant/tenant/g

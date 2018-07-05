@@ -26,8 +26,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Collections;
 
-import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
@@ -36,13 +36,13 @@ import static org.junit.Assert.assertNotNull;
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = AttachmentRepositoryIntegrationTest.TestContext.class)
 @TestPropertySource(properties = {
-        "swift.bucket.number = 13",
+        "swift.bucket.number=13",
         "swift.tenant=comaas-qa",
         "replyts.swift.container=test-container",
         "swift.username=comaas-qa-swift",
-        "swift.password=Z6J$6QfV@HU1%aGv",
+        "swift.password=<put password here>",
+        "swift.authentication.url=https://keystone.ams1.cloud.ecg.so/v2.0",
 })
-/** MUST BE SET as env variable swift_authentication_url=https://keystone.ams1.cloud.ecg.so/v2.0 */
 public class AttachmentRepositoryIntegrationTest {
 
     @Autowired
@@ -79,16 +79,16 @@ public class AttachmentRepositoryIntegrationTest {
 
     // Make sure there is an attachment in the email
     @Test
-    public void extractsAttachmentNames() throws IOException, ParsingException {
+    public void extractsAttachmentNames() throws IOException {
         Mail mail = parse();
         Files.write(Paths.get(System.getProperty("java.io.tmpdir"), "att.jpeg"), mail.getAttachment(attName).getContent());
-        assertEquals(asList(attName), mail.getAttachmentNames());
+        assertEquals(Collections.singletonList(attName), mail.getAttachmentNames());
     }
 
 
     // Make sure there is an attachment in the email with correct mime and size
     @Test
-    public void retrievesAttachmentContents() throws IOException, ParsingException {
+    public void retrievesAttachmentContents() {
         TypedContent<byte[]> attachment = parse().getAttachment(attName);
         assertEquals(mimeType, attachment.getMediaType().toString());
         assertEquals(size, attachment.getContent().length);
