@@ -106,15 +106,15 @@ public class WebApiSyncService {
                 .thenApply(userId -> Optional.of(postBoxService.getConversations(userId, Visibility.ACTIVE, page * size, size)))
                 .exceptionally(postBoxSyncService.handleOpt(newModelFailureCounter, "New GetPostBox Failed - email: " + email));
 
-        CompletableFuture<PostBoxDiff> oldModelFuture = CompletableFuture
+        CompletableFuture<PostBoxResponse> oldModelFuture = CompletableFuture
                 .supplyAsync(() -> postBoxRepository.byId(PostBoxId.fromEmail(email)), oldExecutor)
-                .thenApply(postBox -> new PostBoxDiff(postBox, responseBuilder.buildPostBox(email, size, page, null, postBox)))
+                .thenApply(postBox -> responseBuilder.buildPostBox(email, size, page, null, postBox))
                 .exceptionally(postBoxSyncService.handle(oldModelFailureCounter, "Old GetPostBox Failed - email: " + email));
 
         CompletableFuture.allOf(newModelFuture, oldModelFuture).join();
         Diffing.diffPostBox(newModelFuture.join(), oldModelFuture.join(), email);
 
-        return ResponseObject.of(oldModelFuture.join().getPostBoxResponse());
+        return ResponseObject.of(oldModelFuture.join());
     }
 
     public Optional<PostBoxSingleConversationThreadResponse> readConversation(String email, String conversationId) {
