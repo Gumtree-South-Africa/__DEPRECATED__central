@@ -1,0 +1,139 @@
+node('lp') {
+    currentBuild.description = "$PROVIDED_TENANT/$PROVIDED_ENV/$PROVIDED_DC"
+
+    String tenantShort = PROVIDED_TENANT
+    String tenantLong = tenantAliases() get(tenantShort)
+    String envValue = PROVIDED_ENV
+    String dc = PROVIDED_DC
+    String dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
+    Integer nodesCount = PROVIDED_NODES_COUNT as int
+    Integer delay = PROVIDED_DELAY_SECONDS as int
+    if (envValue == 'lp') {
+        dc = 'ams1'
+    }
+
+    stage('Start full reindexing') {
+        node("${envValue}&&${dc}") {
+            Integer retentionDays = getRetentionDays(tenantLong)
+            echo "Retention days: ${retentionDays}"
+            String[] nodes = getNodesArray(tenantShort, nodesCount)
+            echo "Nodes: ${nodes}"
+            Integer[] daysSplit = splitDays(retentionDays, nodes.length)
+            echo "Days split: ${daysSplit}"
+            startReindexing(nodes, daysSplit, dateFormat, delay)
+        }
+    }
+}
+
+def tenantAliases() {
+    [
+            'ek': 'ebayk',
+            'au': 'gtau',
+            'uk': 'gtuk',
+            'it': 'it',
+            'ca': 'kjca',
+            'mo': 'mde',
+            'mp': 'mp',
+            'ar': 'ar',
+            'sg': 'sg',
+            'mx': 'mx',
+            'za': 'za'
+    ]
+}
+
+Integer getRetentionDays(String tenantLong) {
+    String retentionEncoded = sh(
+            script: "curl 'http://localhost:8500/v1/kv/comaas/comaas:core:${tenantLong}/replyts.maxConversationAgeDays' | jq -r .[].Value",
+            returnStdout: true
+    ).trim()
+    if (!retentionEncoded?.trim()) {
+        error "Encoded retention days is null or empty: ${retentionEncoded}"
+    }
+    return new String(retentionEncoded.decodeBase64()) as int
+}
+
+String[] getNodesArray(String tenantShort, Integer nodesCount) {
+    String[] nodes
+    if (PROVIDED_NODE_TYPE == 'core') {
+        nodes = getCoreNodesArray(tenantShort)
+    } else {
+        nodes = getNomadNodesArray(tenantShort, PROVIDED_NODE_TYPE)
+    }
+
+    if (nodesCount > nodes.length) {
+        echo "WARN: specified ${nodesCount} nodes to be used but only ${nodes.length} node(s) available. Will run on ${nodes.length} node(s)"
+    }
+
+    if (nodesCount < nodes.length && nodesCount > 0) {
+        nodes = nodes[0..nodesCount - 1]
+    }
+    return nodes
+}
+
+String[] getCoreNodesArray(String tenantShort) {
+    String nodesStr = sh(
+            script: "curl 'http://localhost:8500/v1/agent/members' | jq -r '.[].Name | select(contains(\"${tenantShort}-core\"))'",
+            returnStdout: true
+    ).trim()
+    if (!nodesStr?.trim()) {
+        error "Core nodes list is null or empty: ${nodesStr}"
+    }
+    return nodesStr.split('\n').collect {"http://" + it + ":8080" }
+}
+
+String[] getNomadNodesArray(String tenantShort, nodeType) {
+    String nomadNodesStr = sh(
+            script: "curl http://localhost:8500/v1/catalog/service/comaas-${tenantShort} | jq -r '.[] | select(.ServiceTags[] | contains(\"${nodeType}\")) | \"\\(.ServiceAddress):\\(.ServicePort)|\\(.Node)\"'",
+            returnStdout: true
+    ).trim()
+    if (!nomadNodesStr?.trim()) {
+        error "${nodeType} nodes list is null or empty: ${nomadNodesStr}"
+    }
+    return nomadNodesStr.split('\n').collect { it }
+}
+
+/**
+ * The intention is to evenly spread days so that every node would get similar load
+ */
+Integer[] splitDays(Integer retentionDays, Integer nodesCount) {
+    Integer defaultSplit = retentionDays.intdiv(nodesCount)
+    Integer remainder = retentionDays % nodesCount
+    Integer[] intervals = new Integer[nodesCount]
+
+    for (i = 0; i < nodesCount; i++) {
+        intervals[i] = remainder > i ? defaultSplit + 1 : defaultSplit
+    }
+    return intervals
+}
+
+void startReindexing(String[] nodes, Integer[] dayRanges, String dateFormat, Integer delay) {
+    Date toDate = new Date()
+    for (i = 0; i < nodes.length; i++) {
+        Date fromDate = toDate.minus(dayRanges[i])
+        startReindexingOnANode(nodes[i], fromDate.format(dateFormat, TimeZone.getTimeZone('UTC')), toDate.format(dateFormat, TimeZone.getTimeZone('UTC')))
+        toDate = fromDate
+        if (delay > 0 && i < nodes.length - 1) {
+            sleep delay
+        }
+    }
+}
+
+void startReindexingOnANode(String node, String dateFrom, String dateTo) {
+    if (node.contains("|")) {
+        String[] nodeParts = node.split("\\|").collect{ it }
+        node = nodeParts[0]
+        echo "Node with IP and port ${node} corresponds to ${nodeParts[1]} node name in Nomad"
+    }
+    String actualUrl = "${node}/startIndexSinceTo?since=${dateFrom}&to=${dateTo}"
+    echo "Starting reindexing on a node ${node} from ${dateFrom} to ${dateTo}, actual URL -> ${actualUrl}"
+    String nodeResponse = sh(
+            script: "curl '${actualUrl}'",
+            returnStdout: true
+    ).trim()
+
+    if (nodeResponse.contains('FAILURE') || nodeResponse.contains('Exception')) {
+        error "$nodeResponse"
+    } else {
+        echo "Node response: ${nodeResponse}"
+    }
+}

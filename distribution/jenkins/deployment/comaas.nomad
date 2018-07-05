@@ -236,6 +236,7 @@ EOH
       }
     }
   },
+
   group "cronjob" {
 
     count = 1
@@ -268,6 +269,7 @@ EOH
 
       service {
         name = "${JOB}"
+        port = "http"
         tags = [
           "version-[[.version]]",
           "cronjob"
