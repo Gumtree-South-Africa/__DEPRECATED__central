@@ -65,6 +65,7 @@ public class Document2KafkaSink implements DocumentSink {
             DOC_COUNT.inc();
             documentSink.storeAsync(key, document.getBytes());
 
+            LOG.debug("Persisting conversation/messageid {}/{} to document queue", conversation.getId(), messageId);
         } catch (IOException e) {
             LOG.error("Failed to store document data in Kafka due to {}", e.getMessage(), e);
         }

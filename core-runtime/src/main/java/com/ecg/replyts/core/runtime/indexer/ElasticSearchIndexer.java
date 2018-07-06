@@ -81,34 +81,6 @@ public class ElasticSearchIndexer {
     public void doIndexBetween(DateTime dateFrom, DateTime dateTo) {
         LOG.info("Started indexing between {} and {}", dateFrom, dateTo);
         this.cleanExecutor();
-        /*
-        List<TimeIntervalPair> pairs = this.getTimeIntervals(dateFrom, dateTo);s
-        int intervalCount = 0;
-
-        for (TimeIntervalPair timeInterval : pairs) {
-
-            intervalCount++;
-            DateTime startInterval = timeInterval.startInterval;
-            DateTime endInterval = timeInterval.endInterval;
-
-            for (int i = 1; i <= maxRetriesOnFailure; i++) {
-                LOG.info("Starting to index conversations in time interval {} to {}", startInterval, endInterval);
-                try {
-                    this.indexConversations(conversationRepository.streamConversationsModifiedBetween(startInterval, endInterval));
-                    break;
-                } catch (Exception ex) {
-                    LOG.warn("Failed to index conversation from {} to {}, retrying for {} time", startInterval, endInterval, i, ex);
-                }
-                if (i == maxRetriesOnFailure) {
-                    DateTimeFormatter formatter = DateTimeFormat.forPattern("MM/dd/yyyy HH:mm:ss");
-                    String msg = String.format("Failed to index time interval %s to %s, giving up after %d retries",
-                            formatter.print(startInterval), formatter.print(endInterval), maxRetriesOnFailure);
-                    throw new RuntimeException(msg);
-                }
-            }
-            LOG.info("Completed indexing of time interval {} out of {}", intervalCount, pairs.size());
-        }
-   */
         this.indexConversations(conversationRepository.streamConversationsModifiedBetween(dateFrom, dateTo));
         LOG.info("Indexing completed. Total {} conversations from {} to {}",
                 submittedConvCounter.get(), dateFrom, dateTo);
