@@ -11,13 +11,12 @@ node('lp') {
 
     String dc = PROVIDED_DC
 
-
     def now = new Date()
-    if ( FROM_DATE != '' ) {
-        fromDate = dateFormat.parse(FROM_DATE)
+    if ( FROM_DATETIME != '' ) {
+        fromDate = dateFormat.parse(FROM_DATETIME)
     }
-    if ( TO_DATE != '' ) {
-        toDate = dateFormat.parse(TO_DATE)
+    if ( TO_DATETIME != '' ) {
+        toDate = dateFormat.parse(TO_DATETIME)
     } else {
         toDate = now
     }
