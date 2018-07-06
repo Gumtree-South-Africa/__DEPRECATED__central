@@ -100,7 +100,7 @@ public class PostBoxSyncService {
      * @return conversation ID in list if conversation exists.
      */
     public List<String> conversationExists(String email, String conversationId) {
-        ResultSet resultSet = session.execute(conversationStatement.bind(email, conversationId));
+        ResultSet resultSet = session.execute(conversationStatement.bind(email.toLowerCase(), conversationId));
         if (resultSet.iterator().hasNext()) {
             return Collections.singletonList(conversationId);
         }
