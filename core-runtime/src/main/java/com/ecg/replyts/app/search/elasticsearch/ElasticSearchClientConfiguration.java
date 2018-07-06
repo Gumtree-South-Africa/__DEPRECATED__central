@@ -19,8 +19,8 @@ public class ElasticSearchClientConfiguration {
     @Bean(destroyMethod = "close")
     public RestClient elasticRestClient(
             @Value("${search.es.endpoint}") String endpoint,
-            @Value("#{systemEnvironment['ESAAS_USERNAME'] ?: 'not_used'}") String username,
-            @Value("#{systemEnvironment['ESAAS_PASSWORD'] ?: 'not_used'}") String password
+            @Value("${search.es.username:#{systemEnvironment['ESAAS_USERNAME']}}") String username,
+            @Value("${search.es.password:#{systemEnvironment['ESAAS_PASSWORD']}}") String password
     ) {
         CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
         credentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(username, password));
@@ -43,8 +43,8 @@ public class ElasticSearchClientConfiguration {
     @Bean(destroyMethod = "close")
     public ElasticDeleteClient deleteByQueryClient(
             @Value("${search.es.endpoint}") String endpoint,
-            @Value("#{systemEnvironment['ESAAS_USERNAME'] ?: 'not_used'}") String username,
-            @Value("#{systemEnvironment['ESAAS_PASSWORD'] ?: 'not_used'}") String password,
+            @Value("${search.es.username:#{systemEnvironment['ESAAS_USERNAME']}}") String username,
+            @Value("${search.es.password:#{systemEnvironment['ESAAS_PASSWORD']}}") String password,
             @Value("${search.es.indexname}") String indexName) {
 
         URI uri = URI.create(endpoint);
