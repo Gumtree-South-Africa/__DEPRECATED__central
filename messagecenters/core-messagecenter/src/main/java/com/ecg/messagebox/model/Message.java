@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
 import org.joda.time.DateTime;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
@@ -35,8 +36,8 @@ public class Message {
         this(id, type, new MessageMetadata(text, senderUserId, customData));
     }
 
-    public Message(UUID id, String text, String senderUserId, MessageType type, String customData, Map<String,String> headers) {
-        this(id, type, new MessageMetadata(text, senderUserId, customData,headers));
+    public Message(UUID id, String text, String senderUserId, MessageType type, String customData, Map<String, String> headers, List<Attachment> attachments) {
+        this(id, type, new MessageMetadata(text, senderUserId, customData, headers, attachments));
     }
 
     public UUID getId() {
