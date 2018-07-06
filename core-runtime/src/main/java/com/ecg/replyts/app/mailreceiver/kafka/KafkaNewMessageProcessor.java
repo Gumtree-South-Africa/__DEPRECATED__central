@@ -21,8 +21,16 @@ import org.springframework.util.Assert;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
 import static com.ecg.replyts.core.api.model.conversation.command.AddMessageCommandBuilder.anAddMessageCommand;
@@ -178,7 +186,7 @@ public class KafkaNewMessageProcessor extends KafkaMessageProcessor {
                 .withSenderMessageIdHeader(context.getMessageId())
                 //.withInResponseToMessageId() TODO akobiakov: find out what this is used for
                 .withTextParts(Collections.singletonList(message))
-                .withAttachmentFilenames(Collections.emptyList())
+                .withAttachmentFilenames(context.getAttachments().stream().map(Attachment::getName).collect(Collectors.toList()))
                 .withHeaders(metadata)
                 .build();
     }

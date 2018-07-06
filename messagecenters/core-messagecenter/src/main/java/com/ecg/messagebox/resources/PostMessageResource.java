@@ -210,7 +210,7 @@ public class PostMessageResource {
         kafkaMessage
                 .addAttachments(MessageOuterClass.Attachment
                         .newBuilder()
-                        .setFileName(attachment.getName())
+                        .setFileName(attachment.getOriginalFilename())
                         .setBody(ByteString.readFrom(attachment.getInputStream()))
                 );
 
