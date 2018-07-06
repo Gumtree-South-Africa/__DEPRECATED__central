@@ -1,0 +1,96 @@
+node('lp') {
+    currentBuild.description = "$PROVIDED_TENANT/$PROVIDED_ENV/$PROVIDED_DC"
+
+    String tenantShort = PROVIDED_TENANT
+    String tenantLong = tenantAliases() get(tenantShort)
+    String envValue = PROVIDED_ENV
+    String dc = PROVIDED_DC
+    String dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
+
+    if (envValue == 'lp') {
+        dc = 'ams1'
+    }
+
+    stage('Start reindexing') {
+        node("${envValue}&&${dc}") {
+
+            String node = getNode(tenantShort)
+            echo "Executing Node: ${node}"
+            startReindexing(node, dateFormat)
+        }
+    }
+}
+
+def tenantAliases() {
+    [
+            'ek': 'ebayk',
+            'au': 'gtau',
+            'uk': 'gtuk',
+            'it': 'it',
+            'ca': 'kjca',
+            'mo': 'mde',
+            'mp': 'mp',
+            'ar': 'ar',
+            'sg': 'sg',
+            'mx': 'mx',
+            'za': 'za'
+    ]
+}
+
+String getNode(String tenantShort) {
+    String[] nodes
+    if (PROVIDED_NODE_TYPE == 'core') {
+        nodes = getCoreNodesArray(tenantShort)
+    } else {
+        nodes = getNomadNodesArray(tenantShort, PROVIDED_NODE_TYPE)
+    }
+
+    return nodes[0]
+}
+
+String[] getCoreNodesArray(String tenantShort) {
+    String nodesStr = sh(
+            script: "curl 'http://localhost:8500/v1/agent/members' | jq -r '.[].Name | select(contains(\"${tenantShort}-core\"))'",
+            returnStdout: true
+    ).trim()
+    if (!nodesStr?.trim()) {
+        error "Core nodes list is null or empty: ${nodesStr}"
+    }
+    return nodesStr.split('\n').collect {"http://" + it + ":8080" }
+}
+
+String[] getNomadNodesArray(String tenantShort, nodeType) {
+    String nomadNodesStr = sh(
+            script: "curl http://localhost:8500/v1/catalog/service/comaas-${tenantShort} | jq -r '.[] | select(.ServiceTags[] | contains(\"${nodeType}\")) | \"\\(.ServiceAddress):\\(.ServicePort)|\\(.Node)\"'",
+            returnStdout: true
+    ).trim()
+    if (!nomadNodesStr?.trim()) {
+        error "${nodeType} nodes list is null or empty: ${nomadNodesStr}"
+    }
+    return nomadNodesStr.split('\n').collect { it }
+}
+
+void startReindexing(String node, Date fromDate, Date toDate, String dateFormat) {
+
+    dateFrom = fromDate.format(dateFormat, TimeZone.getTimeZone('UTC'))
+    dateTo = toDate.format(dateFormat, TimeZone.getTimeZone('UTC'))
+
+    if (node.contains("|")) {
+        String[] nodeParts = node.split("\\|").collect{ it }
+        node = nodeParts[0]
+        echo "Node with IP and port ${node} corresponds to ${nodeParts[1]} node name in Nomad"
+    }
+    String actualUrl = "${node}/startIndexSinceTo?since=${dateFrom}&to=${dateTo}"
+    echo "Starting reindexing on a node ${node} from ${dateFrom} to ${dateTo}, actual URL -> ${actualUrl}"
+    String nodeResponse = sh(
+            script: "curl '${actualUrl}'",
+            returnStdout: true
+    ).trim()
+
+    if (nodeResponse.contains('FAILURE') || nodeResponse.contains('Exception')) {
+        error "$nodeResponse"
+    } else {
+        echo "Node response: ${nodeResponse}"
+    }
+}
+
