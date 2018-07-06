@@ -116,22 +116,20 @@ public class DefaultMessageProcessingCoordinator implements MessageProcessingCoo
     }
 
     private void logMail(Mail mail) {
-        if (LOG.isTraceEnabled()) {
-            String headers = mail.getUniqueHeaders().entrySet().stream()
-                    .map(entry -> entry.getKey() + ": " + entry.getValue())
-                    .collect(Collectors.joining("\n"));
+        String headers = mail.getUniqueHeaders().entrySet().stream()
+                .map(entry -> entry.getKey() + ": " + entry.getValue())
+                .collect(Collectors.joining("\n"));
 
-            String textParts = mail.getPlaintextParts().stream()
-                    .collect(Collectors.joining("\n"));
+        String textParts = mail.getPlaintextParts().stream()
+                .collect(Collectors.joining("\n"));
 
-            String attachments = mail.getAttachmentNames().stream()
-                    .collect(Collectors.joining("\n"));
+        String attachments = mail.getAttachmentNames().stream()
+                .collect(Collectors.joining("\n"));
 
-            LOG.trace("MAIL DETAIL\n"
-                    + "HEADERS\n" + headers
-                    + "\nTEXT PARTS\n" + textParts
-                    + "\nATTACHMENTS\n" + attachments);
-        }
+        LOG.info("MAIL DETAIL"
+                + "\nHEADERS\n" + headers
+                + "\nTEXT PARTS\n" + textParts
+                + "\nATTACHMENTS\n" + attachments);
     }
 
     private Optional<Mail> parseMail(byte[] incomingMailContents) throws ParsingException {
