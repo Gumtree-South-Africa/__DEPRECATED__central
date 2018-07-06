@@ -29,6 +29,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static com.ecg.replyts.core.runtime.logging.MDCConstants.*;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -93,6 +94,8 @@ public class DefaultMessageProcessingCoordinator implements MessageProcessingCoo
                 return Optional.empty();
             }
 
+            logMail(mail.get());
+
             // TODO akobiakov: the purpose of the two lines below is to monitor the fact whether the tenants have
             // started providing an extra headers in the emails originating from their backend (see COMAAS-1046).
             // As soon as COMAAS-1046 is closed, either this code or this to-do can be removed.
@@ -109,6 +112,25 @@ public class DefaultMessageProcessingCoordinator implements MessageProcessingCoo
             throw e;
         } finally {
             LOG.debug("Message processed", keyValue("processingTime", stopwatch.elapsed(TimeUnit.MILLISECONDS)));
+        }
+    }
+
+    private void logMail(Mail mail) {
+        if (LOG.isTraceEnabled()) {
+            String headers = mail.getUniqueHeaders().entrySet().stream()
+                    .map(entry -> entry.getKey() + ": " + entry.getValue())
+                    .collect(Collectors.joining("\n"));
+
+            String textParts = mail.getPlaintextParts().stream()
+                    .collect(Collectors.joining("\n"));
+
+            String attachments = mail.getAttachmentNames().stream()
+                    .collect(Collectors.joining("\n"));
+
+            LOG.trace("MAIL DETAIL\n"
+                    + "HEADERS\n" + headers
+                    + "\nTEXT PARTS\n" + textParts
+                    + "\nATTACHMENTS\n" + attachments);
         }
     }
 
