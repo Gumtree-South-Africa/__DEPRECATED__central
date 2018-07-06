@@ -3,7 +3,17 @@ package com.ecg.messagebox.service;
 import com.datastax.driver.core.utils.UUIDs;
 import com.ecg.messagebox.controllers.requests.PartnerMessagePayload;
 import com.ecg.messagebox.events.MessageAddedEventProcessor;
-import com.ecg.messagebox.model.*;
+import com.ecg.messagebox.model.Attachment;
+import com.ecg.messagebox.model.ConversationMetadata;
+import com.ecg.messagebox.model.ConversationThread;
+import com.ecg.messagebox.model.ImmutableAttachment;
+import com.ecg.messagebox.model.Message;
+import com.ecg.messagebox.model.MessageMetadata;
+import com.ecg.messagebox.model.MessageNotification;
+import com.ecg.messagebox.model.MessageType;
+import com.ecg.messagebox.model.Participant;
+import com.ecg.messagebox.model.PostBox;
+import com.ecg.messagebox.model.Visibility;
 import com.ecg.messagebox.persistence.CassandraPostBoxRepository;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;
@@ -15,7 +25,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static com.ecg.messagebox.model.ParticipantRole.BUYER;
 import static com.ecg.messagebox.model.ParticipantRole.SELLER;
@@ -66,7 +82,14 @@ public class CassandraPostBoxService implements PostBoxService {
         String customData = rtsMessage.getHeaders().get("X-Message-Metadata");
         String messageIdStr = rtsMessage.getHeaders().get("X-Message-ID");
         UUID messageId = messageIdStr != null ? UUID.fromString(messageIdStr) : UUIDs.timeBased();
-        Message newMessage = new Message(messageId, cleanMessageText, senderUserId, messageType, customData, rtsMessage.getHeaders());
+        List<Attachment> attachments = rtsMessage.getAttachmentFilenames()
+                .stream()
+                .map(fileName -> ImmutableAttachment.builder()
+                        .fileName(fileName)
+                        .messageID(rtsMessage.getId())
+                        .build())
+                .collect(Collectors.toList());
+        Message newMessage = new Message(messageId, cleanMessageText, senderUserId, messageType, customData, rtsMessage.getHeaders(), attachments);
         Optional<MessageNotification> messageNotificationOpt = postBoxRepository.getConversationMessageNotification(userId, rtsConversation.getId());
 
         if (messageNotificationOpt.isPresent()) {

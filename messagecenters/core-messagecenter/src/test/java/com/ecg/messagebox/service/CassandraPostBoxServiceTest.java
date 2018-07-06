@@ -2,12 +2,25 @@ package com.ecg.messagebox.service;
 
 import com.datastax.driver.core.utils.UUIDs;
 import com.ecg.messagebox.events.MessageAddedEventProcessor;
-import com.ecg.messagebox.model.*;
+import com.ecg.messagebox.model.ConversationMetadata;
+import com.ecg.messagebox.model.ConversationThread;
+import com.ecg.messagebox.model.MessageMetadata;
+import com.ecg.messagebox.model.MessageNotification;
+import com.ecg.messagebox.model.MessageType;
+import com.ecg.messagebox.model.Participant;
+import com.ecg.messagebox.model.ParticipantRole;
+import com.ecg.messagebox.model.PostBox;
+import com.ecg.messagebox.model.Visibility;
 import com.ecg.messagebox.persistence.CassandraPostBoxRepository;
 import com.ecg.messagebox.util.MessagePreProcessor;
 import com.ecg.messagebox.util.messages.DefaultMessagesResponseFactory;
-import com.ecg.replyts.core.api.model.conversation.*;
+import com.ecg.replyts.core.api.model.conversation.Conversation;
+import com.ecg.replyts.core.api.model.conversation.ConversationState;
 import com.ecg.replyts.core.api.model.conversation.Message;
+import com.ecg.replyts.core.api.model.conversation.MessageDirection;
+import com.ecg.replyts.core.api.model.conversation.MessageState;
+import com.ecg.replyts.core.api.model.conversation.MutableConversation;
+import com.ecg.replyts.core.api.model.conversation.UserUnreadCounts;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import com.ecg.replyts.core.runtime.identifier.UserIdentifierService;
 import com.ecg.replyts.core.runtime.model.conversation.ImmutableConversation;
@@ -30,7 +43,13 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 
 import static com.ecg.replyts.core.api.model.conversation.MessageDirection.SELLER_TO_BUYER;
 import static com.ecg.replyts.core.runtime.model.conversation.ImmutableConversation.Builder.aConversation;
@@ -39,7 +58,12 @@ import static com.google.common.collect.Lists.newArrayList;
 import static java.util.Collections.singletonList;
 import static java.util.Optional.empty;
 import static org.joda.time.DateTime.now;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyBoolean;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.when;
 
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = CassandraPostBoxServiceTest.TestContext.class)
@@ -248,7 +272,7 @@ public class CassandraPostBoxServiceTest {
         Message rtsMsg = newMessageWithHeaders("1", SELLER_TO_BUYER, MessageState.SENT, headers);
 
         com.ecg.messagebox.model.Message newMessage = new com.ecg.messagebox.model.Message(
-                UUID.fromString("f866b110-857b-11e6-9367-5bbf510138cd"), "text 123", USER_ID_2, MessageType.ASQ, null, headers);
+                UUID.fromString("f866b110-857b-11e6-9367-5bbf510138cd"), "text 123", USER_ID_2, MessageType.ASQ, null, headers, Collections.emptyList());
 
         Conversation rtsConversation = newConversation(CONVERSATION_ID_1).withMessages(singletonList(rtsMsg)).build();
 

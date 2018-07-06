@@ -62,7 +62,8 @@ class ConversationResponseConverter {
                 message.getSenderUserId(),
                 message.getReceivedDate(),
                 message.getCustomData(),
-                message.getMetadata().getHeaders());
+                message.getMetadata().getHeaders(),
+                message.getMetadata().getAttachments());
     }
 
     private static ParticipantResponse toParticipantResponse(Participant participant) {
