@@ -1,11 +1,26 @@
+import java.text.SimpleDateFormat
+
+static def dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
+
 node('lp') {
     currentBuild.description = "$PROVIDED_TENANT/$PROVIDED_ENV/$PROVIDED_DC"
 
     String tenantShort = PROVIDED_TENANT
     String tenantLong = tenantAliases() get(tenantShort)
     String envValue = PROVIDED_ENV
+
     String dc = PROVIDED_DC
-    String dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
+
+
+    def now = new Date()
+    if ( FROM_DATE != '' ) {
+        fromDate = dateFormat.parse(FROM_DATE)
+    }
+    if ( TO_DATE != '' ) {
+        toDate = dateFormat.parse(TO_DATE)
+    } else {
+        toDate = now
+    }
 
     if (envValue == 'lp') {
         dc = 'ams1'
@@ -16,7 +31,7 @@ node('lp') {
 
             String node = getNode(tenantShort)
             echo "Executing Node: ${node}"
-            startReindexing(node, dateFormat)
+            startReindexing(node, dateFrom, dateTo)
         }
     }
 }
@@ -70,7 +85,7 @@ String[] getNomadNodesArray(String tenantShort, nodeType) {
     return nomadNodesStr.split('\n').collect { it }
 }
 
-void startReindexing(String node, Date fromDate, Date toDate, String dateFormat) {
+void startReindexing(String node, Date fromDate, Date toDate) {
 
     dateFrom = fromDate.format(dateFormat, TimeZone.getTimeZone('UTC'))
     dateTo = toDate.format(dateFormat, TimeZone.getTimeZone('UTC'))
