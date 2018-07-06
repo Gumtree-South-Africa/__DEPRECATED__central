@@ -50,16 +50,13 @@ public class Diffing {
                     .map(com.ecg.messagecenter.kjca.persistence.ConversationThread::getConversationId)
                     .collect(Collectors.toList());
 
-            LOG.debug("DIFF: COUNTS: E-mail: " + email + ", User-ID: " + newbox.getUserId() + ", NEW/OLD: " + newCount + "/" + oldCount + " | "
-                    + newIds + " | " + oldIds);
-            return;
+            LOG.debug("DIFF: COUNTS: E-mail: " + email + ", User-ID: " + newbox.getUserId() + ", NEW/OLD: " + newCount + "/" + oldCount + " | " + newIds + " | " + oldIds);
         }
 
         int newUnread = newbox.getUnreadCounts().getNumUnreadConversations();
-        int oldUnread = oldbox.getUnreadConversationsCapped().size();
+        int oldUnread = oldbox.getUnreadConversations().size();
         if (newUnread != oldUnread) {
             LOG.debug("DIFF: UNREAD: E-mail: " + email + ", User-ID: " + newbox.getUserId() + ", NEW/OLD: " + newUnread + "/" + oldUnread);
-            return;
         }
     }
 }
