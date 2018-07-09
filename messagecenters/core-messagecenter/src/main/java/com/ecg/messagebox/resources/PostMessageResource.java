@@ -215,6 +215,9 @@ public class PostMessageResource {
                 );
 
         queueService.publish(KafkaTopicService.getTopicIncoming(shortTenant), kafkaMessage.build());
+        LOG.debug("Posted message for conversation id: {}, with message id {}, correlation id: {}, attachment name :{}, attachment size: {} bytes",
+                conversationId, kafkaMessage.getMessageId(), kafkaMessage.getCorrelationId(), attachment.getOriginalFilename(), attachment.getSize());
+
         return new PostMessageResponse(kafkaMessage.getMessageId());
     }
 
