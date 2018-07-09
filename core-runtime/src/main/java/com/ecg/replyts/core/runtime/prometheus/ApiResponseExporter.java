@@ -1,6 +1,6 @@
 package com.ecg.replyts.core.runtime.prometheus;
 
-import io.prometheus.client.Gauge;
+import io.prometheus.client.Counter;
 import io.prometheus.client.Summary;
 import org.eclipse.jetty.server.AsyncContextState;
 import org.eclipse.jetty.server.HttpChannelState;
@@ -12,17 +12,16 @@ import javax.servlet.AsyncListener;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import java.io.IOException;
 
 public class ApiResponseExporter extends HandlerWrapper {
 
-    private Gauge apiResponseStatusCodes;
+    private Counter apiResponseStatusCodes;
     private Summary apiResponseTimes;
 
     @Override
     protected void doStart() throws Exception {
-        apiResponseStatusCodes = Gauge.build("api_response_status_codes", "API response HTTP status code").labelNames("status_code", "context_path").register();
+        apiResponseStatusCodes = Counter.build("api_response_status_codes", "API response HTTP status code").labelNames("status_code", "context_path").register();
         apiResponseTimes = Summary.build("api_response_times", "API Response time").quantile(0.95, 0.01).labelNames("method", "context_path").register();
 
         super.doStart();
@@ -67,7 +66,7 @@ public class ApiResponseExporter extends HandlerWrapper {
     private void updateResponses(HttpServletRequest request, HttpServletResponse httpResponse, long start, String contextPath) {
         if (!contextPath.isEmpty()) {
             apiResponseStatusCodes.labels(Integer.toString(httpResponse.getStatus()), contextPath).inc();
-            apiResponseTimes.labels(request.getMethod().toLowerCase(), contextPath).observe(System.currentTimeMillis() - start);
+            apiResponseTimes.labels(request.getMethod().toLowerCase(), contextPath).observe((double) (System.currentTimeMillis() - start));
         }
     }
 
@@ -75,12 +74,13 @@ public class ApiResponseExporter extends HandlerWrapper {
         private final String contextPath;
         private long startTime;
 
-        public AsyncListenerImplementation(String contextPath) {
+        AsyncListenerImplementation(String contextPath) {
             this.contextPath = contextPath;
         }
 
         @Override
         public void onTimeout(AsyncEvent event) throws IOException {
+            // do nothing
         }
 
         @Override
@@ -91,6 +91,7 @@ public class ApiResponseExporter extends HandlerWrapper {
 
         @Override
         public void onError(AsyncEvent event) throws IOException {
+            // do nothing
         }
 
         @Override
