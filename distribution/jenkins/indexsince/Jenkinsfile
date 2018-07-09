@@ -1,7 +1,5 @@
 import java.text.SimpleDateFormat
 
-
-
 node('lp') {
     currentBuild.description = "$PROVIDED_TENANT/$PROVIDED_ENV/$PROVIDED_DC"
 
@@ -9,7 +7,6 @@ node('lp') {
     dateFormat.setTimeZone(TimeZone.getTimeZone('UTC'))
 
     String tenantShort = PROVIDED_TENANT
-    String tenantLong = tenantAliases() get(tenantShort)
     String envValue = PROVIDED_ENV
 
     String dc = PROVIDED_DC
@@ -36,22 +33,6 @@ node('lp') {
             startReindexing(node, fromDate, toDate, dateFormat)
         }
     }
-}
-
-def tenantAliases() {
-    [
-            'ek': 'ebayk',
-            'au': 'gtau',
-            'uk': 'gtuk',
-            'it': 'it',
-            'ca': 'kjca',
-            'mo': 'mde',
-            'mp': 'mp',
-            'ar': 'ar',
-            'sg': 'sg',
-            'mx': 'mx',
-            'za': 'za'
-    ]
 }
 
 String getNode(String tenantShort) {
