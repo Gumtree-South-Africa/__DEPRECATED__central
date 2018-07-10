@@ -53,11 +53,13 @@ class PostBoxOverviewController {
             @RequestParam(value = "page", defaultValue = "0", required = false) Integer page,
             @RequestParam(value = "role", required = false) ConversationRole role) {
 
+        PostBox postBox;
         if (syncEnabled) {
-            return webapiSyncService.getPostBox(email, size, page);
+            postBox = webapiSyncService.getPostBox(email, size, page);
         } else {
-            PostBox postBox = postBoxRepository.byId(PostBoxId.fromEmail(email));
-            return responseBuilder.buildPostBoxResponse(email, size, page, role, postBox);
+            postBox = postBoxRepository.byId(PostBoxId.fromEmail(email));
         }
+
+        return responseBuilder.buildPostBoxResponse(email, size, page, role, postBox);
     }
 }

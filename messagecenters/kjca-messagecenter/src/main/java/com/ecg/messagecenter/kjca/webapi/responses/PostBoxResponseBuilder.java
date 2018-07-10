@@ -50,13 +50,7 @@ public class PostBoxResponseBuilder {
                 getNumForRole(unreadThreads, email, ConversationRole.Seller, PostBox.MAX_CONVERSATIONS_IN_POSTBOX),
                 postBox.getLastModification());
 
-        List<ConversationThread> notExpiredConversations =
-                postBox.getConversationThreads()
-                        .stream()
-                        .filter(this::isConversationActive)
-                        .collect(Collectors.toList());
-
-        PostBox<ConversationThread> notExpiredConversationsPostBox = new PostBox<>(postBox.getEmail(), postBox.getNewRepliesCounter(), notExpiredConversations);
+        PostBox<ConversationThread> notExpiredConversationsPostBox = createRefreshedPostBox(postBox);
         initConversationsPayload(email, notExpiredConversationsPostBox.getFilteredConversationThreads(roleFilter(role, email), page, size), postBoxResponse);
 
         int filteredSize = (int) notExpiredConversationsPostBox.getConversationThreads().stream()
@@ -66,6 +60,16 @@ public class PostBoxResponseBuilder {
         postBoxResponse.meta(filteredSize, page, size);
 
         return postBoxResponse;
+    }
+
+    public PostBox<ConversationThread> createRefreshedPostBox(PostBox<ConversationThread> postBox) {
+        List<ConversationThread> notExpiredConversations =
+                postBox.getConversationThreads()
+                        .stream()
+                        .filter(this::isConversationActive)
+                        .collect(Collectors.toList());
+
+        return new PostBox<>(postBox.getEmail(), postBox.getNewRepliesCounter(), notExpiredConversations);
     }
 
     private boolean isConversationActive(ConversationThread conversation) {

@@ -89,8 +89,7 @@ public class WebApiSyncService {
         this.newExecutor = customExecutorsFactory.webApiExecutorService("new-webapi-executor");
     }
 
-    public ResponseObject<PostBoxResponse> getPostBox(String email, Integer size, Integer page) {
-        postBoxRepository.byId(PostBoxId.fromEmail(email));
+    public com.ecg.messagecenter.core.persistence.simple.PostBox getPostBox(String email, Integer size, Integer page) {
 
         /*
          * First two calls are dedicated to find real UserID using the email:
@@ -105,17 +104,16 @@ public class WebApiSyncService {
                 .thenApply(userId -> Optional.of(postBoxService.getConversations(userId, Visibility.ACTIVE, page * size, size)))
                 .exceptionally(postBoxSyncService.handleOpt(newModelFailureCounter, "New GetPostBox Failed - email: " + email));
 
-        CompletableFuture<PostBoxResponse> oldModelFuture = CompletableFuture
+        CompletableFuture<com.ecg.messagecenter.core.persistence.simple.PostBox> oldModelFuture = CompletableFuture
                 .supplyAsync(() -> postBoxRepository.byId(PostBoxId.fromEmail(email)), oldExecutor)
-                .thenApply(postBox -> responseBuilder.buildPostBox(email, size, page, null, postBox))
                 .exceptionally(postBoxSyncService.handle(oldModelFailureCounter, "Old GetPostBox Failed - email: " + email));
 
         oldModelFuture.thenCombine(newModelFuture, (oldbox, newbox) -> {
-            Diffing.diffPostBox(newbox, oldbox, email);
+            Diffing.diffPostBox(newbox, responseBuilder.createRefreshedPostBox(oldbox), email);
             return oldbox;
         });
 
-        return ResponseObject.of(oldModelFuture.join());
+        return oldModelFuture.join();
     }
 
     public Optional<PostBoxSingleConversationThreadResponse> readConversation(String email, String conversationId) {
