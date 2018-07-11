@@ -121,6 +121,14 @@ node("master") {
                                     [$class: 'VaultSecretValue', envVar: 'DOCKER_PASSWORD', vaultKey: 'password']
                             ],
                     ],
+                    [
+                            $class      : 'VaultSecret',
+                            path        : "secret/nomad/${environment}/swift",
+                            secretValues: [
+                                    [$class: 'VaultSecretValue', envVar: 'SWIFT_USERNAME', vaultKey: 'username'],
+                                    [$class: 'VaultSecretValue', envVar: 'SWIFT_PASSWORD', vaultKey: 'password']
+                            ],
+                    ],
             ]
             wrap([$class: 'VaultBuildWrapper', vaultSecrets: secrets]) {
                 // Remove after https://jira.corp.ebay.com/browse/COMAAS-950 is fixed
@@ -139,6 +147,8 @@ node("master") {
                 final String vars = "-var-file=/deployment/environments/${environment}.tf " +
                         "-var='version=${version}' " +
                         "-var='urlprefixes=${urlprefixes}' " +
+                        "-var='swift_username=${SWIFT_USERNAME}' " +
+                        "-var='swift_password=${SWIFT_PASSWORD}' " +
                         "-var='docker_username=${DOCKER_USERNAME}' " +
                         "-var='docker_password=${DOCKER_PASSWORD}' " +
                         "-var='tenant=${tenantLong}' " +

@@ -5,6 +5,8 @@ variable region { default = "ams1" }
 variable registry_namespace { default = "dock.es.ecg.tools/comaas" }
 variable docker_username { default = "unset" }
 variable docker_password { default = "unset" }
+variable swift_username { default = "unset" }
+variable swift_password { default = "unset" }
 variable vault_policy { default = "nomad-secret-readonly" }
 
 variable api_count { default = 2 }

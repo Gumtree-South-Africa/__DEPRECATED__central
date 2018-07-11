@@ -2,13 +2,13 @@ package com.ecg.replyts.core.runtime.persistence.attachment;
 
 import com.codahale.metrics.Timer;
 import com.ecg.replyts.core.runtime.TimingReports;
-
-
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Charsets;
 import com.google.common.base.Preconditions;
 import com.google.common.escape.Escaper;
-import com.google.common.hash.*;
+import com.google.common.hash.HashCode;
+import com.google.common.hash.HashFunction;
+import com.google.common.hash.Hashing;
 import com.google.common.net.UrlEscapers;
 import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.common.netty.handler.codec.http.HttpResponseStatus;
@@ -36,8 +36,6 @@ import static com.google.common.base.Preconditions.checkState;
 
 // Interface to Swift repository for reading attachments
 public class SwiftAttachmentRepository {
-
-
     private static final Logger LOG = LoggerFactory.getLogger(SwiftAttachmentRepository.class);
 
     private static final Timer GET = TimingReports.newTimer("attachment-get-timer");
@@ -45,7 +43,7 @@ public class SwiftAttachmentRepository {
 
     private OSClient.OSClientV2 swiftClient;
 
-    @Value("#{systemEnvironment['swift_authentication_url']}")
+    @Value("${swift.authentication.url:}")
     private String keystone;
 
     @Value("${replyts.maxConversationAgeDays:180}")
@@ -75,23 +73,20 @@ public class SwiftAttachmentRepository {
     private void connect() {
         // V2 authentication
         LOG.debug("Connecting to Swift storage endpoint {}, with username '{}', passwd '{}' and tenant '{}' ", keystone, username, passwd, tenantName);
+        if (StringUtils.isEmpty(keystone)) {
+            LOG.error("Missing 'swift.authentication.url' property. Swift is disabled");
+            return;
+        }
         try {
-
-            if (StringUtils.isEmpty(keystone)) {
-                LOG.error("Missing 'swift_authentication_url' environment variable (should be the keystone URL). Swift is disabled");
-                return;
-            }
             swiftClient = OSFactory.builderV2()
                     .endpoint(keystone)
                     .credentials(username, passwd)
                     .tenantName(tenantName)
                     .authenticate();
-
         } catch (AuthenticationException e) {
             swiftClient = null;
             LOG.error("Failed to connect to Swift", e);
         }
-
     }
 
     public String getContainer(String messageid) {
@@ -101,7 +96,7 @@ public class SwiftAttachmentRepository {
         return containerName;
     }
 
-    int getBucket(String messageid) {
+    private int getBucket(String messageid) {
         HashCode hc = hf.newHasher().putString(messageid, Charsets.UTF_8).hash();
         // would be nice to use Hashing.consistentHash(hc, numberOfBuckets); for consistency
         // but that does not solve our problem completely, yet makes it harder to achieve
@@ -175,7 +170,7 @@ public class SwiftAttachmentRepository {
             } else {
                 LOG.debug("Did not find any attachments for messageid '{}' in container {} ", messageId, containerName);
             }
-            return Optional.ofNullable(omap);
+            return Optional.of(omap);
         }
     }
 
