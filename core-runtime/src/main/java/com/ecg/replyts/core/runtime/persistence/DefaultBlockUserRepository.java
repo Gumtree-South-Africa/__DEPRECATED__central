@@ -3,6 +3,7 @@ package com.ecg.replyts.core.runtime.persistence;
 import com.datastax.driver.core.*;
 import org.joda.time.DateTime;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -53,6 +54,20 @@ public class DefaultBlockUserRepository implements BlockUserRepository, Cassandr
     }
 
     @Override
+    public List<String> listBlockedUsers(String blockerUserId) {
+        List<String> blockees = new ArrayList<>();
+        for (Row row : session.execute(Statements.SELECT_BLOCKED_USERS.bind(this, blockerUserId))) {
+            blockees.add(row.getString("blockeeid"));
+        }
+        return blockees;
+    }
+
+    @Override
+    public boolean isBlocked(String userId1, String userId2) {
+        return session.execute(Statements.SELECT_BLOCKED_USER.bind(this, userId1, userId2)).getAvailableWithoutFetching() > 0;
+    }
+
+    @Override
     public Optional<BlockedUserInfo> getBlockedUserInfo(String userId1, String userId2) {
         List<Supplier<ResultSet>> results = newArrayList(
                 () -> session.execute(Statements.SELECT_BLOCKED_USER.bind(this, userId1, userId2)),
@@ -76,10 +91,13 @@ public class DefaultBlockUserRepository implements BlockUserRepository, Cassandr
         return getBlockedUserInfo(userId1, userId2).isPresent();
     }
 
+
+
     static class Statements extends StatementsBase {
         static Statements BLOCK_USER = new Statements("INSERT INTO core_blocked_users (blockerid, blockeeid, blockdate) VALUES (?, ?, ?) IF NOT EXISTS", true);
         static Statements UNBLOCK_USER = new Statements("DELETE FROM core_blocked_users WHERE blockerid = ? AND blockeeid = ?", true);
         static Statements SELECT_BLOCKED_USER = new Statements("SELECT blockerid, blockeeid, blockdate FROM core_blocked_users WHERE blockerid = ? AND blockeeid = ?", false);
+        static Statements SELECT_BLOCKED_USERS = new Statements("SELECT blockeeid FROM core_blocked_users WHERE blockerid = ?", false);
 
         Statements(String cql, boolean modifying) {
             super(cql, modifying);

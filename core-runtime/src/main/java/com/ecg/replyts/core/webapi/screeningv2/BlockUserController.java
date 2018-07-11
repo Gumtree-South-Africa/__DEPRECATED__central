@@ -12,6 +12,8 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 import static com.ecg.replyts.core.api.model.user.event.BlockAction.BLOCK_USER;
 import static com.ecg.replyts.core.api.model.user.event.BlockAction.UNBLOCK_USER;
 import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE;
@@ -19,7 +21,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 @RestController
-@RequestMapping(value = "/block-users/{blockerId}/{blockeeId}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+@RequestMapping(value = "/block-users", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
 public class BlockUserController {
     private static final Logger LOG = LoggerFactory.getLogger(BlockUserController.class);
 
@@ -29,7 +31,7 @@ public class BlockUserController {
     @Autowired(required = false)
     private UserEventListener userEventListener;
 
-    @PostMapping
+    @PostMapping("/{blockerId}/{blockeeId}")
     ResponseObject<?> blockUser(@PathVariable String blockerId, @PathVariable String blockeeId) {
         LOG.trace("Blocking user, blockerId: %s blockeeId: %s", blockerId, blockeeId);
 
@@ -42,7 +44,7 @@ public class BlockUserController {
         return ResponseObject.of(RequestState.OK);
     }
 
-    @DeleteMapping
+    @DeleteMapping("/{blockerId}/{blockeeId}")
     ResponseObject<?> unblockUser(@PathVariable String blockerId, @PathVariable String blockeeId) {
         LOG.trace("Unblocking user, blockerId: %s blockeeId: %s", blockerId, blockeeId);
 
@@ -55,8 +57,13 @@ public class BlockUserController {
         return ResponseObject.of(RequestState.OK);
     }
 
-    @GetMapping
+    @GetMapping("/{blockerId}/{blockeeId}")
     boolean isblocked(@PathVariable String blockerId, @PathVariable String blockeeId) {
-        return blockUserRepository.areUsersBlocked(blockerId, blockeeId);
+        return blockUserRepository.isBlocked(blockerId, blockeeId);
+    }
+
+    @GetMapping("/{blockerId}")
+    List<String> listBlockedUsers(@PathVariable String blockerId) {
+        return blockUserRepository.listBlockedUsers(blockerId);
     }
 }

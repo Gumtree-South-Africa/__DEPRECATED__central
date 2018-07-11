@@ -1,10 +1,7 @@
 package com.ecg.replyts.core.runtime.persistence;
 
+import java.util.List;
 import java.util.Optional;
-
-/**
- * Repository for blocked users
- */
 
 public interface BlockUserRepository {
     void blockUser(String blockerUserId, String userIdToBlock);
@@ -15,4 +12,7 @@ public interface BlockUserRepository {
 
     boolean areUsersBlocked(String userId1, String userId2);
 
+    List<String> listBlockedUsers(String userId1);
+
+    boolean isBlocked(String userId1, String userId2);
 }
