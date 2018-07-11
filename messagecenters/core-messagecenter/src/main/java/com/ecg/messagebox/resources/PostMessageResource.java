@@ -1,5 +1,6 @@
 package com.ecg.messagebox.resources;
 
+import com.datastax.driver.core.utils.UUIDs;
 import com.ecg.comaas.protobuf.MessageOuterClass;
 import com.ecg.comaas.protobuf.MessageOuterClass.Message;
 import com.ecg.comaas.protobuf.MessageOuterClass.Payload;
@@ -205,6 +206,7 @@ public class PostMessageResource {
             @ApiParam(value = "Attachment", required = true) @RequestPart(value = "attachment") MultipartFile attachment,
             @RequestHeader(value = "X-Correlation-ID", required = false) String correlationIdHeader) throws IOException {
 
+        postMessageRequest.metadata.computeIfAbsent("X-Message-ID", k -> UUIDs.timeBased().toString());
         Message.Builder kafkaMessage = getMessage(userId, conversationId, postMessageRequest, correlationIdHeader);
 
         kafkaMessage
@@ -215,7 +217,7 @@ public class PostMessageResource {
                 );
 
         queueService.publish(KafkaTopicService.getTopicIncoming(shortTenant), kafkaMessage.build());
-        return new PostMessageResponse(kafkaMessage.getMessageId());
+        return new PostMessageResponse(postMessageRequest.metadata.get("X-Message-ID"));
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
