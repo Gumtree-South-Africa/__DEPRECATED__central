@@ -48,7 +48,8 @@ node("master") {
                         "-var='docker_password=${DOCKER_PASSWORD}' " +
                         "-var='esaas_username=${ESAAS_USERNAME}' " +
                         "-var='esaas_password=${ESAAS_PASSWORD}' " +
-                        "-var='tenant=${tenantShort}' "
+                        "-var='tenant=${tenantShort}' " +
+                        "-var='days_since=${PROVIDED_DAYS_SINCE}' "
                 final String levantCmd = "docker run --network host --rm -v \$(pwd)/distribution/jenkins/indexer/:/indexer:ro jrasell/levant:0.0.4 levant"
 
                 sh "$levantCmd render ${vars} /indexer/indexer.nomad"
