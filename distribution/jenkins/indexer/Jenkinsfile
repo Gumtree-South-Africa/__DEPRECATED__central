@@ -53,7 +53,7 @@ node("master") {
                 final String levantCmd = "docker run --network host --rm -v \$(pwd)/distribution/jenkins/indexer/:/indexer:ro jrasell/levant:0.0.4 levant"
 
                 sh "$levantCmd render ${vars} /indexer/indexer.nomad"
-//                sh "$levantCmd deploy ${vars} -log-level=debug -address='http://http.nomad.service.consul:4646' /indexer/indexer.nomad"
+                sh "$levantCmd deploy ${vars} -log-level=debug -address='http://http.nomad.service.consul:4646' /indexer/indexer.nomad"
             }
         }
     }
