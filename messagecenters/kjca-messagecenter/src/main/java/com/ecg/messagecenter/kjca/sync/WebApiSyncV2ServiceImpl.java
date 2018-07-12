@@ -28,6 +28,8 @@ public class WebApiSyncV2ServiceImpl implements WebApiSyncV2Service {
     public WebApiSyncV2ServiceImpl(PostBoxService postBoxService, ConversationService conversationService) {
         this.postBoxService = postBoxService;
         this.conversationService = conversationService;
+
+        LOG.info(this.getClass().getSimpleName() + " runs in V2 SyncMode");
     }
 
     @Override
