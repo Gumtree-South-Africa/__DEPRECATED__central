@@ -31,6 +31,9 @@ public class EsKafkaConfig {
     @Value("${kafka.es.buffer.memory:300000000}")
     private int bufferMemory;
 
+    @Value("${kafka.es.linger.ms:100}")
+    private int lingerMs;
+
     @Bean
     KafkaProducerConfigBuilder<String, byte[]> defaultKafkaProducerConfig() {
         return new KafkaProducerConfigBuilder<>();
@@ -47,7 +50,7 @@ public class EsKafkaConfig {
                 .withMaxInFlightPerConnection(maxInFlightRequests)
                 .withBatchSize(batchSize)
                 .withBufferMemory(bufferMemory)
-                .withLingerMs(1000)
+                .withLingerMs(lingerMs)
                 .withTopic(topic);
 
         LOG.debug("Initialized the Kafka Service for ES bean");
