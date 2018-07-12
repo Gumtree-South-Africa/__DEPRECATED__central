@@ -1,4 +1,4 @@
-job "comaas-indexer-[[ .tenant_short ]]" {
+job "comaas-indexer-[[ .tenant ]]" {
   region = "ams1"
   datacenters = ["zone1", "zone2", "zone3", "zone4"]
 
