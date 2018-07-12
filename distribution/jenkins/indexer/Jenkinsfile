@@ -43,7 +43,7 @@ node("master") {
             ]
             wrap([$class: 'VaultBuildWrapper', vaultSecrets: secrets]) {
                 final String vars = "-var-file=/indexer/environments/${environment}.tf " +
-                        "-var='version=${version}' " +
+                        "-var='version=${PROVIDED_VERSION}' " +
                         "-var='docker_username=${DOCKER_USERNAME}' " +
                         "-var='docker_password=${DOCKER_PASSWORD}' " +
                         "-var='esaas_username=${ESAAS_USERNAME}' " +
