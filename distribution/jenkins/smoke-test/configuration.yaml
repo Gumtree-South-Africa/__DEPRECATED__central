@@ -3,6 +3,6 @@ tenants:
 smokeTest:
   version:
       lp:
-        default: 0.1.37
+        default: 0.1.38
       prod:
-        default: 0.1.37
+        default: 0.1.38
