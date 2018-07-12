@@ -111,11 +111,15 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
                 cleanMsg = contentOverridingPostProcessor.overrideContent(cleanMsg);
             }
 
+            // BUYER's PROJECTION
+
             if ((isConversationActive(conv, msg) && isNotDirectionBlocked(buyerUserId, sellerUserId)) || isMessageOwner(msg, BUYER_TO_SELLER)) {
                 postBoxService.processNewMessage(buyerUserId, conv, msg, userNotificationRules.buyerShouldBeNotified(msg), cleanMsg);
             } else {
                 LOGGER.debug("Direction from the {} to {} is blocked for the message {}", buyerUserId, sellerUserId, msg.getId());
             }
+
+            // SELLER's PROJECTION
 
             if ((isConversationActive(conv, msg) && isNotDirectionBlocked(sellerUserId, buyerUserId)) || isMessageOwner(msg, SELLER_TO_BUYER)) {
                 postBoxService.processNewMessage(sellerUserId, conv, msg, userNotificationRules.sellerShouldBeNotified(msg), cleanMsg);

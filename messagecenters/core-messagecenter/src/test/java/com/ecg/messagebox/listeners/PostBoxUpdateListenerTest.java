@@ -4,10 +4,7 @@ import com.ecg.messagebox.events.MessageAddedEventProcessor;
 import com.ecg.messagebox.service.PostBoxService;
 import com.ecg.messagebox.util.messages.MessagesResponseFactory;
 import com.ecg.replyts.app.postprocessorchain.ContentOverridingPostProcessor;
-import com.ecg.replyts.core.api.model.conversation.Conversation;
-import com.ecg.replyts.core.api.model.conversation.Message;
-import com.ecg.replyts.core.api.model.conversation.MessageDirection;
-import com.ecg.replyts.core.api.model.conversation.MessageState;
+import com.ecg.replyts.core.api.model.conversation.*;
 import com.ecg.replyts.core.runtime.identifier.UserIdentifierService;
 import com.ecg.replyts.core.runtime.model.conversation.ImmutableConversation;
 import com.ecg.replyts.core.runtime.model.conversation.ImmutableMessage;
@@ -104,10 +101,15 @@ public class PostBoxUpdateListenerTest {
                 .thenReturn("clean message");
         when(contentOverridingPostProcessor.overrideContent("clean message"))
                 .thenReturn("clean message");
+        when(blockUserRepository.isBlocked(BUYER_USER_ID, SELLER_USER_ID))
+                .thenReturn(false);
+        when(blockUserRepository.isBlocked(SELLER_USER_ID, BUYER_USER_ID))
+                .thenReturn(false);
 
         listener.messageProcessed(conversation, message);
 
-        verify(blockUserRepository).areUsersBlocked(BUYER_USER_ID, SELLER_USER_ID);
+        verify(blockUserRepository).isBlocked(BUYER_USER_ID, SELLER_USER_ID);
+        verify(blockUserRepository).isBlocked(SELLER_USER_ID, BUYER_USER_ID);
         verify(messageAddedEventProcessor).publishMessageAddedEvent(conversation, message, "clean message", null);
         verify(userIdentifierServiceMock).getBuyerUserId(conversation);
         verify(userIdentifierServiceMock).getSellerUserId(conversation);
@@ -117,7 +119,7 @@ public class PostBoxUpdateListenerTest {
     }
 
     @Test
-    public void doNothingIfUserIsBlocked_notProcessed() {
+    public void blockedBothDirection() {
         Conversation conversation = convBuilder.build();
         Message message = msgBuilder.build();
 
@@ -125,15 +127,55 @@ public class PostBoxUpdateListenerTest {
                 .thenReturn(of(BUYER_USER_ID));
         when(userIdentifierServiceMock.getSellerUserId(conversation))
                 .thenReturn(of(SELLER_USER_ID));
-        when(blockUserRepository.areUsersBlocked(BUYER_USER_ID, SELLER_USER_ID))
+
+        // Owner of the messsage
+        when(blockUserRepository.isBlocked(BUYER_USER_ID, SELLER_USER_ID))
                 .thenReturn(true);
+        when(blockUserRepository.isBlocked(SELLER_USER_ID, BUYER_USER_ID))
+                .thenReturn(true);
+
+        UserUnreadCounts userUnreadCounts = new UserUnreadCounts(SELLER_USER_ID, 1, 1);
+        when(delegatorMock.getUnreadCounts(SELLER_USER_ID))
+                .thenReturn(userUnreadCounts);
 
         listener.messageProcessed(conversation, message);
 
+        verify(userIdentifierServiceMock).getBuyerUserId(conversation);
+        verify(userIdentifierServiceMock).getSellerUserId(conversation);
+        verify(delegatorMock).processNewMessage(BUYER_USER_ID, conversation, message, false ,null);
+        verify(delegatorMock).getUnreadCounts(SELLER_USER_ID);
+        verify(messageAddedEventProcessor).publishMessageAddedEvent(conversation, message, null, userUnreadCounts);
+        verifyNoMoreInteractions(delegatorMock);
+    }
+
+    @Test
+    public void recipientDirectionBlocked() {
+        Conversation conversation = convBuilder.build();
+        Message message = msgBuilder.build();
+
+        when(userIdentifierServiceMock.getBuyerUserId(conversation))
+                .thenReturn(of(BUYER_USER_ID));
+        when(userIdentifierServiceMock.getSellerUserId(conversation))
+                .thenReturn(of(SELLER_USER_ID));
+
+        // Owner of the messsage
+        when(blockUserRepository.isBlocked(BUYER_USER_ID, SELLER_USER_ID))
+                .thenReturn(false);
+        when(blockUserRepository.isBlocked(SELLER_USER_ID, BUYER_USER_ID))
+                .thenReturn(true);
+
+        UserUnreadCounts userUnreadCounts = new UserUnreadCounts(SELLER_USER_ID, 1, 1);
+        when(delegatorMock.getUnreadCounts(SELLER_USER_ID))
+                .thenReturn(userUnreadCounts);
+
+        listener.messageProcessed(conversation, message);
 
         verify(userIdentifierServiceMock).getBuyerUserId(conversation);
         verify(userIdentifierServiceMock).getSellerUserId(conversation);
-        verifyNoMoreInteractions(userIdentifierServiceMock, delegatorMock);
+        verify(delegatorMock).processNewMessage(BUYER_USER_ID, conversation, message, false ,null);
+        verify(delegatorMock).getUnreadCounts(SELLER_USER_ID);
+        verify(messageAddedEventProcessor).publishMessageAddedEvent(conversation, message, null, userUnreadCounts);
+        verifyNoMoreInteractions(delegatorMock);
     }
 
     @Test
