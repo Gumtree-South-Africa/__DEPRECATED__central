@@ -1,0 +1,59 @@
+#!/usr/bin/env groovy
+
+def checkInputParameters(tenant, daysSince, version) {
+    if (tenant == "-") {
+        error("Please provide a tenant")
+    }
+    // todo akobiakov check input parameters some day
+}
+
+
+node("master") {
+    checkInputParameters(PROVIDED_TENANT, PROVIDED_DAYS_SINCE, PROVIDED_VERSION)
+
+    final String environment = PROVIDED_ENV
+    final String tenantShort = PROVIDED_TENANT
+
+    currentBuild.description = "$tenantShort/ams1/$environment"
+
+    echo "Running the indexing thingy: ${tenantShort} in ams1 on env: ${environment}."
+
+    stage("Indexing") {
+        node("$environment && ams1") {
+            // Is this really-really necessary? Can we pass the files to the builder instead?
+            checkout scm: [$class: 'GitSCM', userRemoteConfigs: [[credentialsId: 'GITHUB', url: 'git@github.corp.ebay.com:ecg-comaas/central.git']], branches: [[name: PROVIDED_PIPELINE_BRANCH]]], poll: false
+
+            def secrets = [
+                    [
+                            $class: 'VaultSecret',
+                            path: 'secret/nomad/dock.es.ecg.tools/comaas+robot_upload',
+                            secretValues: [
+                                    [$class: 'VaultSecretValue', envVar: 'DOCKER_USERNAME', vaultKey: 'username'],
+                                    [$class: 'VaultSecretValue', envVar: 'DOCKER_PASSWORD', vaultKey: 'password']
+                            ],
+                    ],
+                    [
+                            $class      : 'VaultSecret',
+                            path        : "secret/nomad/${environment}/esaas",
+                            secretValues: [
+                                    [$class: 'VaultSecretValue', envVar: 'ESAAS_USERNAME', vaultKey: 'username'],
+                                    [$class: 'VaultSecretValue', envVar: 'ESAAS_PASSWORD', vaultKey: 'password']
+                            ],
+                    ]
+            ]
+            wrap([$class: 'VaultBuildWrapper', vaultSecrets: secrets]) {
+                final String vars = "-var-file=/indexer/environments/${environment}.tf " +
+                        "-var='version=${version}' " +
+                        "-var='docker_username=${DOCKER_USERNAME}' " +
+                        "-var='docker_password=${DOCKER_PASSWORD}' " +
+                        "-var='esaas_username=${ESAAS_USERNAME}' " +
+                        "-var='esaas_password=${ESAAS_PASSWORD}' " +
+                        "-var='tenant=${tenantShort}' "
+                final String levantCmd = "docker run --network host --rm -v \$(pwd)/distribution/jenkins/indexer/:/indexer:ro jrasell/levant:0.0.4 levant"
+
+                sh "$levantCmd render ${vars} /indexer/indexer.nomad"
+//                sh "$levantCmd deploy ${vars} -log-level=debug -address='http://http.nomad.service.consul:4646' /indexer/indexer.nomad"
+            }
+        }
+    }
+}

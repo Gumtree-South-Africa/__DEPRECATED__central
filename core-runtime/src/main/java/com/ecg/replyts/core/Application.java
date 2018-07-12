@@ -3,6 +3,7 @@ package com.ecg.replyts.core;
 import com.ecg.replyts.core.api.pluginconfiguration.ComaasPlugin;
 import com.ecg.replyts.core.runtime.HttpServerFactory;
 import com.ecg.replyts.core.runtime.StartupExperience;
+import com.ecg.replyts.core.runtime.indexer.ElasticSearchIndexer;
 import com.ecg.replyts.core.runtime.prometheus.PrometheusExporter;
 import com.ecg.replyts.core.webapi.SpringContextProvider;
 import com.hazelcast.config.Config;
@@ -11,6 +12,8 @@ import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import org.bitsofinfo.hazelcast.discovery.consul.ConsulDiscoveryStrategy;
 import org.bitsofinfo.hazelcast.discovery.consul.DoNothingRegistrator;
+import org.joda.time.DateTime;
+import org.joda.time.Days;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,6 +26,7 @@ import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.support.AbstractRefreshableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,8 +35,8 @@ import static com.ecg.replyts.core.api.model.Tenants.TENANT;
 import static java.lang.String.format;
 
 @Configuration
-@ComponentScan({ "com.ecg.replyts.app", "com.ecg.replyts.core.runtime" })
-@ComponentScan(value = { "com.ecg", "com.ebay" }, useDefaultFilters = false, includeFilters = @ComponentScan.Filter(ComaasPlugin.class))
+@ComponentScan({"com.ecg.replyts.app", "com.ecg.replyts.core.runtime"})
+@ComponentScan(value = {"com.ecg", "com.ebay"}, useDefaultFilters = false, includeFilters = @ComponentScan.Filter(ComaasPlugin.class))
 @ImportResource("classpath*:/plugin-inf/*.xml")
 public class Application {
     private static final Logger LOG = LoggerFactory.getLogger(Application.class);
@@ -40,7 +44,7 @@ public class Application {
     private static final String HAZELCAST_GROUP_NAME_ENV_VAR = "HAZELCAST_GROUP_NAME";
 
     static {
-        java.security.Security.setProperty("networkaddress.cache.ttl" , "60");
+        java.security.Security.setProperty("networkaddress.cache.ttl", "60");
 
         Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> LOG.error("Uncaught exception in thread {}", thread, throwable));
 
@@ -112,17 +116,17 @@ public class Application {
 
     @Bean
     public SpringContextProvider mainContextProvider(ApplicationContext context) {
-        return new SpringContextProvider("/", new String[] { "classpath:control-context.xml" }, context);
+        return new SpringContextProvider("/", new String[]{"classpath:control-context.xml"}, context);
     }
 
     @Bean
     public SpringContextProvider configContextProvider(ApplicationContext context) {
-        return new SpringContextProvider("/configv2", new String[] { "classpath:config-mvc-context.xml" }, context);
+        return new SpringContextProvider("/configv2", new String[]{"classpath:config-mvc-context.xml"}, context);
     }
 
     @Bean
     public SpringContextProvider screeningContextProvider(ApplicationContext context) {
-        return new SpringContextProvider("/screeningv2", new String[] { "classpath:screening-mvc-context.xml" }, context);
+        return new SpringContextProvider("/screeningv2", new String[]{"classpath:screening-mvc-context.xml"}, context);
     }
 
     @Bean
@@ -135,30 +139,29 @@ public class Application {
     public static void main(String[] args) {
         try {
             // XXX: Refactor this into a ApplicationContextInitializer once on Spring Boot
-
             AnnotationConfigApplicationContext parent = new AnnotationConfigApplicationContext();
-
             parent.getEnvironment().getPropertySources().addFirst(new ComaasPropertySource());
-
             parent.register(LoggingService.class, CloudConfiguration.class, PrometheusExporter.class);
-
             parent.refresh();
 
             // XXX: Initialize the application as we were doing before; as going annotation-only requires quite some more refactoring as parent/child is not as easily supported
-
-            AbstractRefreshableApplicationContext context = new ClassPathXmlApplicationContext(new String[] {
-              "classpath:super-mega-temporary-context.xml",
+            AbstractRefreshableApplicationContext context = new ClassPathXmlApplicationContext(new String[]{
+                    "classpath:super-mega-temporary-context.xml",
             }, false, parent);
 
             context.registerShutdownHook();
-
             context.getEnvironment().setActiveProfiles(parent.getEnvironment().getProperty(TENANT));
-
             context.refresh();
-
             context.getBean(StartupExperience.class).running(context.getBean(HttpServerFactory.class).getPort());
-
             context.publishEvent(new ApplicationReadyEvent(context));
+
+            if (Boolean.valueOf(System.getenv("IS_INDEXER_MODE"))) {
+                LOG.info("Running in the indexer mode");
+                int daysSince = Integer.valueOf(System.getenv("INDEXER_DAYS_SINCE"));
+                context.getBean(ElasticSearchIndexer.class).indexSince(DateTime.now().minus(Days.days(daysSince)));
+                context.close();
+                System.exit(0);
+            }
         } catch (Exception e) {
             LOG.error("Unable to start Comaas", e);
         }
