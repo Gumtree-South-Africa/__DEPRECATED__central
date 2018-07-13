@@ -1,5 +1,6 @@
 package com.ecg.messagebox.resources.responses;
 
+import com.ecg.messagebox.model.Attachment;
 import com.ecg.messagebox.model.MessageType;
 import com.ecg.messagebox.util.TimeFormatUtils;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -7,6 +8,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import io.swagger.annotations.ApiModelProperty;
 import org.joda.time.DateTime;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -28,8 +30,9 @@ public class MessageResponse {
     private boolean isRead = true;
     private final String customData;
     private final Map<String,String> metaData;
+    private final List<Attachment> attachments;
 
-    public MessageResponse(String id, MessageType type, String text, String senderUserId, DateTime receivedDate, String customData, Map<String,String> metaData) {
+    public MessageResponse(String id, MessageType type, String text, String senderUserId, DateTime receivedDate, String customData, Map<String, String> metaData, List<Attachment> attachments) {
         this.id = id;
         this.type = type;
         this.text = text;
@@ -37,6 +40,7 @@ public class MessageResponse {
         this.receivedDate = receivedDate;
         this.customData = customData;
         this.metaData = metaData;
+        this.attachments = attachments;
     }
 
     public String getId() {
@@ -73,6 +77,10 @@ public class MessageResponse {
 
     public Map<String,String> getMetaData() { return metaData;}
 
+    public List<Attachment> getAttachments() {
+        return attachments;
+    }
+
     public MessageResponse withIsRead(boolean isRead) {
         this.isRead = isRead;
         return this;
@@ -90,11 +98,12 @@ public class MessageResponse {
                 && Objects.equals(receivedDate, that.receivedDate)
                 && Objects.equals(isRead, that.isRead)
                 && Objects.equals(customData, that.customData)
-                && Objects.equals(metaData, that.metaData);
+                && Objects.equals(metaData, that.metaData)
+                && Objects.equals(attachments, that.attachments);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, type, text, senderUserId, receivedDate, isRead, customData, metaData);
+        return Objects.hash(id, type, text, senderUserId, receivedDate, isRead, customData, metaData, attachments);
     }
 }

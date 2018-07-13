@@ -64,7 +64,7 @@ public class ProcessingFinalizerCassandraTest {
     public void updatingForCassandraEvenIfConversationSizeExceedsConstraint() {
         when(conv.getMessages()).thenReturn(Arrays.asList(new Message[ProcessingFinalizer.MAXIMUM_NUMBER_OF_MESSAGES_ALLOWED_IN_CONVERSATION + 1]));
 
-        messagePersister.persistAndIndex(conv, "1", Optional.of("incoming".getBytes()), Optional.of("outgoing".getBytes()), termination);
+        messagePersister.persistAndIndex(conv, "1", Optional.of("incoming".getBytes()), Optional.of("outgoing".getBytes()), termination, Collections.emptySet());
 
         verify(conv).commit(conversationRepository, conversationEventListeners);
 

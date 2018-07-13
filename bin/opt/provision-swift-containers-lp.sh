@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
-
 # Provision swift infra (containers) for attachment storage in comaas-lp
+
+# Follow instructions here to install swift client
+#https://ecgwiki.corp.ebay.com/display/OrgTechnologyEngSupport/eCG+Cloud+overview
+set -x
 
 function usage() {
   cat <<- EOF
@@ -16,13 +19,15 @@ function parseArgs() {
   readonly DC=$1
   readonly SWIFT_CONTAINER_NAME=$2
   readonly SWIFT_CONTAINER_NUM=$3
-  echo -n "Your LDAP Password:"
+  echo -n "Swift Tenant Username:"
+  read  USER
+  echo -n "Swift Tenant Password:"
   read -s password
   echo
 
-  if [[ "${DC,,}" == "ams1" ]]; then
+  if [[ "${DC}" == "ams1" ]]; then
   		KEYSTONE="https://keystone.ams1.cloud.ecg.so/v2.0"
-  elif [[ "${DC,,}" == "dus1" ]]; then
+  elif [[ "${DC}" == "dus1" ]]; then
   		KEYSTONE="https://keystone.dus1.cloud.ecg.so/v2.0"
   else
 		echo "DC value is either ams1 or dus1"

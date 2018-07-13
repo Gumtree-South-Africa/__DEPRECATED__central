@@ -10,17 +10,15 @@ import com.ecg.replyts.core.api.model.conversation.command.ConversationCommand;
 import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.model.mail.MailAddress;
 import com.ecg.replyts.core.api.model.mail.MutableMail;
+import com.ecg.replyts.core.api.model.mail.TypedContent;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import javax.annotation.Nonnull;
+import java.util.*;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
 
@@ -43,6 +41,7 @@ public class MessageProcessingContext {
 
     private final Set<String> skipDeliveryChannels = new HashSet<>();
     private final Map<String, Object> filterContext = new HashMap<>();
+    private final Collection<Attachment> attachments;
 
     private Termination termination = null;
     private MessageDirection messageDirection;
@@ -50,17 +49,19 @@ public class MessageProcessingContext {
 
     @VisibleForTesting
     public MessageProcessingContext(Mail mail, String messageId, ProcessingTimeGuard processingTimeGuard) {
-        this(mail, messageId, processingTimeGuard, (toRecipient, storeRecipient)  -> false);
+        this(mail, messageId, processingTimeGuard, (toRecipient, storeRecipient)  -> false, Collections.emptySet());
     }
 
-    public MessageProcessingContext(Mail incomingMail, String messageId, ProcessingTimeGuard processingTimeGuard, BiPredicate<MailAddress, MailAddress> overrideRecipientPredicate) {
+    public MessageProcessingContext(Mail incomingMail, String messageId, ProcessingTimeGuard processingTimeGuard,
+                                    BiPredicate<MailAddress, MailAddress> overrideRecipientPredicate,
+                                    @Nonnull Collection<Attachment> attachments) {
         checkNotNull(processingTimeGuard);
-
         this.mail = Optional.ofNullable(incomingMail);
-        this.outgoingMail = mail.isPresent() ? mail.get().makeMutableCopy() : null;
+        this.outgoingMail = mail.map(Mail::makeMutableCopy).orElse(null);
         this.messageId = messageId;
         this.processingTimeGuard = processingTimeGuard;
         this.overrideRecipientPredicate = overrideRecipientPredicate;
+        this.attachments = attachments;
     }
 
     public boolean hasConversation() {
@@ -224,6 +225,11 @@ public class MessageProcessingContext {
 
     public Map<String, Object> getFilterContext() {
         return filterContext;
+    }
+
+    @Nonnull
+    public Collection<Attachment> getAttachments() {
+        return attachments;
     }
 
     @Override

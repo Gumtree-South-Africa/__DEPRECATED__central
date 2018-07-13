@@ -6,6 +6,7 @@ import com.ecg.replyts.app.ProcessingContextFactory;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;
 import com.ecg.replyts.core.api.model.conversation.MutableConversation;
 import com.ecg.replyts.core.api.model.conversation.command.AddMessageCommand;
+import com.ecg.replyts.core.api.processing.Attachment;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.ecg.replyts.core.runtime.identifier.UserIdentifierService;
 import com.ecg.replyts.core.runtime.logging.MDCConstants;
@@ -16,13 +17,11 @@ import com.ecg.replyts.core.runtime.persistence.kafka.QueueService;
 import com.google.protobuf.ByteString;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
-
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
@@ -32,9 +31,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
 
 import static com.ecg.replyts.core.api.model.conversation.command.AddMessageCommandBuilder.anAddMessageCommand;
-import static com.ecg.replyts.core.api.processing.MessageProcessingContext.DELIVERY_CHANNEL_MAIL;
 
 /**
  * docker-compose --project-name comaasdocker exec kafka bash
@@ -141,7 +140,11 @@ public class KafkaNewMessageProcessor extends KafkaMessageProcessor {
             messageProcessingCoordinator.accept(new ByteArrayInputStream(rawEmail.toByteArray()));
         } else {
             MutableConversation conversation = getConversation(kafkaMessage.getPayload().getConversationId());
-            MessageProcessingContext context = createContext(kafkaMessage.getPayload().getUserId(), kafkaMessage.getMessageId(), conversation);
+            Collection<Attachment> attachments = kafkaMessage.getAttachmentsList().stream()
+                    .map(a -> new Attachment(a.getFileName(), a.getBody().toByteArray()))
+                    .collect(Collectors.toSet());
+            MessageProcessingContext context = createContext(kafkaMessage.getPayload().getUserId(), kafkaMessage.getMessageId(),
+                    conversation, attachments);
             context.addCommand(
                     createAddMessageCommand(kafkaMessage.getPayload().getMessage(), conversation.getId(), context,
                             kafkaMessage.getMetadataMap()));
@@ -158,8 +161,9 @@ public class KafkaNewMessageProcessor extends KafkaMessageProcessor {
         return conversation;
     }
 
-    private MessageProcessingContext createContext(String userId, String messageId, MutableConversation conversation) {
-        MessageProcessingContext context = processingContextFactory.newContext(null, messageId);
+    private MessageProcessingContext createContext(String userId, String messageId, MutableConversation conversation,
+                                                   Collection<Attachment> attachments) {
+        MessageProcessingContext context = processingContextFactory.newContext(messageId, attachments);
         context.setConversation(conversation);
         String sellerId = userIdentifierService.getSellerUserId(conversation)
                 .orElseThrow(() -> new IllegalArgumentException("Failed to infer a seller id"));
@@ -182,7 +186,7 @@ public class KafkaNewMessageProcessor extends KafkaMessageProcessor {
                 .withSenderMessageIdHeader(context.getMessageId())
                 //.withInResponseToMessageId() TODO akobiakov: find out what this is used for
                 .withTextParts(Collections.singletonList(message))
-                .withAttachmentFilenames(Collections.emptyList())
+                .withAttachmentFilenames(context.getAttachments().stream().map(Attachment::getName).collect(Collectors.toList()))
                 .withHeaders(metadata)
                 .build();
     }

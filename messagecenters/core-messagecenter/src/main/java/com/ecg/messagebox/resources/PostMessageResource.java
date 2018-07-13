@@ -212,11 +212,14 @@ public class PostMessageResource {
         kafkaMessage
                 .addAttachments(MessageOuterClass.Attachment
                         .newBuilder()
-                        .setFileName(attachment.getName())
+                        .setFileName(attachment.getOriginalFilename())
                         .setBody(ByteString.readFrom(attachment.getInputStream()))
                 );
 
         queueService.publish(KafkaTopicService.getTopicIncoming(shortTenant), kafkaMessage.build());
+        LOG.debug("Posted message for conversation id: {}, with message id {}, correlation id: {}, attachment name :{}, attachment size: {} bytes",
+                conversationId, kafkaMessage.getMessageId(), kafkaMessage.getCorrelationId(), attachment.getOriginalFilename(), attachment.getSize());
+
         return new PostMessageResponse(postMessageRequest.metadata.get("X-Message-ID"));
     }
 
