@@ -47,7 +47,7 @@ public class KafkaProducerConfigBuilder<K, V> {
     private String ack;
     @Value("${kafka.core.max.request.size:1000000}") // 1 mb
     private int maxRequestSize;
-    @Value("${kafka.core.max-in-flight-request-per-connection:30}")
+    @Value("${kafka.core.max-in-flight-request-per-connection:500}")
     private int maxInFlightPerConnection;
     @Value("${kafka.core.request.timeout.ms:10000}")
     private int storeTimeoutMs;

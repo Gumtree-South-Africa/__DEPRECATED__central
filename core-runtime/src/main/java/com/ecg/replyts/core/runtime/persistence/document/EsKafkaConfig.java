@@ -20,7 +20,7 @@ public class EsKafkaConfig {
     private String topic;
 
     // Send this many messages to broker without waiting for response, increase throughput
-    @Value("${kafka.es.max-in-flight-request-per-connection:50}")
+    @Value("${kafka.es.max-in-flight-request-per-connection:15000}")
     private int maxInFlightRequests;
 
     // Sending in batch more efficiently
@@ -28,10 +28,10 @@ public class EsKafkaConfig {
     private int batchSize;
 
     // Sending in batch more efficiently
-    @Value("${kafka.es.buffer.memory:300000000}")
+    @Value("${kafka.es.buffer.memory:600000000}")
     private int bufferMemory;
 
-    @Value("${kafka.es.linger.ms:100}")
+    @Value("${kafka.es.linger.ms:1000}")
     private int lingerMs;
 
     @Bean
