@@ -82,7 +82,7 @@ job "comaas-[[ .tenant_short ]]" {
         name = "${JOB}"
         port = "prometheus"
         tags = [
-          "prometheus"
+          "prometheus",
           "alloc_id-${NOMAD_ALLOC_ID}"
         ]
       }
@@ -200,7 +200,7 @@ EOH
         name = "${JOB}"
         port = "prometheus"
         tags = [
-          "prometheus"
+          "prometheus",
           "alloc_id-${NOMAD_ALLOC_ID}"
         ]
       }
@@ -291,7 +291,7 @@ EOH
         name = "${JOB}"
         port = "prometheus"
         tags = [
-          "prometheus"
+          "prometheus",
           "alloc_id-${NOMAD_ALLOC_ID}"
         ]
       }
