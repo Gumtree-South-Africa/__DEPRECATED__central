@@ -53,6 +53,8 @@ job "comaas-[[ .tenant_short ]]" {
         TENANT = "[[ .tenant ]]"
         MAIL_PROVIDER_STRATEGY = "kafka"
         HAZELCAST_GROUP_NAME = "[[.hazelcast_group_name]]"
+        esaas_username = "[[ .esaas_username ]]"
+        esaas_password = "[[ .esaas_password ]]"
       }
 
       service {
