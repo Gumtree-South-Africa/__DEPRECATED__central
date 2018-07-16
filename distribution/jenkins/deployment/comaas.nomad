@@ -8,8 +8,8 @@ job "comaas-[[ .tenant_short ]]" {
     docker_image = "[[.registry_namespace]]/comaas-[[ .tenant ]]:[[.version]]"
     restart_jenkins_job_nr = "[[.restart_jenkins_job_nr]]"
     version = "[[.version]]"
-    esaas_username = "[[ .esaas_username ]]"
-    esaas_password = "[[ .esaas_password ]]"
+    ESAAS_USERNAME = "[[ .esaas_username ]]"
+    ESAAS_PASSWORD = "[[ .esaas_password ]]"
   }
 
   update {
@@ -53,8 +53,8 @@ job "comaas-[[ .tenant_short ]]" {
         TENANT = "[[ .tenant ]]"
         MAIL_PROVIDER_STRATEGY = "kafka"
         HAZELCAST_GROUP_NAME = "[[.hazelcast_group_name]]"
-        esaas_username = "[[ .esaas_username ]]"
-        esaas_password = "[[ .esaas_password ]]"
+        ESAAS_USERNAME = "[[ .esaas_username ]]"
+        ESAAS_PASSWORD = "[[ .esaas_password ]]"
       }
 
       service {
