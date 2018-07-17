@@ -72,7 +72,8 @@ public class PostMessageResource {
 
     private static final Logger LOG = LoggerFactory.getLogger(PostMessageResource.class);
 
-    private final ProcessingContextFactory processingContextFactory;
+    private static final String X_MESSAGE_ID_HEADER = "X-Message-ID";
+
     private final MutableConversationRepository conversationRepository;
     private final UserIdentifierService userIdentifierService;
     private final UniqueConversationSecret uniqueConversationSecret;
@@ -84,13 +85,11 @@ public class PostMessageResource {
 
     @Autowired
     public PostMessageResource(
-            ProcessingContextFactory processingContextFactory,
             MutableConversationRepository conversationRepository,
             UserIdentifierService userIdentifierService,
             UniqueConversationSecret uniqueConversationSecret,
             CassandraPostBoxRepository postBoxRepository,
             QueueService queueService) {
-        this.processingContextFactory = processingContextFactory;
         this.conversationRepository = conversationRepository;
         this.userIdentifierService = userIdentifierService;
         this.uniqueConversationSecret = uniqueConversationSecret;
@@ -180,9 +179,7 @@ public class PostMessageResource {
             @ApiParam(value = "Conversation ID", required = true) @PathVariable("conversationId") String conversationId,
             @ApiParam(value = "Message payload", required = true) @RequestBody PostMessageRequest postMessageRequest,
             @RequestHeader(value = "X-Correlation-ID", required = false) String correlationIdHeader) {
-
-        Message.Builder kafkaMessage = getMessage(userId, conversationId, postMessageRequest, correlationIdHeader);
-
+        Message.Builder kafkaMessage = buildMessage(userId, conversationId, postMessageRequest, correlationIdHeader);
         queueService.publish(KafkaTopicService.getTopicIncoming(shortTenant), kafkaMessage.build());
         return new PostMessageResponse(kafkaMessage.getMessageId());
     }
@@ -206,8 +203,7 @@ public class PostMessageResource {
             @ApiParam(value = "Attachment", required = true) @RequestPart(value = "attachment") MultipartFile attachment,
             @RequestHeader(value = "X-Correlation-ID", required = false) String correlationIdHeader) throws IOException {
 
-        postMessageRequest.metadata.computeIfAbsent("X-Message-ID", k -> UUIDs.timeBased().toString());
-        Message.Builder kafkaMessage = getMessage(userId, conversationId, postMessageRequest, correlationIdHeader);
+        Message.Builder kafkaMessage = buildMessage(userId, conversationId, postMessageRequest, correlationIdHeader);
 
         kafkaMessage
                 .addAttachments(MessageOuterClass.Attachment
@@ -220,7 +216,7 @@ public class PostMessageResource {
         LOG.debug("Posted message for conversation id: {}, with message id {}, correlation id: {}, attachment name :{}, attachment size: {} bytes",
                 conversationId, kafkaMessage.getMessageId(), kafkaMessage.getCorrelationId(), attachment.getOriginalFilename(), attachment.getSize());
 
-        return new PostMessageResponse(postMessageRequest.metadata.get("X-Message-ID"));
+        return new PostMessageResponse(kafkaMessage.getMessageId());
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
@@ -229,14 +225,14 @@ public class PostMessageResource {
         return ex.getMessage();
     }
 
-    private Message.Builder getMessage(String userId, String conversationId, PostMessageRequest postMessageRequest, String correlationIdHeader) {
-
+    private Message.Builder buildMessage(String userId, String conversationId, PostMessageRequest postMessageRequest, String correlationIdHeader) {
         Instant now = Instant.now();
         String correlationId = correlationIdHeader != null ? correlationIdHeader : XidFactory.nextXid();
+        String messageId = postMessageRequest.metadata.getOrDefault(X_MESSAGE_ID_HEADER, UUIDs.timeBased().toString());
 
         return Message
                 .newBuilder()
-                .setMessageId(Guids.next())
+                .setMessageId(messageId)
                 .setReceivedTime(Timestamp
                         .newBuilder()
                         .setSeconds(now.getEpochSecond())
@@ -249,6 +245,7 @@ public class PostMessageResource {
                     .setUserId(userId)
                     .setMessage(postMessageRequest.message)
                     .build())
-                .putAllMetadata(postMessageRequest.metadata);
+                .putAllMetadata(postMessageRequest.metadata)
+                .putMetadata(X_MESSAGE_ID_HEADER, messageId);
     }
 }
