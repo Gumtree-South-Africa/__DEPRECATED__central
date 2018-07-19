@@ -54,11 +54,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.Instant;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 import static com.ecg.messagebox.model.ParticipantRole.BUYER;
 import static com.ecg.messagebox.model.ParticipantRole.SELLER;
@@ -228,7 +224,15 @@ public class PostMessageResource {
     private Message.Builder buildMessage(String userId, String conversationId, PostMessageRequest postMessageRequest, String correlationIdHeader) {
         Instant now = Instant.now();
         String correlationId = correlationIdHeader != null ? correlationIdHeader : XidFactory.nextXid();
-        String messageId = postMessageRequest.metadata.getOrDefault(X_MESSAGE_ID_HEADER, UUIDs.timeBased().toString());
+
+        // This is undocumented behaviour which is set to be removed in COMAAS-1226
+        // At the moment we can't ignore X-Message-Id entirely and just write/read the messageId field of the
+        // kafka payload, because the emails originating from MP (the tenant itself) rely on this header to
+        // render the chat ui correctly. So we can only get rid of the edge case when MP is fully on the post message api.
+        // (sorry).
+        Map<String, String> caseInsensitiveMetaValues = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+        caseInsensitiveMetaValues.putAll(postMessageRequest.metadata);
+        String messageId = caseInsensitiveMetaValues.computeIfAbsent(X_MESSAGE_ID_HEADER, k -> UUIDs.timeBased().toString());
 
         return Message
                 .newBuilder()
@@ -245,7 +249,6 @@ public class PostMessageResource {
                     .setUserId(userId)
                     .setMessage(postMessageRequest.message)
                     .build())
-                .putAllMetadata(postMessageRequest.metadata)
-                .putMetadata(X_MESSAGE_ID_HEADER, messageId);
+                .putAllMetadata(caseInsensitiveMetaValues);
     }
 }
