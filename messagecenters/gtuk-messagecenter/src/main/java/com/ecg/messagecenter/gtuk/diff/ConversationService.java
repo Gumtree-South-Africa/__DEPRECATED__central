@@ -15,7 +15,7 @@ import com.ecg.replyts.core.api.model.conversation.ConversationRole;
 import com.ecg.replyts.core.api.model.conversation.MutableConversation;
 import com.ecg.replyts.core.api.model.conversation.command.AddCustomValueCommand;
 import com.ecg.replyts.core.api.webapi.model.ConversationRts;
-import com.ecg.replyts.core.runtime.indexer.conversation.SearchIndexer;
+import com.ecg.replyts.core.runtime.indexer.DocumentSink;
 import com.ecg.replyts.core.runtime.persistence.conversation.DefaultMutableConversation;
 import com.ecg.replyts.core.runtime.persistence.conversation.MutableConversationRepository;
 import com.ecg.replyts.core.webapi.screeningv2.converter.DomainObjectConverter;
@@ -27,7 +27,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 
@@ -40,7 +39,7 @@ public class ConversationService {
 
     private final SimplePostBoxRepository postBoxRepository;
     private final MutableConversationRepository conversationRepository;
-    private final SearchIndexer searchIndexer;
+    private final DocumentSink searchIndexer;
     private final DomainObjectConverter converter;
     private final GumshieldApi gumshieldApi;
     private final ConversationEventListeners conversationEventListeners;
@@ -49,7 +48,7 @@ public class ConversationService {
     public ConversationService(
             SimplePostBoxRepository postBoxRepository,
             MutableConversationRepository conversationRepository,
-            SearchIndexer searchIndexer,
+            DocumentSink searchIndexer,
             MailCloakingService mailCloakingService,
             GumshieldApi gumshieldApi,
             ConversationEventListeners conversationEventListeners) {
@@ -69,7 +68,7 @@ public class ConversationService {
             return Optional.empty();
         }
 
-        return lookupConversation(postBox.getNewRepliesCounter().getValue(), email, conversationId);
+        return this.lookupConversation(postBox.getNewRepliesCounter().getValue(), email, conversationId);
     }
 
     public Optional<PostBoxSingleConversationThreadResponse> readConversation(String email, String conversationId) {
@@ -85,25 +84,25 @@ public class ConversationService {
             postBoxRepository.markConversationAsRead(postBox, conversationThreadRequested.get());
         }
 
-        return lookupConversation(postBox.getNewRepliesCounter().getValue(), email, conversationId);
+        return this.lookupConversation(postBox.getNewRepliesCounter().getValue(), email, conversationId);
     }
 
     public Optional<Object> reportConversation(String email, String conversationId) {
         MutableConversation conversation = conversationRepository.getById(conversationId);
-        ConversationRole buyerOrSeller = emailBelongsToBuyerOrSeller(conversation, email);
+        ConversationRole buyerOrSeller = this.emailBelongsToBuyerOrSeller(conversation, email);
         if (buyerOrSeller == null) {
             return Optional.empty();
         }
 
         DateTime now = DateTime.now();
-        markConversation(conversation, new FlaggedCustomValue(buyerOrSeller, ConversationCustomValue.AT_POSTFIX, now.toString()));
-        markConversation(conversation, new FlaggedCustomValue(buyerOrSeller, ConversationCustomValue.DATE_POSTFIX, now.toLocalDate().toString()));
+        this.markConversation(conversation, new FlaggedCustomValue(buyerOrSeller, ConversationCustomValue.AT_POSTFIX, now.toString()));
+        this.markConversation(conversation, new FlaggedCustomValue(buyerOrSeller, ConversationCustomValue.DATE_POSTFIX, now.toLocalDate().toString()));
 
         ((DefaultMutableConversation) conversation).commit(conversationRepository, conversationEventListeners);
-        searchIndexer.updateSearchSync(Collections.singletonList(conversation));
+        searchIndexer.sink(conversation);
 
         PostBox postBox = postBoxRepository.byId(PostBoxId.fromEmail(email));
-        markConversationAsRead(conversationId, postBox);
+        this.markConversationAsRead(conversationId, postBox);
 
         ConversationRts conversationRts = converter.convertConversation(conversation);
 
@@ -111,28 +110,28 @@ public class ConversationService {
         flaggedConversation.setAdvertId(Long.valueOf(conversationRts.getAdId()));
         flaggedConversation.setConversationId(conversationRts.getId());
         flaggedConversation.setReportedByEmail(email);
-        flaggedConversation.setReportedDate(DateTime.parse(getFlaggedTime(conversationRts, email)));
-        flaggedConversation.setReportedForEmail(getOtherEmail(conversationRts, email));
+        flaggedConversation.setReportedDate(DateTime.parse(this.getFlaggedTime(conversationRts, email)));
+        flaggedConversation.setReportedForEmail(this.getOtherEmail(conversationRts, email));
         gumshieldApi.conversationApi().flagConversation(flaggedConversation);
         return Optional.of(SUCCESS);
     }
 
     public Optional<ConversationRts> deleteConversation(String email, String conversationId) {
         MutableConversation conversation = conversationRepository.getById(conversationId);
-        ConversationRole buyerOrSeller = emailBelongsToBuyerOrSeller(conversation, email);
+        ConversationRole buyerOrSeller = this.emailBelongsToBuyerOrSeller(conversation, email);
         if (buyerOrSeller == null) {
             return Optional.empty();
         }
 
         DateTime now = DateTime.now();
-        markConversation(conversation, new DeletedCustomValue(buyerOrSeller, ConversationCustomValue.AT_POSTFIX, now.toString()));
-        markConversation(conversation, new DeletedCustomValue(buyerOrSeller, ConversationCustomValue.DATE_POSTFIX, now.toLocalDate().toString()));
+        this.markConversation(conversation, new DeletedCustomValue(buyerOrSeller, ConversationCustomValue.AT_POSTFIX, now.toString()));
+        this.markConversation(conversation, new DeletedCustomValue(buyerOrSeller, ConversationCustomValue.DATE_POSTFIX, now.toLocalDate().toString()));
 
         ((DefaultMutableConversation) conversation).commit(conversationRepository, conversationEventListeners);
-        searchIndexer.updateSearchSync(Collections.singletonList(conversation));
+        searchIndexer.sink(conversation);
 
         PostBox postBox = postBoxRepository.byId(PostBoxId.fromEmail(email));
-        markConversationAsRead(conversationId, postBox);
+        this.markConversationAsRead(conversationId, postBox);
 
         return Optional.ofNullable(converter.convertConversation(conversation));
     }

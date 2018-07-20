@@ -19,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
 
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Collection;
@@ -142,9 +143,7 @@ public class KafkaNewMessageProcessor extends KafkaMessageProcessor {
             MutableConversation conversation = getConversation(kafkaMessage.getPayload().getConversationId());
             Collection<Attachment> attachments = kafkaMessage.getAttachmentsList().stream()
                     .map(a -> new Attachment(a.getFileName(), a.getBody().toByteArray()))
-                    .collect(Collectors.toSet());
-            MessageProcessingContext context = createContext(kafkaMessage.getPayload().getUserId(), kafkaMessage.getMessageId(),
-                    conversation, attachments);
+                    .collect(Collectors.toSet());MessageProcessingContext context = createContext(kafkaMessage.getPayload().getUserId(), kafkaMessage.getMessageId(),conversation, attachments);
             context.addCommand(
                     createAddMessageCommand(kafkaMessage.getPayload().getMessage(), conversation.getId(), context,
                             kafkaMessage.getMetadataMap()));

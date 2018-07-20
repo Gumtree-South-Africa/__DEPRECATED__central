@@ -95,11 +95,9 @@ public class IdenticalCapFilterIntegrationTest {
 
         for (int i = 0; i < 3; i++) {
             MailInterceptor.ProcessedMail response = rule.deliver(MailBuilder.aNewMail().adId("123").from(from).to("bar@foo.com").htmlBody("Test Message"));
-
+            rule.waitUntilIndexedInEs(response);
             assertEquals(MessageState.SENT, response.getMessage().getState());
         }
-
-        rule.flushSearchIndex();
 
         MailInterceptor.ProcessedMail response = rule.deliver(MailBuilder.aNewMail().adId("123").from(from).to("bar@foo.com").htmlBody("Test Message"));
 

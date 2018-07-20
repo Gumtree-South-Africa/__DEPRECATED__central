@@ -28,8 +28,6 @@ import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import com.ecg.replyts.core.api.persistence.HeldMailRepository;
 import com.ecg.replyts.core.runtime.MetricsService;
 import com.ecg.replyts.core.runtime.TimingReports;
-import com.ecg.replyts.core.runtime.indexer.CassandraIndexerClockRepository;
-import com.ecg.replyts.core.runtime.indexer.IndexerClockRepository;
 import com.ecg.replyts.core.runtime.persistence.BlockUserRepository;
 import com.ecg.replyts.core.runtime.persistence.DefaultBlockUserRepository;
 import com.ecg.replyts.core.runtime.persistence.EmailOptOutRepository;
@@ -45,7 +43,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.StringUtils;
@@ -94,11 +91,6 @@ public class CassandraPersistenceConfiguration {
     @Bean
     public ConfigurationRepository configurationRepository(Session cassandraSessionForCore) {
         return new CassandraConfigurationRepository(cassandraSessionForCore, cassandraReadConsistency, cassandraWriteConsistency);
-    }
-
-    @Bean
-    public IndexerClockRepository indexerClockRepository(Session cassandraSessionForJobs) {
-        return new CassandraIndexerClockRepository(cassandraDataCenterForCore, cassandraSessionForJobs);
     }
 
     @Bean

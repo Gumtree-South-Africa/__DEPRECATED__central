@@ -1,110 +1,126 @@
 package com.ecg.replyts.core.runtime.indexer;
 
-import com.ecg.replyts.core.api.sanitychecks.Message;
-import com.ecg.replyts.core.api.sanitychecks.Status;
+import com.ecg.replyts.core.api.model.conversation.Conversation;
+import com.ecg.replyts.core.api.model.conversation.MutableConversation;
+import com.ecg.replyts.core.api.persistence.ConversationRepository;
+import com.ecg.replyts.core.api.util.CurrentClock;
+import com.ecg.replyts.core.runtime.workers.InstrumentedCallerRunsPolicy;
+import com.google.common.collect.Lists;
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeComparator;
+import org.joda.time.DateTimeFieldType;
+import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import java.util.List;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicLong;
 
+import static org.mockito.Mockito.*;
+
+@Import({ElasticSearchIndexer.class})
 @RunWith(MockitoJUnitRunner.class)
 public class ElasticSearchIndexerTest {
-    @Mock
-    private IndexerClockRepository indexerClockRepository;
 
+    private final int MAX_AGE_DAYS = 1;
+    private final DateTime NOW = DateTime.now();
+    private ExecutorService executorService;
     @Mock
-    private IndexerHealthCheck healthCheck;
-
+    private ConversationRepository conversationRepository;
     @Mock
-    private SingleRunGuard singleRunGuard;
-
-    @Mock
-    private IndexerAction indexerAction;
-
-    @Mock
-    private IndexingJournals indexingJournals;
-
+    private Conversation2Kafka conversation2Kafka;
     @InjectMocks
-    private ElasticSearchIndexer indexer;
+    private ElasticSearchIndexer elasticSearchIndexer;
 
     @Before
-    public void setUp() {
-        ReflectionTestUtils.setField(indexer, "maxAgeDays", 1); // Will ensure startTimeForFullIndex() returns now() - 1 day
-        when(indexerClockRepository.get()).thenReturn(DateTime.now());
-    }
+    public void setup() {
+        ArrayBlockingQueue<Runnable> workQueue = new ArrayBlockingQueue<>(100);
+        RejectedExecutionHandler rejectionHandler = new InstrumentedCallerRunsPolicy("indexer", ElasticSearchIndexer.class.getSimpleName());
+        executorService = new ThreadPoolExecutor(1, 1, 0, TimeUnit.SECONDS, workQueue, rejectionHandler);
+        CompletionService completionService = new ExecutorCompletionService(executorService);
 
-    @Test
-    public void runFullIndexReportingOkay() {
-        indexer.fullIndex();
+        ReflectionTestUtils.setField(elasticSearchIndexer, "executor", executorService);
+        ReflectionTestUtils.setField(elasticSearchIndexer, "executorService", executorService);
+        ReflectionTestUtils.setField(elasticSearchIndexer, "completionService", completionService);
+        ReflectionTestUtils.setField(elasticSearchIndexer, "taskCompletionTimeoutSec", 2);
+        ReflectionTestUtils.setField(elasticSearchIndexer, "maxRetriesOnFailure", 1);
 
-        verify(healthCheck, times(2)).reportFull(eq(Status.OK), any(Message.class));
-    }
+        ReflectionTestUtils.setField(elasticSearchIndexer, "maxAgeDays", MAX_AGE_DAYS);
+        ReflectionTestUtils.setField(elasticSearchIndexer, "convIdDedupBufferSize", 100);
+        ReflectionTestUtils.setField(elasticSearchIndexer, "clock", new CurrentClock());
 
-    @Test
-    public void runFullIndexReportingFailed() {
-        when(singleRunGuard.runExclusivelyOrSkip(any(IndexingMode.class), any(Runnable.class))).thenThrow(new RuntimeException());
-        try {
-            indexer.fullIndex();
-            fail();
-        } catch (RuntimeException re) {
-            // expected
+        List<Conversation> conversations = Lists.newArrayList();
+        final List<String> CONV_IDS = Lists.newArrayList("foo1", "foo2", "foo3", "foo4", "foo5", "foo6", "foo7", "foo8", "foo9");
+        for (String conversationId : CONV_IDS) {
+            MutableConversation mutableConversation = mock(MutableConversation.class);
+            when(mutableConversation.getId()).thenReturn(conversationId);
+            conversations.add(mutableConversation);
+
+            when(conversationRepository.getById(conversationId)).thenReturn(mutableConversation);
         }
-        verify(healthCheck).reportFull(eq(Status.OK), any(Message.class));
-        verify(healthCheck).reportFull(eq(Status.CRITICAL), any(Message.class));
+    }
+
+    @After
+    public void shutdown() {
+        executorService.shutdownNow();
     }
 
     @Test
-    public void runSingleGuardWhenFullIndex() {
-        indexer.fullIndex();
-
-        verify(singleRunGuard).runExclusivelyOrSkip(eq(IndexingMode.FULL), any(ExclusiveLauncherRunnable.class));
+    public void indexSince() {
+        final List<String> CONV_IDS = Lists.newArrayList("foo1", "foo2", "foo3");
+        elasticSearchIndexer.indexConversations(CONV_IDS.stream());
+        verify(conversation2Kafka, times(CONV_IDS.size())).updateElasticSearch(anyString());
     }
 
     @Test
-    public void runDeltaIndexReportingOkay() {
-        indexer.deltaIndex();
-
-        verify(healthCheck, times(2)).reportDelta(eq(Status.OK), any(Message.class));
+    public void duplicatedIdsAreFilteredOut() {
+        final List<String> CONV_IDS = Lists.newArrayList("foo1", "foo2", "foo3", "foo1", "foo2");
+        elasticSearchIndexer.indexConversations(CONV_IDS.stream());
+        verify(conversation2Kafka, times(3)).updateElasticSearch(anyString());
     }
 
     @Test
-    public void runDeltaIndexReportingFailed() {
-        when(singleRunGuard.runExclusivelyOrSkip(any(IndexingMode.class), any(Runnable.class))).thenThrow(new RuntimeException());
-        try {
-            indexer.deltaIndex();
-            fail();
-        } catch (RuntimeException re) {
-            // expected
+    public void indexBetween() {
+        DateTime FROM = DateTime.now().minusDays(1);
+
+        final List<String> CONV_IDS = Lists.newArrayList("foo4", "foo5", "foo6");
+        List<ElasticSearchIndexer.TimeIntervalPair> intervals = elasticSearchIndexer.getTimeIntervals(FROM, NOW);
+        for (ElasticSearchIndexer.TimeIntervalPair interval : intervals) {
+            when(conversationRepository.streamConversationsModifiedBetween(interval.startInterval, NOW)).thenReturn(CONV_IDS.stream());
         }
-        verify(healthCheck).reportDelta(eq(Status.OK), any(Message.class));
-        verify(healthCheck).reportDelta(eq(Status.CRITICAL), any(Message.class));
+
+        elasticSearchIndexer.doIndexBetween(FROM, NOW);
+        verify(conversation2Kafka, times(CONV_IDS.size())).updateElasticSearch(anyString());
     }
 
     @Test
-    public void runSingleGuardWhenDeltaIndex() {
-        indexer.deltaIndex();
+    public void testGetTimeIntervalPairs() {
+        DateTime NOW = DateTime.now();
+        DateTime dateTo = NOW;
+        DateTime dateFrom = NOW.minusDays(5);
 
-        verify(indexerClockRepository).get();
-        verify(singleRunGuard).runExclusivelyOrSkip(eq(IndexingMode.DELTA), any(ExclusiveLauncherRunnable.class));
+        List<ElasticSearchIndexer.TimeIntervalPair> timeIntervalPairs = elasticSearchIndexer.getTimeIntervals(dateFrom, dateTo);
+        ElasticSearchIndexer.TimeIntervalPair firstPair = timeIntervalPairs.get(0);
+        ElasticSearchIndexer.TimeIntervalPair lastPair = timeIntervalPairs.get(timeIntervalPairs.size() - 1);
+
+        Assert.assertEquals(dateFrom, firstPair.startInterval);
+        Assert.assertEquals(dateTo, lastPair.endInterval);
+
     }
 
     @Test
-    public void checkFullIndexDateIfNoLastrun() {
-        when(indexerClockRepository.get()).thenReturn(null);
-
-        indexer.deltaIndex();
-
-        verify(singleRunGuard).runExclusivelyOrSkip(eq(IndexingMode.DELTA), any(ExclusiveLauncherRunnable.class));
+    public void startTimeForFullReindex() {
+        DateTimeComparator comparator = DateTimeComparator.getInstance(DateTimeFieldType.minuteOfHour());
+        DateTime startTimeForFullIndex = elasticSearchIndexer.startTimeForFullIndex();
+        Assert.assertEquals(0, comparator.compare(startTimeForFullIndex, NOW.minusDays(MAX_AGE_DAYS)));
     }
+
 }

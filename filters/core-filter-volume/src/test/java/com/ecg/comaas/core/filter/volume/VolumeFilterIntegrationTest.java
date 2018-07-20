@@ -12,13 +12,12 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import static com.ecg.replyts.core.api.model.Tenants.TENANT_EBAYK;
-import static com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule.ES_ENABLED;
 import static com.ecg.replyts.integration.test.support.IntegrationTestUtils.propertiesWithTenant;
 import static org.junit.Assert.assertEquals;
 
 public class VolumeFilterIntegrationTest {
     @Rule
-    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(propertiesWithTenant(TENANT_EBAYK), ES_ENABLED)
+    public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(propertiesWithTenant(TENANT_EBAYK))
             .addCassandraSchema("core_volume_filter.cql");
 
     @Test
@@ -62,7 +61,7 @@ public class VolumeFilterIntegrationTest {
     }
 
     @Test
-    public void skipsQuotaViolation() throws InterruptedException {
+    public void skipsQuotaViolation() throws Exception {
         rule.registerConfig(VolumeFilterFactory.IDENTIFIER, (ObjectNode) JsonObjects.parse("{\n" +
                 "    rules: [\n" +
                 "        {\"allowance\": 3, \"perTimeValue\": 1, \"perTimeUnit\": \"MINUTES\", \"score\": 100},\n" +

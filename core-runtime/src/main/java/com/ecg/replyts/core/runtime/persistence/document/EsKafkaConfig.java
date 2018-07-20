@@ -8,15 +8,11 @@ import com.ecg.replyts.core.runtime.persistence.kafka.KafkaSinkService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-
 @Configuration
-@ConditionalOnProperty(name = "ship.documents2kafka.enabled", havingValue = "true")
 public class EsKafkaConfig {
-
 
     private static final Logger LOG = LoggerFactory.getLogger(EsKafkaConfig.class);
 
@@ -24,12 +20,19 @@ public class EsKafkaConfig {
     private String topic;
 
     // Send this many messages to broker without waiting for response, increase throughput
-    @Value("${kafka.es.max-in-flight-request-per-connection:4000}")
+    @Value("${kafka.es.max-in-flight-request-per-connection:15000}")
     private int maxInFlightRequests;
 
     // Sending in batch more efficiently
-    @Value("${kafka.es.batch.size:10000000}")
+    @Value("${kafka.es.batch.size:5000000}")
     private int batchSize;
+
+    // Sending in batch more efficiently
+    @Value("${kafka.es.buffer.memory:600000000}")
+    private int bufferMemory;
+
+    @Value("${kafka.es.linger.ms:1000}")
+    private int lingerMs;
 
     @Bean
     KafkaProducerConfigBuilder<String, byte[]> defaultKafkaProducerConfig() {
@@ -46,6 +49,8 @@ public class EsKafkaConfig {
                 .getProducerConfig()
                 .withMaxInFlightPerConnection(maxInFlightRequests)
                 .withBatchSize(batchSize)
+                .withBufferMemory(bufferMemory)
+                .withLingerMs(lingerMs)
                 .withTopic(topic);
 
         LOG.debug("Initialized the Kafka Service for ES bean");

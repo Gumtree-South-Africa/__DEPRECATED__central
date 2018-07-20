@@ -13,15 +13,6 @@ import org.springframework.context.annotation.Configuration;
 public class PushServiceConfiguration {
     private static final Logger LOG = LoggerFactory.getLogger(PushServiceConfiguration.class);
 
-    @Value("${infopool.host:}")
-    private String infopoolHost;
-
-    @Value("${infopool.proxy.host:}")
-    private String proxyHost;
-
-    @Value("${infopool.proxy.port:}")
-    private Integer proxyPort;
-
     @Bean
     @ConditionalOnProperty(value = "push-mobile.enabled", havingValue = "true")
     public PushService pushMobilePushService(@Value("${push-mobile.host}") String host, @Value("${push-mobile.port}") int port) {
@@ -60,7 +51,11 @@ public class PushServiceConfiguration {
 
     @Bean
     @ConditionalOnExpression("#{'${push-mobile.enabled:false}' == 'false' && '${mdns.enabled:false}' == 'false' && '${pushservice.enabled:false}' == 'false'}")
-    public PushService infoPoolPushService() {
+    public PushService infoPoolPushService(
+            @Value("${infopool.host:localhost}") String infopoolHost,
+            @Value("${infopool.proxy.host:localhost}") String proxyHost,
+            @Value("${infopool.proxy.port:8080}") Integer proxyPort) {
+
         LOG.info("Info pool push service enabled. Host: {}", infopoolHost);
         return new InfoPoolPushService(infopoolHost, proxyHost, proxyPort);
     }
