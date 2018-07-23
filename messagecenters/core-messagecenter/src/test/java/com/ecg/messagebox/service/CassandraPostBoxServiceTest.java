@@ -36,6 +36,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -58,12 +59,7 @@ import static com.google.common.collect.Lists.newArrayList;
 import static java.util.Collections.singletonList;
 import static java.util.Optional.empty;
 import static org.joda.time.DateTime.now;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.anyBoolean;
-import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = CassandraPostBoxServiceTest.TestContext.class)
@@ -418,6 +414,27 @@ public class CassandraPostBoxServiceTest {
         Assert.assertEquals(MessageType.SYSTEM_MESSAGE, verifyMessage.getType());
         Assert.assertEquals("custom data", verifyMessage.getCustomData());
         verify(messageAddedEventProcessor).publishMessageAddedEvent(eq(conversation), any(String.class), eq("text"), eq(UNREAD_COUNTS));
+    }
+
+    @Test
+    public void skipResponseDataCalculation() {
+        Map<String, String> headers = new HashMap<>();
+        headers.put("X-Message-Type", "asq");
+        headers.put("X-Message-Metadata", "metadata");
+        headers.put("X-Conversation-Title", "conversation title");
+        headers.put("X-Skip-Response-Data", "true");
+        headers.put("Subject", "subject");
+
+        Message rtsMsg = newMessageWithHeaders("1", SELLER_TO_BUYER, MessageState.SENT, headers);
+
+        Conversation rtsConversation = newConversation(CONVERSATION_ID_1).withMessages(singletonList(rtsMsg)).build();
+
+        when(userIdentifierService.getBuyerUserId(rtsConversation)).thenReturn(Optional.of(USER_ID_1));
+        when(userIdentifierService.getSellerUserId(rtsConversation)).thenReturn(Optional.of(USER_ID_2));
+
+        service.processNewMessage(USER_ID_1, rtsConversation, rtsMsg, true, "text 123");
+
+        Mockito.verifyNoMoreInteractions(responseDataCalculator);
     }
 
     private ImmutableConversation.Builder newConversation(String id) {

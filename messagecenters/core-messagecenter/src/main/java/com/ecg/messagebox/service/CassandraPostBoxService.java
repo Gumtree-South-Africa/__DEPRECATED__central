@@ -44,6 +44,9 @@ import static org.joda.time.DateTime.now;
  */
 @Component
 public class CassandraPostBoxService implements PostBoxService {
+
+    public static final String SKIP_RESPONSE_DATA_HEADER = "X-Skip-Response-Data";
+
     private final CassandraPostBoxRepository postBoxRepository;
     private final UserIdentifierService userIdentifierService;
     private final ResponseDataCalculator responseDataCalculator;
@@ -115,7 +118,14 @@ public class CassandraPostBoxService implements PostBoxService {
             postBoxRepository.createConversation(userId, newConversation, newMessage, isNewReply);
         }
 
-        responseDataCalculator.storeResponseData(userId, rtsConversation, rtsMessage);
+        if (allowReponseDataComputation(rtsMessage)) {
+            responseDataCalculator.storeResponseData(userId, rtsConversation, rtsMessage);
+        }
+    }
+
+    private static boolean allowReponseDataComputation(com.ecg.replyts.core.api.model.conversation.Message message) {
+        String skipResponseData = message.getHeaders().get(SKIP_RESPONSE_DATA_HEADER);
+        return !Boolean.parseBoolean(skipResponseData);
     }
 
     @Override
