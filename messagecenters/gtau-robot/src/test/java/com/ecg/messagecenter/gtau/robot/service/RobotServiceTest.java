@@ -69,6 +69,7 @@ public class RobotServiceTest {
 
         assertThat(mail.getAdId()).isEqualTo("AD-ID");
         assertThat(mail.getUniqueHeader("X-Robot")).isEqualTo("GTAU");
+        assertThat(mail.getUniqueHeader("X-Skip-Response-Data")).isEqualTo("true");
         assertThat(mail.getUniqueHeader("From")).isEqualTo("noreply@gumtree.com.au");
         assertThat(mail.getUniqueHeader("X-ADID")).isEqualTo("AD-ID");
         assertThat(mail.getUniqueHeader("X-Reply-Channel")).isEqualTo("gumbot");
@@ -107,6 +108,7 @@ public class RobotServiceTest {
 
         assertThat(mail.getAdId()).isEqualTo("AD-ID");
         assertThat(mail.getUniqueHeader("X-Robot")).isEqualTo("GTAU");
+        assertThat(mail.getUniqueHeader("X-Skip-Response-Data")).isEqualTo("true");
         assertThat(mail.getUniqueHeader("From")).isEqualTo("noreply@gumtree.com.au");
         assertThat(mail.getUniqueHeader("X-ADID")).isEqualTo("AD-ID");
         assertThat(mail.getUniqueHeader("X-Reply-Channel")).isEqualTo("gumbot");

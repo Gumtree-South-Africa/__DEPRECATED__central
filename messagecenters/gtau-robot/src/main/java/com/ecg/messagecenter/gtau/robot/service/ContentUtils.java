@@ -24,15 +24,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.Optional;
 
-import static com.ecg.messagecenter.gtau.robot.service.ContentUtils.Header.AD;
-import static com.ecg.messagecenter.gtau.robot.service.ContentUtils.Header.FROM;
-import static com.ecg.messagecenter.gtau.robot.service.ContentUtils.Header.MESSAGE_LINKS;
-import static com.ecg.messagecenter.gtau.robot.service.ContentUtils.Header.MESSAGE_SENDER;
-import static com.ecg.messagecenter.gtau.robot.service.ContentUtils.Header.REPLY_CHANNEL;
-import static com.ecg.messagecenter.gtau.robot.service.ContentUtils.Header.RICH_TEXT_LINKS;
-import static com.ecg.messagecenter.gtau.robot.service.ContentUtils.Header.RICH_TEXT_MESSAGE;
-import static com.ecg.messagecenter.gtau.robot.service.ContentUtils.Header.ROBOT;
-import static com.ecg.messagecenter.gtau.robot.service.ContentUtils.Header.SUBJECT;
+import static com.ecg.messagecenter.gtau.robot.service.ContentUtils.Header.*;
 import static com.ecg.replyts.core.api.model.conversation.command.AddMessageCommandBuilder.anAddMessageCommand;
 
 public final class ContentUtils {
@@ -56,6 +48,7 @@ public final class ContentUtils {
                 .withTextParts(Collections.singletonList(payload.getMessage()))
                 .withMessageDirection(payload.getMessageDirection())
                 .addHeader(ROBOT.key, ROBOT.value)
+                .addHeader(SKIP_RESPONSE_DATA.key, SKIP_RESPONSE_DATA.value)
                 .addHeader(REPLY_CHANNEL.key, REPLY_CHANNEL.value)
                 .addHeader(MESSAGE_LINKS.key, JSONSerializer.toJSON(payload.getLinks()).toString());
 
@@ -87,6 +80,7 @@ public final class ContentUtils {
         org.apache.james.mime4j.dom.Header header = new HeaderImpl();
         header.addField(buildHeader(FROM.key, FROM.value));
         header.addField(buildHeader(ROBOT.key, ROBOT.value));
+        header.addField(buildHeader(SKIP_RESPONSE_DATA.key, SKIP_RESPONSE_DATA.value));
         header.addField(buildHeader(AD.key, adId));
         header.addField(buildHeader(REPLY_CHANNEL.key, REPLY_CHANNEL.value));
         header.addField(buildHeader(MESSAGE_LINKS.key, JSONSerializer.toJSON(payload.getLinks()).toString()));
@@ -118,7 +112,8 @@ public final class ContentUtils {
         MESSAGE_LINKS("X-Message-Links", "{}"),
         RICH_TEXT_MESSAGE("X-RichText-Message", ""),
         RICH_TEXT_LINKS("X-RichText-Links", "{}"),
-        MESSAGE_SENDER("X-Message-Sender", "{}");
+        MESSAGE_SENDER("X-Message-Sender", "{}"),
+        SKIP_RESPONSE_DATA("X-Skip-Response-Data", "true");
 
         private final String key;
         private final String value;

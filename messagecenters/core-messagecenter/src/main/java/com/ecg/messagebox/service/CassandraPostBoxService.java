@@ -21,6 +21,8 @@ import com.ecg.replyts.core.api.model.conversation.UserUnreadCounts;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import com.ecg.replyts.core.runtime.cluster.Guids;
 import com.ecg.replyts.core.runtime.identifier.UserIdentifierService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -44,6 +46,8 @@ import static org.joda.time.DateTime.now;
  */
 @Component
 public class CassandraPostBoxService implements PostBoxService {
+
+    private static final Logger LOG = LoggerFactory.getLogger(CassandraPostBoxService.class);
 
     public static final String SKIP_RESPONSE_DATA_HEADER = "X-Skip-Response-Data";
 
@@ -120,6 +124,8 @@ public class CassandraPostBoxService implements PostBoxService {
 
         if (allowReponseDataComputation(rtsMessage)) {
             responseDataCalculator.storeResponseData(userId, rtsConversation, rtsMessage);
+        } else {
+            LOG.debug("ResponseData calculation was skipped: conversation-id: {}, message-id: {}", rtsConversation.getId(), messageId);
         }
     }
 
