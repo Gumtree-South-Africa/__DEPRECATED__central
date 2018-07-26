@@ -13,9 +13,9 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 public class UrlGatewayPostProcessorIntegrationTest extends ReceiverTestsSetup {
 
-    @Test(groups = { "receiverTests" })
+    @Test(groups = {"receiverTests"})
     public void rtsRewritesUrlsInMessageBodyForAsq() throws Exception {
-        deliverMailToRts("linking-asq.eml");
+        deliverMailToRts("linking-asq.eml", "2f998c82-c0cb-45dc-a671-985fd9917d25");
         WiserMessage message = runner.waitForMessageArrival(1, 5000L);
 
         Multipart mainPart = (Multipart) message.getMimeMessage().getContent();
@@ -86,8 +86,8 @@ public class UrlGatewayPostProcessorIntegrationTest extends ReceiverTestsSetup {
         return partText.substring(start, end).replace("\r\n", "\n");
     }
 
-    private void deliverMailToRts(String emlName) throws Exception {
+    private void deliverMailToRts(String emlName, String mailId) throws Exception {
         byte[] emlData = ByteStreams.toByteArray(getClass().getResourceAsStream(emlName));
-        runner.getMailSender().sendMail(emlData);
+        runner.deliver(mailId, emlData, 5);
     }
 }

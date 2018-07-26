@@ -5,7 +5,6 @@ import com.ecg.replyts.app.mailreceiver.MessageProcessor;
 import com.ecg.replyts.core.runtime.logging.MDCConstants;
 import com.ecg.replyts.core.runtime.persistence.kafka.KafkaTopicService;
 import com.ecg.replyts.core.runtime.persistence.kafka.QueueService;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.protobuf.Timestamp;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -14,12 +13,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.concurrent.NotThreadSafe;
-
 import java.io.IOException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
-
 
 import static com.ecg.replyts.core.runtime.prometheus.MessageProcessingMetrics.incMsgAbandonedCounter;
 import static com.ecg.replyts.core.runtime.prometheus.MessageProcessingMetrics.incMsgRetriedCounter;
@@ -126,48 +123,39 @@ abstract class KafkaMessageProcessor implements MessageProcessor {
 
     protected abstract void processMessage(Message message);
 
-    private void publishToTopic(final String topic, final Message retryableMessage) throws JsonProcessingException {
+    private void publishToTopic(final String topic, final Message retryableMessage) {
         queueService.publish(topic, retryableMessage);
     }
 
     // Some messages are unparseable, so we don't even retry, instead they go on the unparseable topic
-
     void unparseableMessage(final Message retryableMessage) {
         incMsgUnparseableCounter();
-        try {
-            publishToTopic(KafkaTopicService.getTopicUnparseable(shortTenant), retryableMessage);
-        } catch (JsonProcessingException e) {
-            LOG.error("Could not serialize message before putting it in the unparseable queue, correlationId: {}", retryableMessage.getCorrelationId(), e);
-        }
+        publishToTopic(KafkaTopicService.getTopicUnparseable(shortTenant), retryableMessage);
     }
 
     // Put the message in the retry topic with a specific delay
     void delayRetryMessage(final Message retryableMessage) {
         incMsgRetriedCounter();
-        try {
-            Instant currentConsumptionTime = Instant.ofEpochSecond(
-                    retryableMessage.getNextConsumptionTime().getSeconds(),
-                    retryableMessage.getNextConsumptionTime().getNanos())
-                    .plus(retryOnFailedMessagePeriodMinutes, ChronoUnit.MINUTES);
+        Instant currentConsumptionTime = Instant.ofEpochSecond(
+                retryableMessage.getNextConsumptionTime().getSeconds(),
+                retryableMessage.getNextConsumptionTime().getNanos())
+                .plus(retryOnFailedMessagePeriodMinutes, ChronoUnit.MINUTES);
 
-            Timestamp nextConsumptionTime = Timestamp
-                    .newBuilder()
-                    .setSeconds(currentConsumptionTime.getEpochSecond())
-                    .setNanos(currentConsumptionTime.getNano())
-                    .build();
+        Timestamp nextConsumptionTime = Timestamp
+                .newBuilder()
+                .setSeconds(currentConsumptionTime.getEpochSecond())
+                .setNanos(currentConsumptionTime.getNano())
+                .build();
 
-            int retryCount = retryableMessage.getRetryCount() + 1;
+        int retryCount = retryableMessage.getRetryCount() + 1;
 
-            Message retriedMessage = Message
-                    .newBuilder(retryableMessage)
-                    .setRetryCount(retryCount)
-                    .setNextConsumptionTime(nextConsumptionTime)
-                    .build();
+        Message retriedMessage = Message
+                .newBuilder(retryableMessage)
+                .setRetryCount(retryCount)
+                .setNextConsumptionTime(nextConsumptionTime)
+                .build();
 
-            publishToTopic(KafkaTopicService.getTopicRetry(shortTenant), retriedMessage);
-        } catch (JsonProcessingException e) {
-            LOG.error("Could not serialize message before putting it in the retry queue, correlationId: {}", retryableMessage.getCorrelationId(), e);
-        }
+        publishToTopic(KafkaTopicService.getTopicRetry(shortTenant), retriedMessage);
     }
 
     // Put the message back in the incoming topic
@@ -179,11 +167,7 @@ abstract class KafkaMessageProcessor implements MessageProcessor {
     void abandonMessage(final Message retryableMessage, final Exception e) {
         incMsgAbandonedCounter();
         LOG.error("Mail processing abandoned for message with correlationId {}", retryableMessage.getCorrelationId(), e);
-        try {
-            publishToTopic(KafkaTopicService.getTopicAbandoned(shortTenant), retryableMessage);
-        } catch (JsonProcessingException e1) {
-            LOG.warn("Could not serialize message before putting it in the abandon queue, correlationId: {}", retryableMessage.getCorrelationId(), e1);
-        }
+        publishToTopic(KafkaTopicService.getTopicAbandoned(shortTenant), retryableMessage);
     }
 
     // Don't know what to do... Put it in the failed queue! Most likely unparseable json

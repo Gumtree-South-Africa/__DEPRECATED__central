@@ -18,6 +18,7 @@ X-CUST-L1-CATEGORYID: 504
 X-CUST-L2-CATEGORYID: 506
 X-CUST-FROM: Seller66
 X-CUST-TO: O. Beuga
+X-Rts-Integration-Test-Uid: 314e09a0-cf64-466b-bdf7-8b595b5928c6
 Content-Type: multipart/alternative; boundary="_----------=_ecc3aae24ee82ea4d4ff8676db0699d9"
 Content-Transfer-Encoding: 8bit
 Message-Id: <20120703220003.4F601F4055@marktplaats.nl>

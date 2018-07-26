@@ -24,7 +24,7 @@ import static org.hamcrest.Matchers.nullValue;
  */
 public class SunnyDayAcceptanceTest {
 
-    private static final int deliveryTimeoutSeconds = 45;
+    private static final int deliveryTimeoutSeconds = 5;
 
     @Rule
     public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(deliveryTimeoutSeconds);
@@ -81,10 +81,7 @@ public class SunnyDayAcceptanceTest {
 
     private void deliverMailToRts(String emlName) throws Exception {
         byte[] emlData = ByteStreams.toByteArray(getClass().getResourceAsStream(emlName));
-        rule.getMailSender().sendMail(emlData);
-
-        // wait for listener to be triggered - this means the mail is sent & stored properly
-        rule.getMailInterceptor().awaitMails(1, deliveryTimeoutSeconds);
+        rule.deliver("8854ca40-06db-4293-a0f2-f164e970ca73", emlData);
     }
 
     private void deliverReplyMailToRts(WiserMessage asqMessage, String emlName) throws Exception {
@@ -93,9 +90,6 @@ public class SunnyDayAcceptanceTest {
         byte[] bytes = ByteStreams.toByteArray(getClass().getResourceAsStream(emlName));
         String replyData = new String(bytes, "US-ASCII");
         replyData = replyData.replace("{{{{anonymous reply to}}}}", anonymousAsqSender);
-        rule.getMailSender().sendMail(replyData.getBytes("US-ASCII"));
-
-        // wait for listener to be triggered - this means the mail is sent & stored properly
-        rule.getMailInterceptor().awaitMails(2, deliveryTimeoutSeconds);
+        rule.deliver("6243d0f5-5363-43f7-a263-cb4929df145f", replyData.getBytes("US-ASCII"));
     }
 }

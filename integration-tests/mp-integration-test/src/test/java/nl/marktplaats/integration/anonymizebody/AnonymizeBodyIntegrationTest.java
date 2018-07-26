@@ -16,10 +16,10 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 public class AnonymizeBodyIntegrationTest extends ReceiverTestsSetup {
 
-    @Test(groups = { "receiverTests" })
+    @Test(groups = {"receiverTests"})
     public void anonymizeMailInBodyForRecognizedFragments() throws Exception {
         {
-            deliverMailToRts("plain-asq.eml");
+            deliverMailToRts("plain-asq.eml", "af8d1519-5387-4ce0-848a-63a013d68a11");
             WiserMessage forwardedAsq = runner.waitForMessageArrival(1, 5000L);
 
             String plainPart = extractPlainText(forwardedAsq);
@@ -29,7 +29,7 @@ public class AnonymizeBodyIntegrationTest extends ReceiverTestsSetup {
         }
 
         {
-            deliverReplyMailToRts("non-anonymous-reply.eml");
+            deliverReplyMailToRts("non-anonymous-reply.eml", "1a81d8c4-fef0-465f-b916-37a56f80ffdd");
             WiserMessage forwardedReply = runner.waitForMessageArrival(2, 5000L);
             String anonymousReplySender = forwardedReply.getEnvelopeSender();
 
@@ -54,17 +54,17 @@ public class AnonymizeBodyIntegrationTest extends ReceiverTestsSetup {
         return content.replace("\r\n", "\n");
     }
 
-    private void deliverMailToRts(String emlName) throws Exception {
+    private void deliverMailToRts(String emlName, String mailId) throws Exception {
         byte[] emlData = ByteStreams.toByteArray(getClass().getResourceAsStream(emlName));
-        runner.getMailSender().sendMail(emlData);
+        runner.deliver(mailId, emlData, 5);
     }
 
-    private void deliverReplyMailToRts(String emlName) throws Exception {
+    private void deliverReplyMailToRts(String emlName, String mailIdentifier) throws Exception {
         WiserMessage asqMessage = runner.getLastRtsSentMail();
         String anonymousAsqSender = asqMessage.getEnvelopeSender();
 
         String replyData = CharStreams.toString(new InputStreamReader(getClass().getResourceAsStream(emlName)));
         replyData = replyData.replace("{{{{anonymous reply to}}}}", anonymousAsqSender);
-        runner.getMailSender().sendMail(replyData.getBytes("US-ASCII"));
+        runner.deliver(mailIdentifier, replyData.getBytes("US-ASCII"), 5);
     }
 }

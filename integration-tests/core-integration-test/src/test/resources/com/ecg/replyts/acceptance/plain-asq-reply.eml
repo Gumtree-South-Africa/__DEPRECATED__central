@@ -47,6 +47,7 @@ X-Ziggo-spambar: --
 X-Ziggo-spamscore: -2.7
 X-Ziggo-spamreport: ALL_TRUSTED=-1,BAYES_00=-1.9,HTML_MESSAGE=0.001,TW_JK=0.077,TW_JV=0.077,T_KHOP_FOREIGN_CLICK=0.01,T_REMOTE_IMAGE=0.01
 X-Ziggo-Spam-Status: No
+X-Rts-Integration-Test-Uid: 6243d0f5-5363-43f7-a263-cb4929df145f
 
 This is a multi-part message in MIME format.
 

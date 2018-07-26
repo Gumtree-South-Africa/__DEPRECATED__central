@@ -19,8 +19,6 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.context.annotation.Bean;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
@@ -157,7 +155,7 @@ public class MailInterceptor implements BeanPostProcessor {
     /**
      * Blocks a reasonable time amount to see if a mail with a unique identifier value (see MailBuilder) has been received.
      */
-    public ProcessedMail awaitMailIdentifiedBy(String uniqueMessageKey, int deliveryTimeoutSeconds) {
+    ProcessedMail awaitMailIdentifiedBy(String uniqueMessageKey, int deliveryTimeoutSeconds) {
         LOG.info("Await for uniqueMessageKey={} for at most {} seconds", uniqueMessageKey, deliveryTimeoutSeconds);
         try {
             return await().atMost(deliveryTimeoutSeconds, TimeUnit.SECONDS)

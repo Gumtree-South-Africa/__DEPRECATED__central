@@ -1,22 +1,15 @@
 package com.ecg.replyts.integration.test;
 
+import com.ecg.replyts.app.MessageProcessingCoordinator;
 import com.ecg.replyts.core.ApplicationReadyEvent;
 import com.ecg.replyts.core.LoggingService;
 import com.ecg.replyts.core.Webserver;
-import com.ecg.replyts.core.runtime.indexer.DocumentSink;
-import com.ecg.replyts.core.runtime.indexer.IndexDataBuilder;
 import com.ecg.replyts.core.runtime.indexer.test.DirectESIndexer;
 import com.ecg.replyts.integration.cassandra.CassandraIntegrationTestProvisioner;
-import com.google.common.io.Files;
 import io.prometheus.client.CollectorRegistry;
 import org.elasticsearch.client.Client;
-import org.elasticsearch.client.transport.TransportClient;
-import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.common.transport.InetSocketTransportAddress;
-import org.elasticsearch.transport.client.PreBuiltTransportClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.core.env.PropertiesPropertySource;
@@ -26,8 +19,6 @@ import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.subethamail.wiser.Wiser;
 import org.subethamail.wiser.WiserMessage;
 
-import java.io.File;
-import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.Properties;
 
@@ -38,13 +29,13 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public final class ReplytsRunner {
     private static final Logger LOG = LoggerFactory.getLogger(ReplytsRunner.class);
 
-    private final File dropFolder = Files.createTempDir();
-
     private final Integer httpPort = OpenPortFinder.findFreePort();
 
     private final Integer smtpOutPort = OpenPortFinder.findFreePort();
 
     private final Wiser wiser = new Wiser(smtpOutPort);
+
+    private final MessageProcessingCoordinator messageProcessingCoordinator;
 
     private final AnnotationConfigApplicationContext context;
 
@@ -79,7 +70,6 @@ public final class ReplytsRunner {
             properties.put("search.es.indexname", "comaasidx");
             properties.put("search.es.endpoint","http://localhost:9200");
 
-            properties.put("mailreceiver.filesystem.dropfolder", dropFolder.getAbsolutePath());
             properties.put("node.run.cronjobs", "false");
             properties.put("cluster.jmx.enabled", "false");
 
@@ -108,6 +98,7 @@ public final class ReplytsRunner {
             context.refresh();
 
             this.mailInterceptor = checkNotNull(context.getBean(MailInterceptor.class), "mailInterceptor");
+            this.messageProcessingCoordinator = context.getBean(MessageProcessingCoordinator.class);
 
             context.publishEvent(new ApplicationReadyEvent(context));
 
@@ -122,9 +113,6 @@ public final class ReplytsRunner {
 
     public void stop() {
         context.close();
-
-        deleteDirectory(dropFolder);
-
         wiser.stop();
     }
 
@@ -158,29 +146,11 @@ public final class ReplytsRunner {
         return esIndexer;
     }
 
-    File getDropFolder() {
-        return dropFolder;
-    }
-
-    private void deleteDirectory(File directory) {
-        File[] files = directory.listFiles();
-        if (files != null) {
-            for (File file : files) {
-                if (file.isDirectory()) {
-                    deleteDirectory(file);
-                } else {
-                    if (!file.delete()) {
-                        LOG.warn("Could not delete file {}", file);
-                    }
-                }
-            }
-        }
-        if (!directory.delete()) {
-            LOG.warn("Could not delete directory {}", directory);
-        }
-    }
-
     MailInterceptor getMailInterceptor() {
         return mailInterceptor;
+    }
+
+    MessageProcessingCoordinator getMessageProcessingCoordinator() {
+        return messageProcessingCoordinator;
     }
 }

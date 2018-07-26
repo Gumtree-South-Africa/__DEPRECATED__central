@@ -102,7 +102,6 @@ node("master") {
 
     stage("Restarting Comaas") {
         node("$environment && $dc") {
-
             final String version = getOriginalVersion(tenantShort, environment, dc)
             final String restartJenkinsJob = env.BUILD_NUMBER
 

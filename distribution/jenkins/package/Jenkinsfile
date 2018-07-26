@@ -24,49 +24,10 @@ void packageComaas(String tenant, String version) {
     sh "docker image remove $dockerImageName"
 }
 
-def uploadToSwift(String tenant, String version, String pwd, String retentionDays) {
-    echo "Uploading Comaas for $tenant with version $version to Swift (from $pwd)"
-
-    def secrets = [
-            [
-                    $class      : 'VaultSecret',
-                    path        : 'secret/nomad/control/swift',
-                    secretValues: [
-                            [$class: 'VaultSecretValue', envVar: 'SWIFT_USER', vaultKey: 'username'],
-                            [$class: 'VaultSecretValue', envVar: 'SWIFT_PASS', vaultKey: 'password']
-                    ],
-            ],
-    ]
-    wrap([$class: 'VaultBuildWrapper', vaultSecrets: secrets]) {
-        final String file = "comaas-${tenant}_${version}.tar.gz"
-        final String target = "${tenant}/builds/${file}"
-
-        echo sh(
-                script: "docker run --rm " +
-                        "-v ${pwd}:/objects " +
-                        "--network host " +
-                        "-e OS_AUTH_URL=https://keystone.dus1.cloud.ecg.so/v2.0 " +
-                        "-e OS_TENANT_NAME='comaas-qa' " +
-                        "-e OS_USERNAME='$SWIFT_USER' " +
-                        "-e OS_PASSWORD='$SWIFT_PASS' " +
-                        "-e OS_PROJECT_NAME='comaas-control-prod' " +
-                        "-e OS_REGION_NAME='dus1' " +
-                        "ebayclassifiedsgroup/python-swiftclient:3.5.0 " +
-                        "swift upload --header \"X-Delete-At: \$(date --date \"+${retentionDays} days\" +%s)\" --skip-identical --object-name $target comaas /objects/$file",
-                returnStdout: true
-        )
-    }
-}
-
-// p contains [tenant, version, retentionDays]
+// p contains [tenant, version]
 distribute = { String[] p ->
     String tenant = p[0], version = p[1]
-    String retentionDays = p[2]
-
     packageComaas(tenant, version)
-
-    final String pwd = env.WORKSPACE + "/ecg-comaas-central/builds"
-    uploadToSwift(tenant, version, pwd, retentionDays)
 }
 
 void setEnvVars() {
@@ -80,7 +41,6 @@ static String createVersionString(String buildNr) {
 
 node('qa') {
     setEnvVars()
-    final int retentionDays = 30
 
     PROVIDED_VERSION = PROVIDED_VERSION.trim()
 
@@ -128,7 +88,7 @@ node('qa') {
     buildSteps = ["failFast": false]
     buildSteps += tenants.collectEntries { tenant ->
         String stageName = "Package artifact for $tenant"
-        [((String) "package-$tenant"): commonFunctions.wrapWithStepDefinition([tenant, version, retentionDays], distribute, gitHash, stageName)]
+        [((String) "package-$tenant"): commonFunctions.wrapWithStepDefinition([tenant, version], distribute, gitHash, stageName)]
     }
     parallel buildSteps
 

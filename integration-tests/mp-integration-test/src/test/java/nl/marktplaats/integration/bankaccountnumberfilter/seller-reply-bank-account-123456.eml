@@ -8,6 +8,7 @@ Subject: RTS test mail with fraudulent bank account number
 Date: Thu, 5 Jul 2012 13:45:50 +0200
 Message-ID: <FE57844D-3091-46FF-8DB9-04860A2B7B4D@foon.nl>
 To: Buyer66 via Marktplaats <{{{{anonymous reply to}}}}>
+X-Rts-Integration-Test-Uid: bbb1805d-e1f0-443f-b6d1-acf38b022e62
 X-Mailer: Apple Mail (2.1278)
 MIME-Version: 1.0
 

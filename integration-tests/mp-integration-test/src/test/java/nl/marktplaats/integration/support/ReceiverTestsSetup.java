@@ -15,7 +15,6 @@ import org.testng.annotations.BeforeGroups;
 import org.testng.annotations.BeforeMethod;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Properties;
 import java.util.stream.Stream;
 
@@ -32,7 +31,7 @@ public class ReceiverTestsSetup {
     protected static IntegrationTestRunner runner = null;
 
     @BeforeGroups(groups = { "receiverTests" })
-    public static void startEmbeddedRts() throws Exception {
+    public static void startEmbeddedRts() {
         if (runner != null) {
             throw new IllegalStateException("IntegrationTestRunner has already been set up - should only happen once for this group of tests!");
         }
@@ -90,18 +89,18 @@ public class ReceiverTestsSetup {
     }
 
     @BeforeMethod(groups = { "receiverTests" })
-    public static void clearReceivedMessages() throws IOException {
+    public static void clearReceivedMessages() {
         runner.clearMessages();
     }
 
     @AfterGroups(groups = { "receiverTests" })
-    public static void stopEmbeddedRts() throws IOException {
+    public static void stopEmbeddedRts() {
         runner.stop();
 
         embeddedCassandra.cleanTables(session, KEYSPACE);
     }
 
-    public Session getSession() {
+    protected Session getSession() {
         return session;
     }
 }

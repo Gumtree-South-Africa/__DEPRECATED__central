@@ -22,10 +22,12 @@ import org.slf4j.LoggerFactory;
 import org.subethamail.wiser.WiserMessage;
 
 import javax.mail.internet.MimeMessage;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.*;
+import java.io.ByteArrayOutputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Properties;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -252,10 +254,9 @@ public class ReplyTsIntegrationTestRule implements TestRule {
     }
 
     /**
-     * inputs a new mail into the dropfolder of the embedded ReplyTS instance and blocks until the mail has been fully
-     * processed. the returned object referrs to the state of message and it's conversation after processing the mail
-     * has completed.<br/> If the mail was not processed within the delivery timeout, a {@link RuntimeException} is
-     * thrown.
+     * inputs a new mail into the message processing coordinator of the embedded ReplyTS instance and blocks until the mail has been fully
+     * processed. the returned object refers to the state of message and its conversation after processing the mail
+     * has completed.<br/> If the mail was not processed within the delivery timeout, a {@link RuntimeException} is thrown.
      */
     public MailInterceptor.ProcessedMail deliver(MailBuilder mail) {
         String mailIdentifier = String.format("%s#%s.%s",
@@ -265,18 +266,16 @@ public class ReplyTsIntegrationTestRule implements TestRule {
 
         LOG.info("Sending Mail with unique identifier '{}' at '{}'", mailIdentifier, DateTime.now());
         mail.uniqueIdentifier(mailIdentifier);
-        File f = new File(testRunner.getDropFolder(), "tmp_pre_" + Math.random());
 
-        try (FileOutputStream fout = new FileOutputStream(f)) {
-            mail.write(fout);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        } finally {
-            assert f.renameTo(new File(f.getParent(), "pre_" + f.getName()));
-        }
-        return testRunner.getMailInterceptor().awaitMailIdentifiedBy(mailIdentifier, deliveryTimeoutSeconds);
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        mail.write(out);
+
+        return deliver(mailIdentifier, out.toByteArray());
     }
 
+    public MailInterceptor.ProcessedMail deliver(String mailIdentifier, byte[] out) {
+        return testRunner.deliver(mailIdentifier, out, deliveryTimeoutSeconds);
+    }
 
     /**
      * ensures that replyTS does not (or has not) sent out any mail. has a very short delay, as the deliver method
@@ -350,10 +349,6 @@ public class ReplyTsIntegrationTestRule implements TestRule {
         Waiter.await(
                 () -> searchClient.search(searchRequestBuilder.request()).actionGet().getHits().getTotalHits() > 0).
                 within(10, TimeUnit.SECONDS);
-    }
-
-    public FileSystemMailSender getMailSender() {
-        return testRunner.getMailSender();
     }
 
     public MailInterceptor getMailInterceptor() {

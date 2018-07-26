@@ -1,6 +1,7 @@
 package com.ecg.replyts.integration.test;
 
 import com.ecg.replyts.core.runtime.indexer.test.DirectESIndexer;
+import com.ecg.replyts.core.runtime.mailparser.ParsingException;
 import io.prometheus.client.CollectorRegistry;
 import org.elasticsearch.client.Client;
 import org.junit.Assert;
@@ -9,7 +10,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.subethamail.wiser.WiserMessage;
 
-import java.io.File;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
@@ -26,12 +28,10 @@ public class IntegrationTestRunner extends ExternalResource {
 
     private ReplytsRunner replytsRunner;
 
-    private FileSystemMailSender mailSender;
-
     private Boolean isRunning = false;
     private final Class<?>[] configurations;
 
-    public IntegrationTestRunner(Properties testProperties, String configResourceDirectory, Class<?> ... configurations) {
+    public IntegrationTestRunner(Properties testProperties, String configResourceDirectory, Class<?>... configurations) {
         this.testProperties = testProperties;
         this.configResourceDirectory = configResourceDirectory;
         this.configurations = configurations;
@@ -46,7 +46,6 @@ public class IntegrationTestRunner extends ExternalResource {
             LOGGER.info("Starting COMaaS");
 
             replytsRunner = new ReplytsRunner(testProperties, configResourceDirectory, configurations);
-            mailSender = new FileSystemMailSender(replytsRunner.getDropFolder());
 
             isRunning = true;
         } catch (Exception e) {
@@ -74,28 +73,16 @@ public class IntegrationTestRunner extends ExternalResource {
         return replytsRunner.getHttpPort();
     }
 
-    public Client getSearchClient() {
+    Client getSearchClient() {
         ensureStarted();
 
         return replytsRunner.getSearchClient();
     }
 
-    public DirectESIndexer getESIndexer() {
+    DirectESIndexer getESIndexer() {
         ensureStarted();
 
         return replytsRunner.getESIndexer();
-    }
-
-    public File getDropFolder() {
-        ensureStarted();
-
-        return replytsRunner.getDropFolder();
-    }
-
-    public FileSystemMailSender getMailSender() {
-        ensureStarted();
-
-        return mailSender;
     }
 
     public void clearMessages() {
@@ -104,22 +91,32 @@ public class IntegrationTestRunner extends ExternalResource {
         replytsRunner.getMessages().clear();
     }
 
-    public MailInterceptor getMailInterceptor() {
+    MailInterceptor getMailInterceptor() {
         return replytsRunner.getMailInterceptor();
     }
 
+    public MailInterceptor.ProcessedMail deliver(String mailIdentifier, byte[] out, int deliveryTimeoutSeconds) {
+        try {
+            replytsRunner.getMessageProcessingCoordinator().accept(new ByteArrayInputStream(out));
+        } catch (IOException | ParsingException e) {
+            throw new RuntimeException(e);
+        }
+
+        return getMailInterceptor().awaitMailIdentifiedBy(mailIdentifier, deliveryTimeoutSeconds);
+    }
+
     /* Use rule.waitForMail() instead */
-    public WiserMessage waitForMessageArrival(int expectedEmailNumber, long timeout) throws Exception {
+    public WiserMessage waitForMessageArrival(int expectedEmailNumber, long timeoutMs) throws Exception {
         ensureStarted();
 
-        long deadline = System.currentTimeMillis() + timeout;
+        long deadline = System.currentTimeMillis() + timeoutMs;
         List<WiserMessage> messages;
         int loopCounter = 0;
         do {
             loopCounter++;
             TimeUnit.MILLISECONDS.sleep(100);
             messages = replytsRunner.getMessages();
-            LOGGER.debug("Messages after {} milliseconds: {}", 10 * loopCounter, messages.size());
+            LOGGER.debug("Messages after {} milliseconds: {}", 100 * loopCounter, messages.size());
         } while (messages.size() < expectedEmailNumber && System.currentTimeMillis() < deadline);
 
         if (messages.size() != expectedEmailNumber) {

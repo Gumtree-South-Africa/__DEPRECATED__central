@@ -15,7 +15,6 @@ import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
-
 import java.io.InputStreamReader;
 
 import static org.hamcrest.CoreMatchers.containsString;
@@ -26,9 +25,9 @@ import static org.hamcrest.Matchers.not;
 
 public class SunnyDayIntegrationTest extends ReceiverTestsSetup {
 
-    @Test(groups = { "receiverTests" })
+    @Test(groups = {"receiverTests"})
     public void rtsProcessedAnAsqMailAndAReply() throws Exception {
-        deliverMailToRts("plain-asq.eml");
+        deliverMailToRts("plain-asq.eml", "314e09a0-cf64-466b-bdf7-8b595b5928c6");
         WiserMessage anonymizedAsq = runner.waitForMessageArrival(1, 5000L);
         MimeMessage anonAsq = anonymizedAsq.getMimeMessage();
         assertThat(anonAsq.getSubject(), is("Reactie op uw advertentie: Twee matrassen, hoef je niet te draaien en wasbare hoezen"));
@@ -40,7 +39,7 @@ public class SunnyDayIntegrationTest extends ReceiverTestsSetup {
         assertRtsHeadersNotPresent(anonAsq);
         assertIsAnonymous(anonymizedAsq, "seller_66@hotmail.com");
 
-        deliverReplyMailToRts("plain-asq-reply.eml");
+        deliverReplyMailToRts("plain-asq-reply.eml", "8416dfb8-db49-499f-a7d9-3ee4dd87b247");
         WiserMessage anonymizedAsqReply = runner.waitForMessageArrival(2, 5000L);
         MimeMessage anonAsqReply = anonymizedAsqReply.getMimeMessage();
         assertThat(anonAsqReply.getSubject(), is("Antw: Reactie op uw advertentie: Twee matrassen, hoef je niet te draaien en wasbare hoezen"));
@@ -103,17 +102,17 @@ public class SunnyDayIntegrationTest extends ReceiverTestsSetup {
         assertThat(new String(anonMail.getData(), "US-ASCII"), not(containsString(absentMailAddress)));
     }
 
-    private void deliverMailToRts(String emlName) throws Exception {
+    private void deliverMailToRts(String emlName, String mailId) throws Exception {
         byte[] emlData = ByteStreams.toByteArray(getClass().getResourceAsStream(emlName));
-        runner.getMailSender().sendMail(emlData);
+        runner.deliver(mailId, emlData, 5);
     }
 
-    private void deliverReplyMailToRts(String emlName) throws Exception {
+    private void deliverReplyMailToRts(String emlName, String mailIdentifier) throws Exception {
         WiserMessage asqMessage = runner.getLastRtsSentMail();
         String anonymousAsqSender = asqMessage.getEnvelopeSender();
 
         String replyData = CharStreams.toString(new InputStreamReader(getClass().getResourceAsStream(emlName)));
         replyData = replyData.replace("{{{{anonymous reply to}}}}", anonymousAsqSender);
-        runner.getMailSender().sendMail(replyData.getBytes("US-ASCII"));
+        runner.deliver(mailIdentifier, replyData.getBytes("US-ASCII"), 5);
     }
 }

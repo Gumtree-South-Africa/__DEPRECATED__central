@@ -12,12 +12,9 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Properties;
 
-/**
- * Builder class that can dynamically generate a new mail format and is able to put it into the RTS dropfolder.
- */
 public final class MailBuilder {
 
-    public static final String UNIQUE_IDENTIFIER_HEADER = "X-Rts-Integration-Test-Uid";
+    static final String UNIQUE_IDENTIFIER_HEADER = "X-Rts-Integration-Test-Uid";
 
     private final Map<String, String> headers = new LinkedHashMap<>();
 
