@@ -8,7 +8,7 @@ import org.springframework.context.annotation.*;
 
 @ComaasPlugin
 @Configuration
-@Profile({Tenants.TENANT_MDE, Tenants.TENANT_MP})
+@Profile({Tenants.TENANT_MDE, Tenants.TENANT_MP, Tenants.TENANT_MVCA})
 @ComponentScan(value = "com.ecg.messagebox", excludeFilters =
 @ComponentScan.Filter(type = FilterType.REGEX, pattern = {"com.ecg.messagebox.resources.*", "com.ecg.messagebox.controllers.*"}))
 public class MessageBoxConfiguration {
