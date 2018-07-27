@@ -7,19 +7,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
-import static com.ecg.replyts.core.api.model.Tenants.TENANT_AR;
-import static com.ecg.replyts.core.api.model.Tenants.TENANT_EBAYK;
-import static com.ecg.replyts.core.api.model.Tenants.TENANT_GTAU;
-import static com.ecg.replyts.core.api.model.Tenants.TENANT_GTUK;
-import static com.ecg.replyts.core.api.model.Tenants.TENANT_IT;
-import static com.ecg.replyts.core.api.model.Tenants.TENANT_KJCA;
-import static com.ecg.replyts.core.api.model.Tenants.TENANT_MP;
-import static com.ecg.replyts.core.api.model.Tenants.TENANT_MX;
-import static com.ecg.replyts.core.api.model.Tenants.TENANT_SG;
-import static com.ecg.replyts.core.api.model.Tenants.TENANT_ZA;
+import static com.ecg.replyts.core.api.model.Tenants.*;
 
 @ComaasPlugin
-@Profile({TENANT_GTUK, TENANT_GTAU, TENANT_MP, TENANT_EBAYK, TENANT_KJCA, TENANT_IT, TENANT_MX, TENANT_AR, TENANT_ZA, TENANT_SG})
+@Profile({TENANT_GTUK, TENANT_GTAU, TENANT_MP, TENANT_EBAYK, TENANT_KJCA, TENANT_IT, TENANT_MX, TENANT_AR, TENANT_ZA, TENANT_SG, TENANT_MVCA})
 @Component
 public class ThresholdResultInspectorFactory implements ResultInspectorFactory {
 

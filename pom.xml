@@ -337,6 +337,28 @@
         </profile>
 
         <profile>
+            <!-- Kijiji Motors aka MoVe Canada -->
+            <id>mvca</id>
+
+            <modules>
+                <module>coremods/kjca-coremod-shared</module>
+                <module>coremods/kjca-coremod-overrides</module>
+
+                <module>filters/core-filter-user</module>
+                <module>filters/core-filter-activable</module>
+                <module>filters/kjca-filter-volume</module>
+                <module>filters/kjca-filter-word</module>
+                <module>filters/kjca-filter-countryblocked</module>
+                <module>filters/kjca-filter-countrydelayed</module>
+                <module>filters/kjca-filter-emailblocked</module>
+                <module>filters/kjca-filter-ipblocked</module>
+                <module>filters/kjca-filter-newreplier</module>
+
+                <module>resultinspectors/core-resultinspector-threshold</module>
+            </modules>
+        </profile>
+
+        <profile>
             <id>it</id>
             <repositories>
                 <repository>

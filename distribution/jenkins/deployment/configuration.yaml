@@ -14,6 +14,7 @@ instances:
       sg: 3
       mx: 3
       za: 3
+      mvca: 3
     newmsg:
       ebayk: 54
       gtau: 6
@@ -26,3 +27,4 @@ instances:
       sg: 3
       mx: 3
       za: 3
+      mvca: 3

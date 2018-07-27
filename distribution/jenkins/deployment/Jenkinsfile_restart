@@ -1,17 +1,18 @@
 #!/usr/bin/env groovy
 static def tenantAliases() {
     [
-            'mp'   : 'mp',
-            'ebayk': 'ek',
-            'it'   : 'it',
-            'kjca' : 'ca',
-            'mde'  : 'mo',
-            'gtuk' : 'uk',
-            'gtau' : 'au',
-            'ar'   : 'ar',
-            'mx'   : 'mx',
-            'sg'   : 'sg',
-            'za'   : 'za',
+            'mp'     : 'mp',
+            'ebayk'  : 'ek',
+            'it'     : 'it',
+            'kjca'   : 'ca',
+            'mde'    : 'mo',
+            'gtuk'   : 'uk',
+            'gtau'   : 'au',
+            'ar'     : 'ar',
+            'mx'     : 'mx',
+            'sg'     : 'sg',
+            'za'     : 'za',
+            'mvca'   : 'mvca',
     ]
 }
 

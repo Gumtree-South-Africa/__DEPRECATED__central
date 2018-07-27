@@ -1,6 +1,7 @@
 package com.ecg.comaas.kjca.coremod.shared;
 
 import com.codahale.metrics.Counter;
+import com.ecg.replyts.core.api.pluginconfiguration.ComaasPlugin;
 import com.ecg.replyts.core.runtime.TimingReports;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.http.HttpHeaders;
@@ -23,6 +24,7 @@ import java.util.Collections;
 import java.util.Map;
 
 @Component
+@ComaasPlugin
 public class TnsApiClient {
     private static final Logger LOG = LoggerFactory.getLogger(TnsApiClient.class);
 

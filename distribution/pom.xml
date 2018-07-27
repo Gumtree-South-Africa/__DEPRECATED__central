@@ -629,6 +629,78 @@
         </profile>
 
         <profile>
+            <id>mvca</id>
+
+            <properties>
+                <profile-classifier>mvca</profile-classifier>
+            </properties>
+
+            <dependencies>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>kjca-coremod-shared</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>kjca-coremod-overrides</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>core-resultinspector-threshold</artifactId>
+                </dependency>
+
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>core-filter-user</artifactId>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>core-filter-activable</artifactId>
+                </dependency>
+
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>kjca-filter-volume</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>kjca-filter-word</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>kjca-filter-countryblocked</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>kjca-filter-countrydelayed</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>kjca-filter-emailblocked</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>kjca-filter-ipblocked</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>ecg.comaas</groupId>
+                    <artifactId>kjca-filter-newreplier</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+            </dependencies>
+        </profile>
+
+        <profile>
             <id>it</id>
 
             <properties>
@@ -1062,7 +1134,7 @@
                         <configuration>
                             <rules>
                                 <requireActiveProfile>
-                                    <profiles>mp,ebayk,mde,kjca,gtau,gtuk,mx,ar,za,sg,it,dk</profiles>
+                                    <profiles>mp,ebayk,mde,kjca,gtau,gtuk,mx,ar,za,sg,it,dk,mvca</profiles>
                                     <all>false</all>
                                 </requireActiveProfile>
                             </rules>

@@ -17,6 +17,7 @@ public final class Tenants {
     public static final String TENANT_MDE = "mde";
     public static final String TENANT_MP = "mp";
     public static final String TENANT_MX = "mx";
+    public static final String TENANT_MVCA = "mvca";
     public static final String TENANT_SG = "sg";
     public static final String TENANT_ZA = "za";
 }

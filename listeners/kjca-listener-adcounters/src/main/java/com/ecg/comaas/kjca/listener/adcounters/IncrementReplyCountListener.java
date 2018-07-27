@@ -13,10 +13,11 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import static com.ecg.replyts.core.api.model.Tenants.TENANT_KJCA;
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_MVCA;
 import static com.ecg.replyts.core.api.model.mail.Mail.ADID_HEADER;
 
 @ComaasPlugin
-@Profile(TENANT_KJCA)
+@Profile({TENANT_KJCA, TENANT_MVCA})
 @Component
 class IncrementReplyCountListener implements MessageProcessedListener {
     private static final Logger LOG = LoggerFactory.getLogger(IncrementReplyCountListener.class);
