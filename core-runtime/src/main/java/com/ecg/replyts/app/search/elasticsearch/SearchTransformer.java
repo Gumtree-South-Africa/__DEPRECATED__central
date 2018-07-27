@@ -1,34 +1,58 @@
 package com.ecg.replyts.app.search.elasticsearch;
 
+import com.ecg.replyts.core.api.webapi.commands.payloads.SearchMessageGroupPayload;
 import com.ecg.replyts.core.api.webapi.commands.payloads.SearchMessagePayload;
 import com.ecg.replyts.core.api.webapi.model.MessageRtsState;
 import com.google.common.base.Strings;
 import org.elasticsearch.action.search.SearchRequest;
-import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchType;
-import org.elasticsearch.client.Client;
-import org.elasticsearch.index.query.*;
+import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.index.query.QueryStringQueryBuilder;
+import org.elasticsearch.index.query.RangeQueryBuilder;
+import org.elasticsearch.index.query.TermQueryBuilder;
+import org.elasticsearch.index.query.TermsQueryBuilder;
+import org.elasticsearch.search.aggregations.AggregationBuilders;
+import org.elasticsearch.search.aggregations.bucket.terms.TermsAggregationBuilder;
+import org.elasticsearch.search.aggregations.metrics.tophits.TopHitsAggregationBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.sort.SortOrder;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
 
-import static org.elasticsearch.index.query.QueryBuilders.*;
+import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
+import static org.elasticsearch.index.query.QueryBuilders.matchPhraseQuery;
+import static org.elasticsearch.index.query.QueryBuilders.queryStringQuery;
+import static org.elasticsearch.index.query.QueryBuilders.wildcardQuery;
 
 class SearchTransformer {
+
+    static final String GROUPING_AGG_NAME = "grouping";
+    static final String ITEMS_AGG_NAME = "items";
 
     private static final DateTimeFormatter DATE_TIME_FORMATTER =
             ISODateTimeFormat.dateTime().withZone(DateTimeZone.UTC);
 
     private final SearchMessagePayload payload;
     private final String indexName;
+    private final boolean groupedSearch;
+
+    private final TermsAggregationBuilder topLevelFieldAggregation = AggregationBuilders.terms(GROUPING_AGG_NAME);
+    private final TopHitsAggregationBuilder itemsAggregation = AggregationBuilders.topHits(ITEMS_AGG_NAME);
 
     private BoolQueryBuilder rootBoolQuery = QueryBuilders.boolQuery();
 
     SearchTransformer(SearchMessagePayload payload, String indexName) {
         this.payload = payload;
         this.indexName = indexName;
+        this.groupedSearch = false;
+    }
+
+    SearchTransformer(SearchMessageGroupPayload payload, String indexName) {
+        this.payload = payload;
+        this.indexName = indexName;
+        this.groupedSearch = true;
     }
 
     SearchRequest intoQuery() {
@@ -44,6 +68,9 @@ class SearchTransformer {
         setupCustomValuesQuery();
         setupAttachmentsFilter();
         setupPaging(requestBuilder);
+        if (groupedSearch) {
+            setupAggregations(requestBuilder);
+        }
         requestBuilder.query(rootBoolQuery);
 
         return new SearchRequest()
@@ -188,5 +215,17 @@ class SearchTransformer {
 
             rootBoolQuery.filter(query);
         }
+    }
+
+    private void setupAggregations(SearchSourceBuilder request) {
+        if (!groupedSearch) {
+            return;
+        }
+
+        topLevelFieldAggregation
+                .field(((SearchMessageGroupPayload) payload).getGroupBy())
+                .subAggregation(itemsAggregation);
+
+        request.aggregation(topLevelFieldAggregation);
     }
 }
