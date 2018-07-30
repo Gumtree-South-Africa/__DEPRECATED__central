@@ -140,8 +140,11 @@ public class PostMessageResource {
 
         NewConversationCommand newConversationBuilderCommand = aNewConversationCommand(Guids.next())
                 .withAdId(adId)
-                .withBuyer(buyer.getEmail(), uniqueConversationSecret.nextSecret())
-                .withSeller(seller.getEmail(), uniqueConversationSecret.nextSecret())
+                // we need to reconsider https://jira.corp.ebay.com/browse/COMAAS-1084
+                // emails should *never* be treated as userIds even if they appear to be the same.
+                // the conditions below are only the way to make us compatible with Marktplaats
+                .withBuyer(buyer.getUserId() != null ? buyer.getUserId() : buyer.getEmail(), uniqueConversationSecret.nextSecret())
+                .withSeller(seller.getUserId() != null ? seller.getUserId() : seller.getEmail(), uniqueConversationSecret.nextSecret())
                 .withCustomValues(customValues)
                 .build();
 
