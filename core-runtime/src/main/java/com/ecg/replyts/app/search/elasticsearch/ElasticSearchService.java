@@ -1,8 +1,10 @@
 package com.ecg.replyts.app.search.elasticsearch;
 
 import com.ecg.replyts.core.api.search.MutableSearchService;
+import com.ecg.replyts.core.api.search.RtsSearchGroupResponse;
 import com.ecg.replyts.core.api.search.RtsSearchResponse;
 import com.ecg.replyts.core.api.search.SearchService;
+import com.ecg.replyts.core.api.webapi.commands.payloads.SearchMessageGroupPayload;
 import com.ecg.replyts.core.api.webapi.commands.payloads.SearchMessagePayload;
 import com.ecg.replyts.core.runtime.indexer.MessageDocumentId;
 import com.google.common.base.Preconditions;
@@ -13,13 +15,18 @@ import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.index.query.RangeQueryBuilder;
 import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.SearchHits;
+import org.elasticsearch.search.aggregations.bucket.terms.Terms;
+import org.elasticsearch.search.aggregations.metrics.tophits.TopHits;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import static java.lang.String.format;
 import static org.elasticsearch.index.query.QueryBuilders.rangeQuery;
@@ -37,11 +44,20 @@ public class ElasticSearchService implements SearchService, MutableSearchService
         this.indexName = indexName;
     }
 
+    @Override
     public RtsSearchResponse search(SearchMessagePayload payload) {
         SearchRequest request = new SearchTransformer(payload, indexName).intoQuery();
         LOG.trace("\n\nRequest:\n\n {}", request);
         SearchResponse response = executeSearch(request);
         return createRtsSearchResponse(payload, response);
+    }
+
+    @Override
+    public RtsSearchGroupResponse search(SearchMessageGroupPayload payload) {
+        SearchRequest request = new SearchTransformer(payload, indexName).intoQuery();
+        LOG.trace("\n\nRequest:\n\n {}", request);
+        SearchResponse searchResponse = executeSearch(request);
+        return createRtsSearchResponse(payload, searchResponse);
     }
 
     private SearchResponse executeSearch(SearchRequest request) {
@@ -61,6 +77,26 @@ public class ElasticSearchService implements SearchService, MutableSearchService
         extractMsgDocIdsFromHits(hits, ids);
 
         return new RtsSearchResponse(ids, command.getOffset(), hits.length, (int) response.getHits().getTotalHits());
+    }
+
+    private RtsSearchGroupResponse createRtsSearchResponse(SearchMessageGroupPayload command, SearchResponse response) {
+        Terms topLevelAgg = response.getAggregations().get(SearchTransformer.GROUPING_AGG_NAME);
+        List<? extends Terms.Bucket> buckets = topLevelAgg.getBuckets();
+        Map<String, RtsSearchResponse> messageGroups = new LinkedHashMap<>(buckets.size());
+        for (Terms.Bucket bucket : buckets) {
+            TopHits itemsAgg = bucket.getAggregations().get(SearchTransformer.ITEMS_AGG_NAME);
+
+            SearchHits hits = itemsAgg.getHits();
+            int numHits = hits.getHits().length;
+            List<RtsSearchResponse.IDHolder> ids = new ArrayList<>(numHits);
+
+            extractMsgDocIdsFromHits(hits.getHits(), ids);
+
+            messageGroups.put(bucket.getKeyAsString(), new RtsSearchResponse(ids, command.getOffset(), numHits, (int) hits.getTotalHits()));
+        }
+
+        // Grouping searches return only one page of results
+        return new RtsSearchGroupResponse(messageGroups);
     }
 
     private void extractMsgDocIdsFromHits(SearchHit[] hits, List<RtsSearchResponse.IDHolder> storedIds) {

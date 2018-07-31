@@ -55,7 +55,7 @@ public class DomainObjectConverter {
      * @return API message objects, complete with their processing feedbacks and link back to parent conversation
      */
     public List<MessageRts> convertFromSearchResults(List<IDHolder> messageResultIds) {
-        List<MessageRts> messageResults = new ArrayList<MessageRts>();
+        List<MessageRts> messageResults = new ArrayList<>();
 
         for (RtsSearchResponse.IDHolder messageResultId : messageResultIds) {
             try {
@@ -66,7 +66,6 @@ public class DomainObjectConverter {
                             messageResultId.getConversationId(), messageResultId.getMessageId());
                     continue;
                 }
-
 
                 Message message = conversation.getMessageById(messageResultId.getMessageId());
                 MessageRts messageRts = convertMessage(message, conversation, true);
@@ -96,7 +95,7 @@ public class DomainObjectConverter {
         conversationRts.setStatus(convertEnum(conversation.getState(), ConversationRtsStatus.values(), ConversationRtsStatus.OTHER));
 
         if (withMessages) {
-            List<MessageRts> messages = new ArrayList<MessageRts>();
+            List<MessageRts> messages = new ArrayList<>();
 
             for (Message message : conversation.getMessages()) {
                 messages.add(convertMessage(message, conversation, false));
@@ -140,7 +139,7 @@ public class DomainObjectConverter {
                 break;
         }
 
-        List<ProcessingFeedbackRts> processingFeedbackList = new ArrayList<ProcessingFeedbackRts>();
+        List<ProcessingFeedbackRts> processingFeedbackList = new ArrayList<>();
 
         for (ProcessingFeedback feedback : message.getProcessingFeedback()) {
             ProcessingFeedbackRtsRest processingFeedbackRts = new ProcessingFeedbackRtsRest();
