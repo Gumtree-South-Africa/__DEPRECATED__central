@@ -30,6 +30,7 @@ class SearchTransformer {
 
     static final String GROUPING_AGG_NAME = "grouping";
     static final String ITEMS_AGG_NAME = "items";
+    private static final int DEFAULT_GROUP_SIZE = 10;
 
     private static final DateTimeFormatter DATE_TIME_FORMATTER =
             ISODateTimeFormat.dateTime().withZone(DateTimeZone.UTC);
@@ -70,6 +71,19 @@ class SearchTransformer {
         setupPaging(requestBuilder);
         if (groupedSearch) {
             setupAggregations(requestBuilder);
+            itemsAggregation.size(DEFAULT_GROUP_SIZE);
+            SortOrder so = payload.getOrdering().equals(SearchMessagePayload.ResultOrdering.NEWEST_FIRST) ? SortOrder.DESC : SortOrder.ASC;
+            itemsAggregation.sort("lastModified", so);
+            if (payload.getCount() > 0) {
+                topLevelFieldAggregation.size(payload.getCount());
+
+                // Reduce the likelihood of errors in the aggregation
+                // See http://www.elastic.co/guide/en/elasticsearch/reference/current/search-aggregations-bucket-terms-aggregation.html
+                topLevelFieldAggregation.shardSize(payload.getCount() * 2);
+            }
+            if (payload.getOffset() > 0) {
+                itemsAggregation.from(payload.getOffset());
+            }
         }
         requestBuilder.query(rootBoolQuery);
 

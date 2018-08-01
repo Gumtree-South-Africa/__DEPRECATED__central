@@ -31,7 +31,7 @@ public class ESClientConfiguration {
     public Client client() {
         System.setProperty("es.set.netty.runtime.available.processors", "false");
         Settings settings = Settings.builder().put("cluster.name", ES_CLUSTER_NAME).build();
-        LOG.info("Connecting to ElasticSearch on host{}:port{} clustername {}, index name {}", ES_HOST_NAME, ES_HOST_PORT, ES_CLUSTER_NAME, ES_INDEX_NAME);
+        LOG.info("Connecting to ElasticSearch on '{}:{}' clustername '{}', index name '{}'", ES_HOST_NAME, ES_HOST_PORT, ES_CLUSTER_NAME, ES_INDEX_NAME);
         TransportClient client = new PreBuiltTransportClient(settings);
         client.addTransportAddress(new InetSocketTransportAddress(new InetSocketAddress(ES_HOST_NAME, ES_HOST_PORT)));
         return client;
