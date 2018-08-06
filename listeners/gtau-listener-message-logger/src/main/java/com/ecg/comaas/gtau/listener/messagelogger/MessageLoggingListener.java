@@ -15,6 +15,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
+import java.util.Arrays;
 import java.util.Collection;
 
 import static com.ecg.replyts.core.api.model.Tenants.TENANT_GTAU;
@@ -62,7 +63,7 @@ public class MessageLoggingListener implements MessageProcessedListener {
     @Override
     public void messageProcessed(Conversation conversation, Message message) {
         try {
-            if (MessageState.ORPHANED == message.getState()) {
+            if (Arrays.asList(MessageState.ORPHANED, MessageState.IGNORED).contains(message.getState())){
                 return;
             }
             Collection<String> values = EventCreator.toValues(conversation, message).values();
