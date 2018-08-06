@@ -11,11 +11,16 @@ public class ConversationEventConverter {
 
     //Move to utility class
     public static Conversation.Participant createParticipant(String userId, String userName, String userEmail, Conversation.Participant.Role role) {
-        Conversation.Participant.Builder builder = Conversation.Participant.newBuilder()
-                .setUserId(userId)
-                .setEmail(userEmail)
-                .setRole(role);
-
+        Conversation.Participant.Builder builder = Conversation.Participant.newBuilder();
+        if (userId != null) {
+            builder.setUserId(userId);
+        }
+        if (userEmail != null) {
+            builder.setEmail(userEmail);
+        }
+        if (role != null) {
+            builder.setRole(role);
+        }
         if (!StringUtils.isEmpty(userName)) {
             builder.setName(userName);
         }
