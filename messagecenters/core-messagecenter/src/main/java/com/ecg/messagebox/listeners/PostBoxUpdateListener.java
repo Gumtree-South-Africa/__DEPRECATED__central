@@ -4,9 +4,8 @@ import com.codahale.metrics.Counter;
 import com.codahale.metrics.Timer;
 import com.ecg.messagebox.events.MessageAddedEventProcessor;
 import com.ecg.messagebox.service.PostBoxService;
-import com.ecg.messagebox.util.messages.MessagesResponseFactory;
 import com.ecg.messagecenter.core.listeners.UserNotificationRules;
-import com.ecg.replyts.app.postprocessorchain.ContentOverridingPostProcessor;
+import com.ecg.replyts.app.ContentOverridingPostProcessorService;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.ConversationState;
 import com.ecg.replyts.core.api.model.conversation.Message;
@@ -20,8 +19,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
 import static com.ecg.replyts.core.api.model.conversation.MessageDirection.BUYER_TO_SELLER;
@@ -39,7 +36,7 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PostBoxUpdateListener.class);
 
-    private static final String SKIP_MESSAGE_CENTER = "skip-message-center";
+    static final String SKIP_MESSAGE_CENTER = "skip-message-center";
 
     private final Timer processingTimer = newTimer("message-box.postBoxUpdateListener.core.timer");
     private final Counter processingSuccessCounter = newCounter("message-box.postBoxUpdateListener.core.success");
@@ -52,23 +49,20 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
     private final UserNotificationRules userNotificationRules;
     private final MessageAddedEventProcessor messageAddedEventProcessor;
     private final BlockUserRepository blockUserRepository;
-    private final MessagesResponseFactory messagesResponseFactory;
-    private final List<ContentOverridingPostProcessor> contentOverridingPostProcessors;
+    private final ContentOverridingPostProcessorService contentOverridingPostProcessorService;
 
     @Autowired
     public PostBoxUpdateListener(PostBoxService postBoxService,
                                  UserIdentifierService userIdentifierService,
                                  MessageAddedEventProcessor messageAddedEventProcessor,
                                  BlockUserRepository blockUserRepository,
-                                 MessagesResponseFactory messagesResponseFactory,
-                                 Optional<List<ContentOverridingPostProcessor>> contentOverridingPostProcessors) {
+                                 ContentOverridingPostProcessorService contentOverridingPostProcessorService) {
         this.postBoxService = postBoxService;
         this.userIdentifierService = userIdentifierService;
-        this.contentOverridingPostProcessors = contentOverridingPostProcessors.orElseGet(ArrayList::new);
         this.userNotificationRules = new UserNotificationRules();
         this.messageAddedEventProcessor = messageAddedEventProcessor;
         this.blockUserRepository = blockUserRepository;
-        this.messagesResponseFactory = messagesResponseFactory;
+        this.contentOverridingPostProcessorService = contentOverridingPostProcessorService;
     }
 
     @Override
@@ -105,16 +99,12 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
             final String sellerUserId = sellerUserIdOpt.get();
             final String msgReceiverUserId = msg.getMessageDirection() == BUYER_TO_SELLER ? sellerUserId : buyerUserId;
 
-            String cleanMsg = messagesResponseFactory.getCleanedMessage(conv, msg);
-
-            for (ContentOverridingPostProcessor contentOverridingPostProcessor : contentOverridingPostProcessors) {
-                cleanMsg = contentOverridingPostProcessor.overrideContent(cleanMsg);
-            }
+            String cleanMsg = contentOverridingPostProcessorService.getCleanedMessage(conv, msg);
 
             // BUYER's PROJECTION
 
             if ((isConversationActive(conv, msg) && isNotDirectionBlocked(buyerUserId, sellerUserId)) || isMessageOwner(msg, BUYER_TO_SELLER)) {
-                postBoxService.processNewMessage(buyerUserId, conv, msg, userNotificationRules.buyerShouldBeNotified(msg), cleanMsg);
+                postBoxService.processNewMessage(buyerUserId, conv, msg, userNotificationRules.buyerShouldBeNotified(msg.getState(), msg.getMessageDirection()), cleanMsg);
             } else {
                 LOGGER.debug("Direction from the {} to {} is blocked for the message {}", buyerUserId, sellerUserId, msg.getId());
             }
@@ -122,7 +112,7 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
             // SELLER's PROJECTION
 
             if ((isConversationActive(conv, msg) && isNotDirectionBlocked(sellerUserId, buyerUserId)) || isMessageOwner(msg, SELLER_TO_BUYER)) {
-                postBoxService.processNewMessage(sellerUserId, conv, msg, userNotificationRules.sellerShouldBeNotified(msg), cleanMsg);
+                postBoxService.processNewMessage(sellerUserId, conv, msg, userNotificationRules.sellerShouldBeNotified(msg.getState(), msg.getMessageDirection()), cleanMsg);
             } else {
                 LOGGER.debug("Direction from the {} to {} is blocked for the message {}", sellerUserId, buyerUserId, msg.getId());
             }

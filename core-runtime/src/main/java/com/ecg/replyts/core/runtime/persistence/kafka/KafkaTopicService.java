@@ -1,6 +1,9 @@
 package com.ecg.replyts.core.runtime.persistence.kafka;
 
 public class KafkaTopicService {
+
+    public static final String CONVERSATION_EVENTS_KAFKA_TOPIC = "conversation_events";
+
     // The topic for fresh and new incoming messages
     private static final String TOPIC_INCOMING = "_messages";
 

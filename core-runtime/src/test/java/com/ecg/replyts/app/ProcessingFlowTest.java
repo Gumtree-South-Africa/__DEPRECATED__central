@@ -3,9 +3,13 @@ package com.ecg.replyts.app;
 import com.ecg.replyts.app.filterchain.FilterChain;
 import com.ecg.replyts.app.postprocessorchain.PostProcessorChain;
 import com.ecg.replyts.app.preprocessorchain.PreProcessorManager;
+import com.ecg.replyts.core.api.model.conversation.Conversation;
+import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.model.mail.MutableMail;
+import com.ecg.replyts.core.api.processing.ConversationEventService;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
+import com.ecg.replyts.core.runtime.identifier.UserIdentifierService;
 import com.ecg.replyts.core.runtime.maildelivery.MailDeliveryException;
 import com.ecg.replyts.core.runtime.maildelivery.MailDeliveryService;
 import com.google.common.collect.ImmutableList;
@@ -17,6 +21,8 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
+
+import java.util.Collections;
 
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
@@ -42,6 +48,15 @@ public class ProcessingFlowTest {
 
     @MockBean
     private MutableMail mail;
+
+    @MockBean
+    private ConversationEventService conversationEventService;
+
+    @MockBean
+    private UserIdentifierService userIdentifierService;
+
+    @MockBean
+    private ContentOverridingPostProcessorService contentOverridingPostProcessorService;
 
     @Autowired
     private ProcessingFlow flow;
@@ -111,7 +126,7 @@ public class ProcessingFlowTest {
     public void verifyMailIsNotSentWhenMailChannelIsDisabled() throws Exception {
         when(context.isSkipDeliveryChannel(eq(MessageProcessingContext.DELIVERY_CHANNEL_MAIL))).thenReturn(true);
         flow.inputForSending(context);
-        verify(mailDeliveryService,never()).deliverMail(any(Mail.class));
+        verify(mailDeliveryService, never()).deliverMail(any(Mail.class));
     }
 
     @Test
@@ -135,5 +150,27 @@ public class ProcessingFlowTest {
         flow.inputForSending(context);
 
         verify(mail, times(1)).applyOutgoingMailFixes(ImmutableList.of(), mailDeliveryException);
+    }
+
+    @Test
+    public void processingTerminatesIfConversationEventsCantBeSubmitted() throws MailDeliveryException {
+        Conversation c = mock(Conversation.class);
+        when(c.getMessages()).thenReturn(Collections.singletonList(mock(Message.class)));
+        when(context.getConversation()).thenReturn(c);
+        doThrow(new RuntimeException("kaboom"))
+                .when(conversationEventService).sendConversationCreatedEvent(any(), any(), any(), any(), any(), any());
+        try {
+            flow.inputForConversationEventsQueue(context);
+        } catch (Exception e) {
+            // PASS
+        }
+        verify(mailDeliveryService, never()).deliverMail(any(Mail.class));
+    }
+
+    @Test
+    public void conversationEventsAreNotSubmittedForTerminatedContext() {
+        when(context.isTerminated()).thenReturn(true);
+        verify(conversationEventService, never()).sendConversationCreatedEvent(any(), any(), any(), any(), any(), any());
+        verify(conversationEventService, never()).sendMessageAddedEvent(any(), any(), any(), any(), any(), any());
     }
 }

@@ -1,7 +1,7 @@
 package com.ecg.replyts.app.mailreceiver.kafka;
 
-import com.ecg.comaas.protobuf.MessageOuterClass.Payload;
 import com.ecg.comaas.protobuf.MessageOuterClass.Message;
+import com.ecg.comaas.protobuf.MessageOuterClass.Payload;
 import com.ecg.replyts.core.runtime.persistence.kafka.KafkaTopicService;
 import com.ecg.replyts.core.runtime.persistence.kafka.QueueService;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -25,7 +25,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -38,8 +37,6 @@ public class KafkaRetryMessageProcessorTest {
     private static final String CORRELATION_ID = "corr";
     private static final byte[] PAYLOAD = "some payload".getBytes();
     private static final int RETRY_ON_FAILED_MESSAGE_PERIOD_MINUTES = 5;
-
-    private KafkaRetryMessageProcessor kafkaRetryMessageProcessor;
 
     @Mock
     private QueueService queueService;
@@ -55,9 +52,6 @@ public class KafkaRetryMessageProcessorTest {
     @Captor
     private ArgumentCaptor<Message> retryableMessageCaptor;
 
-    @Captor
-    private ArgumentCaptor<byte[]> payloadCaptor;
-
     private static long retryOffset = 0;
 
     @Before
@@ -68,8 +62,6 @@ public class KafkaRetryMessageProcessorTest {
         consumer = new MockConsumer<>(OffsetResetStrategy.EARLIEST);
         consumer.updateBeginningOffsets(beginningOffsets);
         when(kafkaMessageConsumerFactory.createConsumer(any())).thenReturn(consumer);
-
-        kafkaRetryMessageProcessor = new KafkaRetryMessageProcessor(queueService, kafkaMessageConsumerFactory, RETRY_ON_FAILED_MESSAGE_PERIOD_MINUTES, SHORT_TENANT);
     }
 
     private void sendRetryMessage(final Message retryableMessage) throws JsonProcessingException {
@@ -77,10 +69,9 @@ public class KafkaRetryMessageProcessorTest {
         consumer.addRecord(new ConsumerRecord<>(TOPIC_RETRY, 0, retryOffset++, "someKey", retryableMessage.toByteArray()));
     }
 
-    private Message setUpTest(final int triedCount) throws Exception {
+    private Message message(final int triedCount) throws IOException {
         Payload payload = Payload.newBuilder().build();
         Message wanted = Message.newBuilder().setPayload(payload).setRetryCount(triedCount).setCorrelationId(CORRELATION_ID).build();
-        when(queueService.deserialize(any())).thenReturn(wanted);
         sendRetryMessage(wanted);
         return wanted;
     }
@@ -88,27 +79,34 @@ public class KafkaRetryMessageProcessorTest {
     @Test
     @SuppressWarnings("unchecked")
     public void undeserializableMessageWritesToFailedTopic() throws Exception {
-        setUpTest(99);
-        when(queueService.deserialize(any())).thenThrow(IOException.class);
+        message(99);
+        KafkaRetryMessageProcessor kafkaRetryMessageProcessor = new KafkaRetryMessageProcessor(queueService, kafkaMessageConsumerFactory, RETRY_ON_FAILED_MESSAGE_PERIOD_MINUTES, SHORT_TENANT) {
+            @Override
+            protected Message deserialize(byte[] data) throws IOException {
+                throw new IOException();
+            }
+        };
 
         kafkaRetryMessageProcessor.processNext();
 
         verify(kafkaMessageConsumerFactory).createConsumer(eq(TOPIC_RETRY));
-        verify(queueService).publish(topicNameCaptor.capture(), payloadCaptor.capture());
-        verify(queueService).deserialize(any());
-        verifyNoMoreInteractions(queueService);
-        assertThat(topicNameCaptor.getValue()).isEqualTo(TOPIC_FAILED);
+        verify(queueService).publishSynchronously(eq(TOPIC_FAILED), any(byte[].class));
     }
 
     @Test
     public void retriedMessageWritesToIncomingTopic() throws Exception {
-        Message wanted = setUpTest(4);
+        Message wanted = message(4);
+        KafkaRetryMessageProcessor kafkaRetryMessageProcessor = new KafkaRetryMessageProcessor(queueService, kafkaMessageConsumerFactory, RETRY_ON_FAILED_MESSAGE_PERIOD_MINUTES, SHORT_TENANT) {
+            @Override
+            protected Message deserialize(byte[] data) throws IOException {
+                return wanted;
+            }
+        };
 
         kafkaRetryMessageProcessor.processNext();
 
         verify(kafkaMessageConsumerFactory).createConsumer(eq(TOPIC_RETRY));
-        verify(queueService).publish(topicNameCaptor.capture(), retryableMessageCaptor.capture());
-        verify(queueService).deserialize(any());
+        verify(queueService).publishSynchronously(topicNameCaptor.capture(), retryableMessageCaptor.capture());
         assertThat(topicNameCaptor.getValue()).isEqualTo(TOPIC_INCOMING);
 
         assertThat(retryableMessageCaptor.getValue()).isEqualToComparingFieldByField(wanted);

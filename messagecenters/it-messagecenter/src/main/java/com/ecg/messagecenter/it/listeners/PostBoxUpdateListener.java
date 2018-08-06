@@ -105,17 +105,17 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
             if (MessageType.isRobot(message)) {
                 if (message.getMessageDirection().equals(MessageDirection.BUYER_TO_SELLER)) {
                     updateMessageCenter(conversation.getSellerId(), conversation, message,
-                                    userNotificationRules.sellerShouldBeNotified(message));
+                            userNotificationRules.sellerShouldBeNotified(message.getState(), message.getMessageDirection()));
                 }
                 if (message.getMessageDirection().equals(MessageDirection.SELLER_TO_BUYER)) {
                     updateMessageCenter(conversation.getBuyerId(), conversation, message,
-                                    userNotificationRules.buyerShouldBeNotified(message));
+                            userNotificationRules.buyerShouldBeNotified(message.getState(), message.getMessageDirection()));
                 }
             } else {
                 updateMessageCenter(conversation.getSellerId(), conversation, message,
-                                userNotificationRules.sellerShouldBeNotified(message));
+                        userNotificationRules.sellerShouldBeNotified(message.getState(), message.getMessageDirection()));
                 updateMessageCenter(conversation.getBuyerId(), conversation, message,
-                                userNotificationRules.buyerShouldBeNotified(message));
+                        userNotificationRules.buyerShouldBeNotified(message.getState(), message.getMessageDirection()));
             }
 
             PROCESSING_SUCCESS.inc();

@@ -93,7 +93,6 @@ public class ConversationFinder implements PreProcessor {
                 newConversationCreator.setupNewConversation(context);
             }
         }
-
         Conversation conversation = context.getConversation();
         AddMessageCommand addMessageCommand =
                 anAddMessageCommand(conversation.getId(), context.getMessageId()).

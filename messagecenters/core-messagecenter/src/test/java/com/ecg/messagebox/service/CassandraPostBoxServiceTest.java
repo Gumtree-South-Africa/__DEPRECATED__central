@@ -183,6 +183,7 @@ public class CassandraPostBoxServiceTest {
     public void processNewMessageWithMetadataHeader() {
         Map<String, String> headers = new HashMap<>();
         headers.put("X-Message-Type", "asq");
+        headers.put("X-Message-ID", UUIDs.timeBased().toString());
         headers.put("X-Message-Metadata", "metadata");
         headers.put("X-Conversation-Title", "conversation title");
         headers.put("Subject", "subject");
@@ -232,6 +233,7 @@ public class CassandraPostBoxServiceTest {
     public void processNewMessageWithMetadataImageUrlHeader() {
         Map<String, String> headers = new HashMap<>();
         headers.put("X-Message-Type", "asq");
+        headers.put("X-Message-ID", "f866b110-857b-11e6-9367-5bbf510138cd");
         headers.put("X-Message-Metadata", "metadata");
         headers.put("X-Conversation-Title", "conversation title");
         headers.put("X-Conversation-Image-Url", "conversation.image.url");
@@ -461,6 +463,7 @@ public class CassandraPostBoxServiceTest {
                 .withReceivedAt(new DateTime(2016, 1, 30, 20, 11, 52, DateTimeZone.forID("Europe/Amsterdam")))
                 .withLastModifiedAt(new DateTime(2016, 1, 30, 20, 1, 52, DateTimeZone.forID("Europe/Amsterdam")))
                 .withHeader("X-Message-Type", "asq")
+                .withHeader("X-Message-ID", UUIDs.timeBased().toString())
                 .withTextParts(singletonList("text 123"))
                 .withHeader("Subject", subject)
                 .build();

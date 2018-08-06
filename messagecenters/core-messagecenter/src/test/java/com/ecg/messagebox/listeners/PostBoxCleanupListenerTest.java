@@ -17,11 +17,13 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import java.util.Arrays;
+import java.util.Collections;
 
 import static com.ecg.replyts.core.api.model.conversation.ConversationState.CLOSED;
 import static java.util.Optional.of;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class PostBoxCleanupListenerTest {
@@ -54,7 +56,7 @@ public class PostBoxCleanupListenerTest {
 
     @Test
     public void conversationDeletedEventIsProcessed() {
-        listener.eventsTriggered(conversation, Arrays.asList(new ConversationDeletedEvent(new DateTime())));
+        listener.eventsTriggered(conversation, Collections.singletonList(new ConversationDeletedEvent(new DateTime())));
 
         verify(postBoxServiceMock).deleteConversation(BUYER_USER_ID, conversation.getId(), conversation.getAdId());
         verify(postBoxServiceMock).deleteConversation(SELLER_USER_ID, conversation.getId(), conversation.getAdId());
@@ -62,7 +64,7 @@ public class PostBoxCleanupListenerTest {
 
     @Test
     public void conversationClosedEventIsIgnored() {
-        listener.eventsTriggered(conversation, Arrays.asList(new ConversationClosedEvent(new ConversationClosedCommand(conversation.getId(), ConversationRole.Buyer, new DateTime()))));
+        listener.eventsTriggered(conversation, Collections.singletonList(new ConversationClosedEvent(new ConversationClosedCommand(conversation.getId(), ConversationRole.Buyer, new DateTime()))));
 
         verify(postBoxServiceMock, never()).deleteConversation(BUYER_USER_ID, conversation.getId(), conversation.getAdId());
         verify(postBoxServiceMock, never()).deleteConversation(SELLER_USER_ID, conversation.getId(), conversation.getAdId());
@@ -70,7 +72,7 @@ public class PostBoxCleanupListenerTest {
 
     @Test
     public void conversationClosedAndDeletedForUserEventIsProcessed() {
-        listener.eventsTriggered(conversation, Arrays.asList(new ConversationClosedAndDeletedForUserEvent(new ConversationClosedAndDeletedForUserCommand(conversation.getId(), BUYER_USER_ID, "", new DateTime()))));
+        listener.eventsTriggered(conversation, Collections.singletonList(new ConversationClosedAndDeletedForUserEvent(new ConversationClosedAndDeletedForUserCommand(conversation.getId(), BUYER_USER_ID, "", new DateTime()))));
 
         verify(postBoxServiceMock).deleteConversation(BUYER_USER_ID, conversation.getId(), conversation.getAdId());
         verify(postBoxServiceMock, never()).deleteConversation(SELLER_USER_ID, conversation.getId(), conversation.getAdId());

@@ -1,6 +1,5 @@
 package com.ecg.messagecenter.core.listeners;
 
-import com.ecg.messagecenter.core.listeners.UserNotificationRules;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;
 import com.ecg.replyts.core.api.model.conversation.MessageState;
@@ -37,8 +36,8 @@ public class UserNotificationRulesTest {
         when(message.getState()).thenReturn(MessageState.SENT);
         when(message.getMessageDirection()).thenReturn(MessageDirection.BUYER_TO_SELLER);
 
-        assertTrue(notificationRules.sellerShouldBeNotified(message));
-        assertFalse(notificationRules.buyerShouldBeNotified(message));
+        assertTrue(notificationRules.sellerShouldBeNotified(message.getState(), message.getMessageDirection()));
+        assertFalse(notificationRules.buyerShouldBeNotified(message.getState(), message.getMessageDirection()));
     }
 
     @Test
@@ -46,16 +45,16 @@ public class UserNotificationRulesTest {
         when(message.getState()).thenReturn(MessageState.SENT);
         when(message.getMessageDirection()).thenReturn(MessageDirection.SELLER_TO_BUYER);
 
-        assertFalse(notificationRules.sellerShouldBeNotified(message));
-        assertTrue(notificationRules.buyerShouldBeNotified(message));
+        assertFalse(notificationRules.sellerShouldBeNotified(message.getState(), message.getMessageDirection()));
+        assertTrue(notificationRules.buyerShouldBeNotified(message.getState(), message.getMessageDirection()));
     }
 
     @Test
     public void doNotSentToBuyerOrSellerIfNotInSENTState(){
         when(message.getState()).thenReturn(MessageState.BLOCKED);
 
-        assertFalse(notificationRules.sellerShouldBeNotified(message));
-        assertFalse(notificationRules.buyerShouldBeNotified(message));
+        assertFalse(notificationRules.sellerShouldBeNotified(message.getState(), message.getMessageDirection()));
+        assertFalse(notificationRules.buyerShouldBeNotified(message.getState(), message.getMessageDirection()));
     }
 
 }

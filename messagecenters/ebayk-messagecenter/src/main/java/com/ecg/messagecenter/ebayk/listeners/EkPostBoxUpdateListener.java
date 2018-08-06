@@ -70,8 +70,8 @@ public class EkPostBoxUpdateListener implements MessageProcessedListener {
                 return;
             }
 
-            updateMessageCenter(conversation.getSellerId(), conversation, message, userNotificationRules.sellerShouldBeNotified(message));
-            updateMessageCenter(conversation.getBuyerId(), conversation, message, userNotificationRules.buyerShouldBeNotified(message));
+            updateMessageCenter(conversation.getSellerId(), conversation, message, userNotificationRules.sellerShouldBeNotified(message.getState(), message.getMessageDirection()));
+            updateMessageCenter(conversation.getBuyerId(), conversation, message, userNotificationRules.buyerShouldBeNotified(message.getState(), message.getMessageDirection()));
 
 
             PROCESSING_SUCCESS.inc();

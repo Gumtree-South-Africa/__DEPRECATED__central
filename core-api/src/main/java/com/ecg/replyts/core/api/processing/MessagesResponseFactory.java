@@ -1,4 +1,4 @@
-package com.ecg.messagebox.util.messages;
+package com.ecg.replyts.core.api.processing;
 
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;

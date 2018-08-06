@@ -4,6 +4,8 @@ import com.ecg.messagebox.controllers.requests.PartnerMessagePayload;
 import com.ecg.messagebox.model.ConversationThread;
 import com.ecg.messagebox.model.PostBox;
 import com.ecg.messagebox.model.Visibility;
+import com.ecg.replyts.core.api.model.conversation.Conversation;
+import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.conversation.UserUnreadCounts;
 
 import java.util.List;
@@ -11,11 +13,7 @@ import java.util.Optional;
 
 public interface PostBoxService {
 
-    void processNewMessage(String userId,
-                           com.ecg.replyts.core.api.model.conversation.Conversation conversation,
-                           com.ecg.replyts.core.api.model.conversation.Message message,
-                           boolean isNewReply,
-                           String cleanMsgText);
+    void processNewMessage(String userId, Conversation conversation, Message message, boolean isNewReply, String cleanMsgText);
 
     Optional<ConversationThread> getConversation(String userId, String conversationId, String messageIdCursor, int messagesLimit);
 

@@ -47,6 +47,10 @@ abstract class KafkaMessageProcessor implements MessageProcessor {
 
     }
 
+    protected Message deserialize(final byte[] data) throws IOException {
+        return Message.parseFrom(data);
+    }
+
     @Override
     public void destroy() {
         consumer.wakeup();
@@ -112,7 +116,7 @@ abstract class KafkaMessageProcessor implements MessageProcessor {
         final byte[] data = messageRecord.value();
         final Message retryableMessage;
         try {
-            retryableMessage = queueService.deserialize(data);
+            retryableMessage = deserialize(data);
         } catch (IOException e) {
             failMessage(data, e);
             return Optional.empty();
@@ -124,7 +128,7 @@ abstract class KafkaMessageProcessor implements MessageProcessor {
     protected abstract void processMessage(Message message);
 
     private void publishToTopic(final String topic, final Message retryableMessage) {
-        queueService.publish(topic, retryableMessage);
+        queueService.publishSynchronously(topic, retryableMessage);
     }
 
     // Some messages are unparseable, so we don't even retry, instead they go on the unparseable topic
@@ -160,7 +164,7 @@ abstract class KafkaMessageProcessor implements MessageProcessor {
 
     // Put the message back in the incoming topic
     void retryMessage(final Message retryableMessage) {
-        queueService.publish(KafkaTopicService.getTopicIncoming(shortTenant), retryableMessage);
+        queueService.publishSynchronously(KafkaTopicService.getTopicIncoming(shortTenant), retryableMessage);
     }
 
     // After n retries, we abandon the message by putting it in the abandoned topic
@@ -173,6 +177,6 @@ abstract class KafkaMessageProcessor implements MessageProcessor {
     // Don't know what to do... Put it in the failed queue! Most likely unparseable json
     private void failMessage(final byte[] payload, final Exception e) {
         LOG.error("Could not handle message, writing raw value to failed topic", e);
-        queueService.publish(KafkaTopicService.getTopicFailed(shortTenant), payload);
+        queueService.publishSynchronously(KafkaTopicService.getTopicFailed(shortTenant), payload);
     }
 }

@@ -61,7 +61,8 @@ public class MessageAddedEventProcessor {
         Map<String, String> headers = new HashMap<>(msg.getHeaders());
         headers.put(USER_MESSAGE_HEADER, msgText);
 
-        final MessageAddedEvent messageAddedEvent = new MessageAddedEvent(msg.getId(),
+        final MessageAddedEvent messageAddedEvent = new MessageAddedEvent(
+                msg.getId(),
                 msg.getMessageDirection(),
                 msg.getReceivedAt(),
                 msg.getState(),

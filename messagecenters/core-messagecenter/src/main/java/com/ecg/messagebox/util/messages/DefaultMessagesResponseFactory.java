@@ -3,6 +3,7 @@ package com.ecg.messagebox.util.messages;
 import com.ecg.messagebox.util.MessagePreProcessor;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;
+import com.ecg.replyts.core.api.processing.MessagesResponseFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

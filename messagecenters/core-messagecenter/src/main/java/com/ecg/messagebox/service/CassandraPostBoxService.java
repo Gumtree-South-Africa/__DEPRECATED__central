@@ -3,17 +3,7 @@ package com.ecg.messagebox.service;
 import com.datastax.driver.core.utils.UUIDs;
 import com.ecg.messagebox.controllers.requests.PartnerMessagePayload;
 import com.ecg.messagebox.events.MessageAddedEventProcessor;
-import com.ecg.messagebox.model.Attachment;
-import com.ecg.messagebox.model.ConversationMetadata;
-import com.ecg.messagebox.model.ConversationThread;
-import com.ecg.messagebox.model.ImmutableAttachment;
-import com.ecg.messagebox.model.Message;
-import com.ecg.messagebox.model.MessageMetadata;
-import com.ecg.messagebox.model.MessageNotification;
-import com.ecg.messagebox.model.MessageType;
-import com.ecg.messagebox.model.Participant;
-import com.ecg.messagebox.model.PostBox;
-import com.ecg.messagebox.model.Visibility;
+import com.ecg.messagebox.model.*;
 import com.ecg.messagebox.persistence.CassandraPostBoxRepository;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;
@@ -27,17 +17,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.ecg.messagebox.model.ParticipantRole.BUYER;
 import static com.ecg.messagebox.model.ParticipantRole.SELLER;
 import static com.ecg.replyts.core.api.model.conversation.MessageDirection.BUYER_TO_SELLER;
+import static java.util.Arrays.asList;
 import static org.joda.time.DateTime.now;
 
 /**
@@ -238,16 +224,15 @@ public class CassandraPostBoxService implements PostBoxService {
         }
     }
 
-
-    private List<Participant> getParticipants(Conversation rtsConversation) {
-        List<Participant> participants = new ArrayList<>();
-        participants.add(new Participant(getBuyerUserId(rtsConversation), customValue(rtsConversation, "buyer-name"), rtsConversation.getBuyerId(), BUYER));
-        participants.add(new Participant(getSellerUserId(rtsConversation), customValue(rtsConversation, "seller-name"), rtsConversation.getSellerId(), SELLER));
-        return participants;
+    public List<Participant> getParticipants(Conversation rtsConversation) {
+        return asList(new Participant(getBuyerUserId(rtsConversation), customValue(rtsConversation, "buyer-name"), rtsConversation.getBuyerId(), BUYER),
+                new Participant(getSellerUserId(rtsConversation), customValue(rtsConversation, "seller-name"), rtsConversation.getSellerId(), SELLER));
     }
 
     private String getMessageSenderUserId(Conversation rtsConversation, com.ecg.replyts.core.api.model.conversation.Message rtsMessage) {
-        return rtsMessage.getMessageDirection() == BUYER_TO_SELLER ? getBuyerUserId(rtsConversation) : getSellerUserId(rtsConversation);
+        return rtsMessage.getMessageDirection() == BUYER_TO_SELLER
+                ? getBuyerUserId(rtsConversation)
+                : getSellerUserId(rtsConversation);
     }
 
     /**

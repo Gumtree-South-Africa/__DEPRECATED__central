@@ -74,9 +74,9 @@ public class UkPostBoxUpdateListener implements MessageProcessedListener {
     private void processMessage(Conversation conversation, Message message) {
         try (Timer.Context ignore = PROCESSING_TIMER.time()) {
             updateMessageCenter(conversation.getSellerId(), conversation, message,
-                    userNotificationRules.sellerShouldBeNotified(message));
+                    userNotificationRules.sellerShouldBeNotified(message.getState(), message.getMessageDirection()));
             updateMessageCenter(conversation.getBuyerId(), conversation, message,
-                    userNotificationRules.buyerShouldBeNotified(message));
+                    userNotificationRules.buyerShouldBeNotified(message.getState(), message.getMessageDirection()));
             PROCESSING_SUCCESS.inc();
         } catch (Exception e) {
             PROCESSING_FAILED.inc();

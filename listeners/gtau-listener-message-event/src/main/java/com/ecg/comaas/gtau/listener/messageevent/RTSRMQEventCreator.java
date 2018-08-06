@@ -37,11 +37,11 @@ public class RTSRMQEventCreator {
         final MessageEvents.MessageCreatedEvent messageRequestCreatedEvent = createMessageRequestCreatedEvent(conversation, message);
 
         try {
-            // publish to RabbitMQ
+            // publishSynchronously to RabbitMQ
             eventHandlerClient.fire(messageRequestCreatedEvent);
         } catch (Exception e) {
             reportExternalServiceFailure("rabbitmq_publish_message_created_event");
-            LOG.error("Failed to publish event to RabbitMQ for message {} in conversation {}", message.getId(), conversation.getId(), e);
+            LOG.error("Failed to publishSynchronously event to RabbitMQ for message {} in conversation {}", message.getId(), conversation.getId(), e);
         }
 
         if (LOG.isTraceEnabled()) {

@@ -99,14 +99,14 @@ public class AuPostBoxUpdateListener implements MessageProcessedListener {
             // We don't broadcast robot messages, to do so UserNotificationRules needs to change
             if (MessageType.isRobot(message)) {
                 if (message.getMessageDirection().equals(MessageDirection.BUYER_TO_SELLER) && !message.getPlainTextBody().contains(INITIAL_CONVERSATION_MESSAGE)) {
-                        updateMessageCenter(conversation.getSellerId(), conversation, message, userNotificationRules.sellerShouldBeNotified(message));
+                    updateMessageCenter(conversation.getSellerId(), conversation, message, userNotificationRules.sellerShouldBeNotified(message.getState(), message.getMessageDirection()));
                 }
                 if (message.getMessageDirection().equals(MessageDirection.SELLER_TO_BUYER)) {
-                    updateMessageCenter(conversation.getBuyerId(), conversation, message, userNotificationRules.buyerShouldBeNotified(message));
+                    updateMessageCenter(conversation.getBuyerId(), conversation, message, userNotificationRules.buyerShouldBeNotified(message.getState(), message.getMessageDirection()));
                 }
             } else {
-                updateMessageCenter(conversation.getSellerId(), conversation, message, userNotificationRules.sellerShouldBeNotified(message));
-                updateMessageCenter(conversation.getBuyerId(), conversation, message, userNotificationRules.buyerShouldBeNotified(message));
+                updateMessageCenter(conversation.getSellerId(), conversation, message, userNotificationRules.sellerShouldBeNotified(message.getState(), message.getMessageDirection()));
+                updateMessageCenter(conversation.getBuyerId(), conversation, message, userNotificationRules.buyerShouldBeNotified(message.getState(), message.getMessageDirection()));
             }
 
 

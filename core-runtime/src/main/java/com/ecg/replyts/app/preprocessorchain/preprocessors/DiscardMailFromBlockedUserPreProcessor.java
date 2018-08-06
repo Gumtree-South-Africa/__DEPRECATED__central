@@ -9,11 +9,8 @@ import com.ecg.replyts.core.runtime.persistence.BlockUserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
-
-import java.util.Optional;
 
 @Component("discardMailFromBlockedUserPreProcessor")
 @ConditionalOnProperty(name = "blockedusers.preprocessor.enabled", havingValue = "true", matchIfMissing = true)

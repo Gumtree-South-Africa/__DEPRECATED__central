@@ -5,19 +5,31 @@ import com.codahale.metrics.Timer;
 import com.ecg.replyts.app.filterchain.FilterChain;
 import com.ecg.replyts.app.postprocessorchain.PostProcessorChain;
 import com.ecg.replyts.app.preprocessorchain.PreProcessorManager;
+import com.ecg.replyts.core.api.model.conversation.Conversation;
+import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.mail.Mail;
+import com.ecg.replyts.core.api.processing.ConversationEventService;
 import com.ecg.replyts.core.api.processing.MessageFixer;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
+import com.ecg.replyts.core.api.util.ConversationEventConverter;
 import com.ecg.replyts.core.runtime.TimingReports;
+import com.ecg.replyts.core.runtime.identifier.UserIdentifierService;
 import com.ecg.replyts.core.runtime.maildelivery.MailDeliveryException;
 import com.ecg.replyts.core.runtime.maildelivery.MailDeliveryService;
+import com.google.common.collect.Iterables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
+import static com.ecg.comaas.events.Conversation.*;
+import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 
 /**
@@ -27,6 +39,9 @@ import static java.util.Collections.emptyList;
 @Component
 class ProcessingFlow {
     private static final Logger LOG = LoggerFactory.getLogger(ProcessingFlow.class);
+
+    private static final String CUST_HEADER_BUYER_NAME = "buyer-name";
+    private static final String CUST_HEADER_SELLER_NAME = "seller-name";
 
     @Autowired
     private PreProcessorManager preProcessor;
@@ -42,6 +57,18 @@ class ProcessingFlow {
 
     @Autowired
     private MailDeliveryService mailDeliveryService;
+
+    @Autowired
+    private ConversationEventService conversationEventService;
+
+    @Autowired
+    private UserIdentifierService userIdentifierService;
+
+    @Autowired
+    private ContentOverridingPostProcessorService contentOverridingPostProcessorService;
+
+    @Value("${replyts.tenant.short}")
+    private String shortTenant;
 
     private final Timer preProcessorTimer = TimingReports.newTimer("preProcessor");
     private final Timer filterChainTimer = TimingReports.newTimer("filterChain");
@@ -82,7 +109,63 @@ class ProcessingFlow {
             throw new IllegalStateException("PostProcessors may not Terminate messages");
         }
 
+        inputForConversationEventsQueue(context);
+    }
+
+    void inputForConversationEventsQueue(MessageProcessingContext context) {
+        if (!context.isTerminated()) {
+            try {
+                sendConversationEvents(context.getConversation());
+            } catch (Exception e) {
+                LOG.error("failed to submit the conversation into the messaging events queue", e);
+                throw new RuntimeException(e);
+            }
+        }
+
         inputForSending(context);
+    }
+
+    private void sendConversationEvents(Conversation conversation) {
+        if (conversation == null || conversation.getMessages() == null) {
+            LOG.warn("conversation.getMessages() == null");
+            return;
+        }
+
+        if (conversation.getMessages().size() == 1) {
+            conversationEventService.sendConversationCreatedEvent(shortTenant, conversation.getAdId(),
+                    conversation.getId(), conversation.getCustomValues(), getParticipants(conversation), conversation.getCreatedAt());
+        }
+
+        Message message = Iterables.getLast(conversation.getMessages());
+        String cleanedMessage = contentOverridingPostProcessorService.getCleanedMessage(conversation, message);
+        String messageId = message.getHeaders().get("X-Message-ID");
+        conversationEventService.sendMessageAddedEvent(shortTenant, conversation.getId(), getSenderUserId(conversation, message), messageId, cleanedMessage, message.getHeaders());
+    }
+
+    private String getSenderUserId(Conversation conversation, Message message) {
+        return conversation.getUserId(message.getMessageDirection().getFromRole());
+    }
+
+    public Set<Participant> getParticipants(Conversation conversation) {
+        Participant buyer = ConversationEventConverter.createParticipant(
+                getBuyerUserId(conversation.getCustomValues(), conversation.getBuyerId()),
+                conversation.getCustomValues().get(CUST_HEADER_BUYER_NAME),
+                conversation.getBuyerId(),
+                Participant.Role.BUYER);
+        Participant seller = ConversationEventConverter.createParticipant(
+                getSellerUserId(conversation.getCustomValues(), conversation.getSellerId()),
+                conversation.getCustomValues().get(CUST_HEADER_SELLER_NAME),
+                conversation.getSellerId(),
+                Participant.Role.SELLER);
+        return new HashSet<>(asList(buyer, seller));
+    }
+
+    private String getBuyerUserId(Map<String, String> customValues, String buyerId) {
+        return userIdentifierService.getBuyerUserId(customValues).orElse(buyerId);
+    }
+
+    private String getSellerUserId(Map<String, String> customValues, String sellerId) {
+        return userIdentifierService.getSellerUserId(customValues).orElse(sellerId);
     }
 
     void inputForSending(MessageProcessingContext context) {

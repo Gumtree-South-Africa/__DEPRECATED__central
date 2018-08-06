@@ -16,6 +16,7 @@ import static com.ecg.replyts.integration.test.support.IntegrationTestUtils.prop
 import static org.junit.Assert.assertEquals;
 
 public class WordfilterIntegrationTest {
+
     @Rule
     public ReplyTsIntegrationTestRule replyTsIntegrationTestRule = new ReplyTsIntegrationTestRule(propertiesWithTenant(TENANT_KJCA));
 
@@ -26,7 +27,6 @@ public class WordfilterIntegrationTest {
                 "{'regexp': 'badword', 'score':2000}," +
                 "{'regexp': 'meanword', 'score':12000}," +
                 "{'regexp': 'badcategoryword', 'score':6000 , 'categoryIds': ['c218', 'c45556565']}]}"));
-
     }
 
     @Test
@@ -35,7 +35,6 @@ public class WordfilterIntegrationTest {
                 .deliver(aNewMail().adId("1234").from("foo@bar.com").to("bar@foo.com").htmlBody("this is a <b>badword</b>! "));
 
         assertEquals(1, processedMail.getMessage().getProcessingFeedback().size());
-
     }
 
     @Test
@@ -48,7 +47,6 @@ public class WordfilterIntegrationTest {
 
     @Test
     public void ignoresQuotedRegularExpressions() {
-
         MailInterceptor.ProcessedMail processedMail = replyTsIntegrationTestRule
                 .deliver(aNewMail().adId("1234").from("foo@bar.com").to("bar@foo.com").htmlBody("this is a <b>badword</b>! "));
 
@@ -61,7 +59,6 @@ public class WordfilterIntegrationTest {
 
     @Test
     public void countsUnquotedRegularExpressions() {
-
         MailInterceptor.ProcessedMail processedMail = replyTsIntegrationTestRule
                 .deliver(aNewMail().adId("1234").from("foo@bar.com").to("bar@foo.com").htmlBody("this is a <b>badword</b>! "));
 

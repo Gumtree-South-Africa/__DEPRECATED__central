@@ -23,9 +23,9 @@ public class WordfilterIntegrationTest {
     @Before
     public void setUp() throws Exception {
         rule.registerConfig(WordfilterFactory.IDENTIFIER, (ObjectNode) JsonObjects.parse("" +
-          "{'ignoreQuotedRegexps':true,'rules': [{'regexp': 'badword', 'score':2000}," +
-          "{'regexp': 'meanword', 'score':12000}," +
-          "{'regexp': 'badcategoryword', 'score':6000 , 'categoryIds': ['c218', 'c45556565']}]}"));
+                "{'ignoreQuotedRegexps':true,'rules': [{'regexp': 'badword', 'score':2000}," +
+                "{'regexp': 'meanword', 'score':12000}," +
+                "{'regexp': 'badcategoryword', 'score':6000 , 'categoryIds': ['c218', 'c45556565']}]}"));
     }
 
     @Test
@@ -33,7 +33,6 @@ public class WordfilterIntegrationTest {
         MailInterceptor.ProcessedMail processedMail = rule.deliver(aNewMail().adId("1234").from("foo@bar.com").to("bar@foo.com").htmlBody("this is a <b>badword</b>! "));
 
         assertEquals(1, processedMail.getMessage().getProcessingFeedback().size());
-
     }
 
     @Test
@@ -50,7 +49,7 @@ public class WordfilterIntegrationTest {
         processedMail = rule.deliver(aNewMail().from("bar@foo.com").to(processedMail.getOutboundMail().getFrom()).htmlBody("this is badword number two"));
 
         ProcessingFeedback feedback = processedMail.getMessage().getProcessingFeedback().get(0);
-        assertEquals("badword",feedback.getUiHint());
+        assertEquals("badword", feedback.getUiHint());
         assertEquals(0l, feedback.getScore().longValue());
     }
 
@@ -61,7 +60,7 @@ public class WordfilterIntegrationTest {
         processedMail = rule.deliver(aNewMail().from("bar@foo.com").to(processedMail.getOutboundMail().getFrom()).htmlBody("this is meanword"));
 
         ProcessingFeedback feedback = processedMail.getMessage().getProcessingFeedback().get(0);
-        assertEquals("meanword",feedback.getUiHint());
+        assertEquals("meanword", feedback.getUiHint());
         assertEquals(12000l, feedback.getScore().longValue());
     }
 }

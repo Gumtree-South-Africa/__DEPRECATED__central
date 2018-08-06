@@ -59,9 +59,7 @@ public class DefaultCassandraConversationRepositoryIntegrationTest extends Conve
 
         ReflectionTestUtils.setField(resumer, "userIdentifierService", new UserIdentifierConfiguration().createUserIdentifierService());
 
-        DefaultCassandraConversationRepository myRepo = new DefaultCassandraConversationRepository(session, ConsistencyLevel.ONE, ConsistencyLevel.ONE, resumer, 100, 5000, false);
-
-        return myRepo;
+        return new DefaultCassandraConversationRepository(session, ConsistencyLevel.ONE, ConsistencyLevel.ONE, resumer, 100, 5000, false);
     }
 
     @After

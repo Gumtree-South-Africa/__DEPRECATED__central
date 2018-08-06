@@ -15,6 +15,7 @@ import com.ecg.messagebox.service.PostBoxService;
 import com.ecg.replyts.app.MessageProcessingCoordinator;
 import com.ecg.replyts.app.ProcessingContextFactory;
 import com.ecg.replyts.app.preprocessorchain.preprocessors.UniqueConversationSecret;
+import com.ecg.replyts.core.api.processing.ConversationEventService;
 import com.ecg.replyts.core.runtime.identifier.UserIdentifierService;
 import com.ecg.replyts.core.runtime.mailcloaking.AnonymizedMailConverter;
 import com.ecg.replyts.core.runtime.persistence.conversation.MutableConversationRepository;
@@ -110,6 +111,11 @@ public abstract class AbstractTest {
         @Bean
         QueueService queueService() {
             return mock(QueueService.class);
+        }
+
+        @Bean
+        ConversationEventService conversationEventService() {
+            return mock(ConversationEventService.class);
         }
     }
 

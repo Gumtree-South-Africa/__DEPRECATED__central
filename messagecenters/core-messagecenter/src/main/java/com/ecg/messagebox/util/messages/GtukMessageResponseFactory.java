@@ -2,6 +2,7 @@ package com.ecg.messagebox.util.messages;
 
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;
+import com.ecg.replyts.core.api.processing.MessagesResponseFactory;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;

@@ -110,6 +110,7 @@
                     </includeDirectories>
                     <inputDirectories>
                         <include>src/main/protobuf/ingestion</include>
+                        <include>src/main/protobuf/events</include>
                         <include>src/main/protobuf/gogoproto</include>
                     </inputDirectories>
                 </configuration>

@@ -4,8 +4,6 @@ import com.codahale.metrics.Counter;
 import com.codahale.metrics.Timer;
 import com.ecg.messagebox.service.PostBoxService;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
-import com.ecg.replyts.core.api.model.conversation.ConversationState;
-import com.ecg.replyts.core.api.model.conversation.command.ConversationClosedAndDeletedForUserCommand;
 import com.ecg.replyts.core.api.model.conversation.event.ConversationClosedAndDeletedForUserEvent;
 import com.ecg.replyts.core.api.model.conversation.event.ConversationDeletedEvent;
 import com.ecg.replyts.core.api.model.conversation.event.ConversationEvent;

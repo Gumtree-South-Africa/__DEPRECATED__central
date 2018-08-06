@@ -18,6 +18,7 @@ import static com.ecg.replyts.integration.test.support.IntegrationTestUtils.prop
 import static org.junit.Assert.assertEquals;
 
 public class VolumeFilterIntegrationTest {
+
     @Rule
     public ReplyTsIntegrationTestRule rule = new ReplyTsIntegrationTestRule(propertiesWithTenant(TENANT_MX));
 

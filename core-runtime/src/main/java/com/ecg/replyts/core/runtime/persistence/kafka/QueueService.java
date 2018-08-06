@@ -1,10 +1,7 @@
 package com.ecg.replyts.core.runtime.persistence.kafka;
 
-import com.ecg.comaas.protobuf.MessageOuterClass.Message;
-import org.apache.kafka.clients.producer.KafkaProducer;
-import org.apache.kafka.clients.producer.Producer;
-import org.apache.kafka.clients.producer.ProducerConfig;
-import org.apache.kafka.clients.producer.ProducerRecord;
+import com.google.protobuf.Message;
+import org.apache.kafka.clients.producer.*;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.slf4j.Logger;
@@ -12,12 +9,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Nullable;
 import javax.annotation.PreDestroy;
-
-import java.io.IOException;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
+
+import static java.lang.String.format;
 
 @Service
 public class QueueService {
@@ -39,33 +37,38 @@ public class QueueService {
         });
     }
 
-    public void publish(final String topicName, final Message retryableMessage) {
-        publish(topicName, serialize(retryableMessage));
+    public void publishSynchronously(String topicName, Message message) {
+        publishSynchronously(topicName, null, message.toByteArray());
     }
 
-    public void publish(final String topicName, final byte[] payload) {
-        final Producer<String, byte[]> producer = producers.computeIfAbsent(topicName, this::producer);
-        final ProducerRecord<String, byte[]> record = new ProducerRecord<>(topicName, payload);
+    public void publishSynchronously(String topicName, @Nullable String key, Message message) {
+        publishSynchronously(topicName, key, message.toByteArray());
+    }
+
+    public void publishSynchronously(String topicName, byte[] payload) {
+        publishSynchronously(topicName, null, payload);
+    }
+
+    private void publishSynchronously(String topicName, String key, byte[] payload) {
+        Producer<String, byte[]> producer = producers.computeIfAbsent(topicName, topic -> newProducer());
+        ProducerRecord<String, byte[]> record = new ProducerRecord<>(topicName, null, key, payload);
+
         producer.send(record);
         producer.flush();
     }
 
-    private Producer<String, byte[]> producer(final String topic) {
+    private Producer<String, byte[]> newProducer() {
         Properties props = new Properties();
 
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
-        props.put(ProducerConfig.CLIENT_ID_CONFIG, "KafkaProducer_" + topic);
+        String allocId = System.getenv("NOMAD_ALLOC_ID");
+        if (allocId != null) {
+            long threadId = Thread.currentThread().getId();
+            props.put(ProducerConfig.CLIENT_ID_CONFIG, format("%s-%d", allocId, threadId));
+        }
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class.getName());
 
         return new KafkaProducer<>(props);
-    }
-
-    private byte[] serialize(final Message retryableMessage) {
-        return retryableMessage.toByteArray();
-    }
-
-    public Message deserialize(final byte[] data) throws IOException {
-        return Message.parseFrom(data);
     }
 }

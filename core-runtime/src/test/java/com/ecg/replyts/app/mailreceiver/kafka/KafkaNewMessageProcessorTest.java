@@ -1,7 +1,7 @@
 package com.ecg.replyts.app.mailreceiver.kafka;
 
-import com.ecg.comaas.protobuf.MessageOuterClass.Payload;
 import com.ecg.comaas.protobuf.MessageOuterClass.Message;
+import com.ecg.comaas.protobuf.MessageOuterClass.Payload;
 import com.ecg.replyts.app.MessageProcessingCoordinator;
 import com.ecg.replyts.app.ProcessingContextFactory;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
@@ -35,7 +35,6 @@ import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.*;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.never;
@@ -53,9 +52,6 @@ public class KafkaNewMessageProcessorTest {
     private static final byte[] PAYLOAD = Message.newBuilder().build().toByteArray();
     private static final int RETRY_ON_FAILED_MESSAGE_PERIOD_MINUTES = 5;
     private static final int MAX_RETRIES = 5;
-
-
-    private KafkaNewMessageProcessor kafkaNewMessageProcessor;
 
     public MockConsumer<String, byte[]> consumer;
 
@@ -105,13 +101,7 @@ public class KafkaNewMessageProcessorTest {
         consumer.updateBeginningOffsets(beginningOffsets);
         consumer = Mockito.spy(consumer);
         when(kafkaMessageConsumerFactory.createConsumer(any())).thenReturn(consumer);
-        when (kafkaMessageConsumerFactory.getMaxPollIntervalMs()).thenReturn(300000);
-
-        kafkaNewMessageProcessor = Mockito.spy(new KafkaNewMessageProcessor(messageProcessingCoordinator, queueService,
-                kafkaMessageConsumerFactory, RETRY_ON_FAILED_MESSAGE_PERIOD_MINUTES, MAX_RETRIES, SHORT_TENANT,
-                mutableConversationRepository, processingContextFactory, userIdentifierService, 100l, 100l));
-
-        doNothing().when(kafkaNewMessageProcessor).stopApplication();
+        when(kafkaMessageConsumerFactory.getMaxPollIntervalMs()).thenReturn(300000);
 
         when(mutableConversationRepository.getById(any())).thenReturn(mutableConversation);
         when(mutableConversation.getId()).thenReturn("conversationId");
@@ -132,51 +122,77 @@ public class KafkaNewMessageProcessorTest {
     private Message setUpTest(final int triedCount) throws IOException {
         Payload payload = Payload.newBuilder().setMessage("message").setUserId("userId").build();
         Message wanted = Message.newBuilder().setPayload(payload).setRetryCount(triedCount).build();
-        when(queueService.deserialize(any())).thenReturn(wanted);
         sendIncomingMessage(wanted.toByteArray());
         return wanted;
     }
 
-    private String longRunningMessageProcessor (boolean canTerminate) {
+    private String longRunningMessageProcessor(boolean canTerminate) {
         while (true) {
-            if (canTerminate && Thread.interrupted()) return "";
+            if (canTerminate && Thread.interrupted()) {
+                return "";
+            }
         }
     }
+
     @Test
     public void longRunningTerminableMessage() throws Exception {
         when(messageProcessingCoordinator.handleContext(any(), any()))
                 .thenAnswer((InvocationOnMock invocation) -> longRunningMessageProcessor(true));
         Message wanted = setUpTest(0);
+        KafkaNewMessageProcessor kafkaNewMessageProcessor = new KafkaNewMessageProcessor(messageProcessingCoordinator, queueService,
+                kafkaMessageConsumerFactory, RETRY_ON_FAILED_MESSAGE_PERIOD_MINUTES, MAX_RETRIES, SHORT_TENANT,
+                mutableConversationRepository, processingContextFactory, userIdentifierService, 100L, 100L) {
+            @Override
+            protected Message deserialize(byte[] data) throws IOException {
+                return wanted;
+            }
+
+            @Override
+            void stopApplication() {
+
+            }
+        };
+
         kafkaNewMessageProcessor.processNext();
 
         //Kafka consumer checks
         verify(kafkaMessageConsumerFactory).createConsumer(eq(TOPIC_INCOMING));
-        verify(kafkaNewMessageProcessor, never()).stopApplication();
         verify(consumer).commitSync();
-        verify(consumer,never()).close();
+        verify(consumer, never()).close();
 
         //kafka topic checks
-        verify(queueService).publish(topicNameCaptor.capture(), retryableMessageCaptor.capture());
-        verify(queueService).deserialize(any());
+        verify(queueService).publishSynchronously(topicNameCaptor.capture(), retryableMessageCaptor.capture());
         assertThat(topicNameCaptor.getValue()).isEqualTo(TOPIC_RETRY);
 
         checkRetryMessage(wanted);
-            }
+    }
 
     @Test
     public void longRunningNonTerminableMessage() throws Exception {
         when(messageProcessingCoordinator.handleContext(any(), any()))
                 .thenAnswer((InvocationOnMock invocation) -> longRunningMessageProcessor(false));
-
         Message wanted = setUpTest(0);
+        KafkaNewMessageProcessor kafkaNewMessageProcessor = new KafkaNewMessageProcessor(messageProcessingCoordinator, queueService,
+                kafkaMessageConsumerFactory, RETRY_ON_FAILED_MESSAGE_PERIOD_MINUTES, MAX_RETRIES, SHORT_TENANT,
+                mutableConversationRepository, processingContextFactory, userIdentifierService, 100L, 100L) {
+            @Override
+            protected Message deserialize(byte[] data) throws IOException {
+                return wanted;
+            }
+
+            @Override
+            void stopApplication() {
+
+            }
+        };
+
         kafkaNewMessageProcessor.processNext();
+
         verify(kafkaMessageConsumerFactory).createConsumer(eq(TOPIC_INCOMING));
 
-        verify(queueService).publish(topicNameCaptor.capture(), retryableMessageCaptor.capture());
-        verify(queueService).deserialize(any());
+        verify(queueService).publishSynchronously(topicNameCaptor.capture(), retryableMessageCaptor.capture());
         assertThat(topicNameCaptor.getValue()).isEqualTo(TOPIC_ABANDONED);
         assertThat(retryableMessageCaptor.getValue()).isEqualToComparingFieldByField(wanted);
-        verify(kafkaNewMessageProcessor).stopApplication();
         verify(consumer).commitSync();
         verify(consumer).close();
     }
@@ -185,13 +201,25 @@ public class KafkaNewMessageProcessorTest {
     @SuppressWarnings("unchecked")
     public void unparseableMessageWritesToUnparseableTopic() throws Exception {
         when(messageProcessingCoordinator.handleContext(any(), any())).thenThrow(ParsingException.class);
-        final Message wanted = setUpTest(0);
+        Message message = setUpTest(0);
+        KafkaNewMessageProcessor kafkaNewMessageProcessor = new KafkaNewMessageProcessor(messageProcessingCoordinator, queueService,
+                kafkaMessageConsumerFactory, RETRY_ON_FAILED_MESSAGE_PERIOD_MINUTES, MAX_RETRIES, SHORT_TENANT,
+                mutableConversationRepository, processingContextFactory, userIdentifierService, 100L, 100L) {
+            @Override
+            protected Message deserialize(byte[] data) throws IOException {
+                return message;
+            }
+
+            @Override
+            void stopApplication() {
+
+            }
+        };
 
         kafkaNewMessageProcessor.processNext();
 
         verify(kafkaMessageConsumerFactory).createConsumer(eq(TOPIC_INCOMING));
-        verify(queueService).publish(topicNameCaptor.capture(), retryableMessageCaptor.capture());
-        verify(queueService).deserialize(any());
+        verify(queueService).publishSynchronously(topicNameCaptor.capture(), retryableMessageCaptor.capture());
         assertThat(topicNameCaptor.getValue()).isEqualTo(TOPIC_UNPARSEABLE);
 
     }
@@ -201,12 +229,24 @@ public class KafkaNewMessageProcessorTest {
     public void failedMessageWritesToAbandonedTopicIfTooManyRetries() throws Exception {
         when(messageProcessingCoordinator.handleContext(any(), any())).thenThrow(IOException.class);
         final Message wanted = setUpTest(MAX_RETRIES);
+        KafkaNewMessageProcessor kafkaNewMessageProcessor = new KafkaNewMessageProcessor(messageProcessingCoordinator, queueService,
+                kafkaMessageConsumerFactory, RETRY_ON_FAILED_MESSAGE_PERIOD_MINUTES, MAX_RETRIES, SHORT_TENANT,
+                mutableConversationRepository, processingContextFactory, userIdentifierService, 100L, 100L) {
+            @Override
+            protected Message deserialize(byte[] data) throws IOException {
+                return wanted;
+            }
+
+            @Override
+            void stopApplication() {
+
+            }
+        };
 
         kafkaNewMessageProcessor.processNext();
 
         verify(kafkaMessageConsumerFactory).createConsumer(eq(TOPIC_INCOMING));
-        verify(queueService).publish(topicNameCaptor.capture(), retryableMessageCaptor.capture());
-        verify(queueService).deserialize(any());
+        verify(queueService).publishSynchronously(topicNameCaptor.capture(), retryableMessageCaptor.capture());
         assertThat(topicNameCaptor.getValue()).isEqualTo(TOPIC_ABANDONED);
 
         assertThat(retryableMessageCaptor.getValue()).isEqualToComparingFieldByField(wanted);
@@ -219,12 +259,24 @@ public class KafkaNewMessageProcessorTest {
         when(mutableConversationRepository.getById(any())).thenReturn(mutableConversation);
 
         final Message wanted = setUpTest(2);
+        KafkaNewMessageProcessor kafkaNewMessageProcessor = new KafkaNewMessageProcessor(messageProcessingCoordinator, queueService,
+                kafkaMessageConsumerFactory, RETRY_ON_FAILED_MESSAGE_PERIOD_MINUTES, MAX_RETRIES, SHORT_TENANT,
+                mutableConversationRepository, processingContextFactory, userIdentifierService, 100L, 100L) {
+            @Override
+            protected Message deserialize(byte[] data) throws IOException {
+                return wanted;
+            }
+
+            @Override
+            void stopApplication() {
+
+            }
+        };
 
         kafkaNewMessageProcessor.processNext();
 
         verify(kafkaMessageConsumerFactory).createConsumer(eq(TOPIC_INCOMING));
-        verify(queueService).publish(topicNameCaptor.capture(), retryableMessageCaptor.capture());
-        verify(queueService).deserialize(any());
+        verify(queueService).publishSynchronously(topicNameCaptor.capture(), retryableMessageCaptor.capture());
         assertThat(topicNameCaptor.getValue()).isEqualTo(TOPIC_RETRY);
 
         checkRetryMessage(wanted);
@@ -233,14 +285,25 @@ public class KafkaNewMessageProcessorTest {
     @Test
     @SuppressWarnings("unchecked")
     public void undeserializableMessageWritesToFailedTopic() throws Exception {
-        when(queueService.deserialize(any())).thenThrow(IOException.class);
+        KafkaNewMessageProcessor kafkaNewMessageProcessor = new KafkaNewMessageProcessor(messageProcessingCoordinator, queueService,
+                kafkaMessageConsumerFactory, RETRY_ON_FAILED_MESSAGE_PERIOD_MINUTES, MAX_RETRIES, SHORT_TENANT,
+                mutableConversationRepository, processingContextFactory, userIdentifierService, 100L, 100L) {
+            @Override
+            protected Message deserialize(byte[] data) throws IOException {
+                throw new IOException();
+            }
+
+            @Override
+            void stopApplication() {
+
+            }
+        };
         sendIncomingMessage(PAYLOAD);
 
         kafkaNewMessageProcessor.processNext();
 
         verify(kafkaMessageConsumerFactory).createConsumer(eq(TOPIC_INCOMING));
-        verify(queueService).publish(topicNameCaptor.capture(), payloadCaptor.capture());
-        verify(queueService).deserialize(any());
+        verify(queueService).publishSynchronously(topicNameCaptor.capture(), payloadCaptor.capture());
         assertThat(topicNameCaptor.getValue()).isEqualTo(TOPIC_FAILED);
         assertThat(payloadCaptor.getValue()).isEqualTo(PAYLOAD);
     }

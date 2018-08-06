@@ -2,9 +2,9 @@ package com.ecg.messagebox.listeners;
 
 import com.ecg.messagebox.events.MessageAddedEventProcessor;
 import com.ecg.messagebox.service.PostBoxService;
-import com.ecg.messagebox.util.messages.MessagesResponseFactory;
-import com.ecg.replyts.app.postprocessorchain.ContentOverridingPostProcessor;
+import com.ecg.replyts.app.ContentOverridingPostProcessorService;
 import com.ecg.replyts.core.api.model.conversation.*;
+import com.ecg.replyts.core.api.processing.MessagesResponseFactory;
 import com.ecg.replyts.core.runtime.identifier.UserIdentifierService;
 import com.ecg.replyts.core.runtime.model.conversation.ImmutableConversation;
 import com.ecg.replyts.core.runtime.model.conversation.ImmutableMessage;
@@ -18,7 +18,6 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import java.util.Arrays;
 import java.util.Optional;
 
 import static com.ecg.replyts.core.api.model.conversation.ConversationState.ACTIVE;
@@ -48,16 +47,16 @@ public class PostBoxUpdateListenerTest {
     private UserIdentifierService userIdentifierServiceMock;
 
     @Mock
-    BlockUserRepository blockUserRepository;
+    private BlockUserRepository blockUserRepository;
 
     @Mock
-    MessagesResponseFactory messagesResponseFactory;
+    private MessagesResponseFactory messagesResponseFactory;
 
     @Mock
-    MessageAddedEventProcessor messageAddedEventProcessor;
+    private MessageAddedEventProcessor messageAddedEventProcessor;
 
     @Mock
-    ContentOverridingPostProcessor contentOverridingPostProcessor;
+    private ContentOverridingPostProcessorService contentOverridingPostProcessorService;
 
     @Rule
     public ExpectedException thrown = ExpectedException.none();
@@ -73,7 +72,7 @@ public class PostBoxUpdateListenerTest {
     @Before
     public void setup() {
         listener = new PostBoxUpdateListener(delegatorMock, userIdentifierServiceMock, messageAddedEventProcessor,
-                blockUserRepository, messagesResponseFactory, Optional.of(Arrays.asList(contentOverridingPostProcessor)));
+                blockUserRepository, contentOverridingPostProcessorService);
 
         convBuilder = ImmutableConversation.Builder
                 .aConversation()
@@ -99,7 +98,7 @@ public class PostBoxUpdateListenerTest {
                 .thenReturn(of(SELLER_USER_ID));
         when(messagesResponseFactory.getCleanedMessage(conversation, message))
                 .thenReturn("clean message");
-        when(contentOverridingPostProcessor.overrideContent("clean message"))
+        when(contentOverridingPostProcessorService.getCleanedMessage(conversation, message))
                 .thenReturn("clean message");
         when(blockUserRepository.isBlocked(BUYER_USER_ID, SELLER_USER_ID))
                 .thenReturn(false);
@@ -115,7 +114,6 @@ public class PostBoxUpdateListenerTest {
         verify(userIdentifierServiceMock).getSellerUserId(conversation);
         verify(delegatorMock).processNewMessage(BUYER_USER_ID, conversation, message, false, "clean message");
         verify(delegatorMock).processNewMessage(SELLER_USER_ID, conversation, message, true, "clean message");
-        verify(contentOverridingPostProcessor).overrideContent("clean message");
     }
 
     @Test

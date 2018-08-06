@@ -69,12 +69,11 @@ public class MessageAddedEvent extends ConversationEvent {
         this.state = state;
         this.senderMessageIdHeader = senderMessageIdHeader;
         this.inResponseToMessageId = inResponseToMessageId;
-        this.textParts = (textParts == null || Iterables.isEmpty(textParts)) && !isEmpty(plainTextBody) ? Arrays.asList(plainTextBody) : textParts;
+        this.textParts = (textParts == null || Iterables.isEmpty(textParts)) && !isEmpty(plainTextBody) ? Collections.singletonList(plainTextBody) : textParts;
     }
 
     public MessageAddedEvent(AddMessageCommand command) {
-        this(
-                command.getMessageId(),
+        this(command.getMessageId(),
                 command.getMessageDirection(),
                 command.getReceivedAt(),
                 command.getState(),
@@ -158,8 +157,8 @@ public class MessageAddedEvent extends ConversationEvent {
     @Override
     public int hashCode() {
         return Objects.hashCode(
-            messageId, messageDirection, receivedAt, filterResultState, humanResultState, headers,
-            state, senderMessageIdHeader, inResponseToMessageId, getEventId(), getConversationModifiedAt().getMillis(), textParts
+                messageId, messageDirection, receivedAt, filterResultState, humanResultState, headers,
+                state, senderMessageIdHeader, inResponseToMessageId, getEventId(), getConversationModifiedAt().getMillis(), textParts
         );
     }
 

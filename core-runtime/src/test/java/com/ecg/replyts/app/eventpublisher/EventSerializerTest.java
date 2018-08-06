@@ -99,7 +99,7 @@ public class EventSerializerTest {
 
         JsonNode expected = objectReader.readTree(getClass().getResourceAsStream("expectedAddMessage.json"));
         JsonNode actual = objectReader.readTree(new ByteArrayInputStream(newConversationSerialized));
-        assertEquals(expected, actual);
+        assertEquals(expected.asText(), actual.asText());
     }
 
     @Test

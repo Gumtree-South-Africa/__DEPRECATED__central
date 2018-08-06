@@ -22,7 +22,7 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -175,7 +175,7 @@ public class ConversationFinderTest {
         when(messageProcessingContext.getMessageDirection()).thenReturn(MessageDirection.BUYER_TO_SELLER);
         Message previousMessage = mock(Message.class);
         when(previousMessage.getId()).thenReturn("1:1");
-        when(mutableConversation.getMessages()).thenReturn(Arrays.asList(previousMessage));
+        when(mutableConversation.getMessages()).thenReturn(Collections.singletonList(previousMessage));
         conversationFinder.preProcess(messageProcessingContext);
 
         verify(messageProcessingContext).addCommand(addMessageCommandCapture.capture());

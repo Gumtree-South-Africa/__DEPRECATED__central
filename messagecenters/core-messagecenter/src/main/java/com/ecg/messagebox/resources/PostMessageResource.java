@@ -2,6 +2,8 @@ package com.ecg.messagebox.resources;
 
 import com.datastax.driver.core.utils.UUIDs;
 import com.ecg.comaas.protobuf.MessageOuterClass;
+import com.ecg.comaas.events.Conversation;
+import com.ecg.comaas.protobuf.MessageOuterClass;
 import com.ecg.comaas.protobuf.MessageOuterClass.Message;
 import com.ecg.comaas.protobuf.MessageOuterClass.Payload;
 import com.ecg.messagebox.controllers.requests.CreateConversationRequest;
@@ -16,12 +18,13 @@ import com.ecg.messagebox.persistence.CassandraPostBoxRepository;
 import com.ecg.messagebox.resources.exceptions.ClientException;
 import com.ecg.messagebox.resources.responses.ErrorResponse;
 import com.ecg.messagebox.resources.responses.PostMessageResponse;
-import com.ecg.replyts.app.ProcessingContextFactory;
 import com.ecg.replyts.app.preprocessorchain.preprocessors.UniqueConversationSecret;
 import com.ecg.replyts.core.api.model.conversation.MutableConversation;
 import com.ecg.replyts.core.api.model.conversation.command.NewConversationCommand;
 import com.ecg.replyts.core.api.model.conversation.event.ConversationCreatedEvent;
 import com.ecg.replyts.core.api.persistence.ConversationIndexKey;
+import com.ecg.replyts.core.api.processing.ConversationEventService;
+import com.ecg.replyts.core.api.util.ConversationEventConverter;
 import com.ecg.replyts.core.runtime.cluster.Guids;
 import com.ecg.replyts.core.runtime.cluster.XidFactory;
 import com.ecg.replyts.core.runtime.identifier.UserIdentifierService;
@@ -35,6 +38,7 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -75,6 +79,7 @@ public class PostMessageResource {
     private final UniqueConversationSecret uniqueConversationSecret;
     private final CassandraPostBoxRepository postBoxRepository;
     private final QueueService queueService;
+    private final ConversationEventService conversationEventService;
 
     @Value("${replyts.tenant.short:${replyts.tenant}}")
     private String shortTenant;
@@ -85,12 +90,14 @@ public class PostMessageResource {
             UserIdentifierService userIdentifierService,
             UniqueConversationSecret uniqueConversationSecret,
             CassandraPostBoxRepository postBoxRepository,
-            QueueService queueService) {
+            QueueService queueService,
+            ConversationEventService conversationEventService) {
         this.conversationRepository = conversationRepository;
         this.userIdentifierService = userIdentifierService;
         this.uniqueConversationSecret = uniqueConversationSecret;
         this.postBoxRepository = postBoxRepository;
         this.queueService = queueService;
+        this.conversationEventService = conversationEventService;
     }
 
     @ApiOperation(
@@ -148,16 +155,28 @@ public class PostMessageResource {
         ConversationCreatedEvent conversationCreatedEvent = new ConversationCreatedEvent(newConversationBuilderCommand);
 
         String conversationId = newConversationBuilderCommand.getConversationId();
-        conversationRepository.commit(conversationId, Collections.singletonList(conversationCreatedEvent));
-
-        ConversationMetadata conversationMetadata = new ConversationMetadata(now(), subject, title, imageUrl);
+        DateTime creationDate = now();
+        ConversationMetadata conversationMetadata = new ConversationMetadata(creationDate, subject, title, imageUrl);
         ConversationThread conversationThread = new ConversationThread(conversationId, adId, userId, Visibility.ACTIVE,
                 MessageNotification.RECEIVE, participants, null, conversationMetadata);
 
         postBoxRepository.createEmptyConversation(buyer.getUserId(), conversationThread);
         postBoxRepository.createEmptyConversation(seller.getUserId(), conversationThread);
 
+        conversationEventService.sendConversationCreatedEvent(shortTenant, adId, conversationId, customValues, toConversationEventParticipants(participants), creationDate);
+        conversationRepository.commit(conversationId, Collections.singletonList(conversationCreatedEvent));
+
         return new CreateConversationResponse(false, conversationId);
+    }
+
+    private Set<Conversation.Participant> toConversationEventParticipants(List<Participant> participants) {
+        Set<Conversation.Participant> participantSet = new HashSet<>();
+        for (Participant participant : participants) {
+            participantSet.add(ConversationEventConverter.createParticipant(participant.getUserId(), participant.getName(),
+                    participant.getEmail(), Conversation.Participant.Role.valueOf(participant.getRole().name())));
+        }
+
+        return participantSet;
     }
 
     @ApiOperation(
@@ -176,7 +195,7 @@ public class PostMessageResource {
             @ApiParam(value = "Message payload", required = true) @RequestBody PostMessageRequest postMessageRequest,
             @RequestHeader(value = "X-Correlation-ID", required = false) String correlationIdHeader) {
         Message.Builder kafkaMessage = buildMessage(userId, conversationId, postMessageRequest, correlationIdHeader);
-        queueService.publish(KafkaTopicService.getTopicIncoming(shortTenant), kafkaMessage.build());
+        queueService.publishSynchronously(KafkaTopicService.getTopicIncoming(shortTenant), kafkaMessage.build());
         return new PostMessageResponse(kafkaMessage.getMessageId());
     }
 
@@ -208,7 +227,7 @@ public class PostMessageResource {
                         .setBody(ByteString.readFrom(attachment.getInputStream()))
                 );
 
-        queueService.publish(KafkaTopicService.getTopicIncoming(shortTenant), kafkaMessage.build());
+        queueService.publishSynchronously(KafkaTopicService.getTopicIncoming(shortTenant), kafkaMessage.build());
         LOG.debug("Posted message for conversation id: {}, with message id {}, correlation id: {}, attachment name :{}, attachment size: {} bytes",
                 conversationId, kafkaMessage.getMessageId(), kafkaMessage.getCorrelationId(), attachment.getOriginalFilename(), attachment.getSize());
 
