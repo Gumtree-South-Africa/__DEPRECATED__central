@@ -16,6 +16,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
+import java.util.EnumSet;
 
 import static com.ecg.replyts.core.api.model.Tenants.TENANT_GTAU;
 import static com.ecg.replyts.core.runtime.prometheus.PrometheusFailureHandler.reportExternalServiceFailure;
@@ -62,7 +63,7 @@ public class MessageLoggingListener implements MessageProcessedListener {
     @Override
     public void messageProcessed(Conversation conversation, Message message) {
         try {
-            if (MessageState.ORPHANED == message.getState()) {
+            if (EnumSet.of(MessageState.ORPHANED, MessageState.IGNORED).contains(message.getState())) {
                 return;
             }
             Collection<String> values = EventCreator.toValues(conversation, message).values();
