@@ -13,6 +13,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import static com.ecg.replyts.core.api.model.conversation.MessageDirection.SELLER_TO_BUYER;
+import static com.ecg.replyts.core.api.model.conversation.MessageState.IGNORED;
 import static com.ecg.replyts.core.api.model.conversation.MessageState.ORPHANED;
 import static com.ecg.replyts.core.api.model.conversation.MessageState.SENT;
 import static com.ecg.replyts.core.api.model.conversation.command.NewConversationCommandBuilder.aNewConversationCommand;
@@ -51,6 +52,15 @@ public class MessageLoggingListenerTest {
     @Test
     public void whenMessageIsOrphaned_shouldNotWriteToDb() throws Exception {
         Message m = messageWithState(ORPHANED);
+
+        messageLoggingListener.messageProcessed(null, m);
+
+        verify(template, never()).update(anyString(), (Object[]) anyVararg());
+    }
+
+    @Test
+    public void whenMessageIsIgnored_shouldNotWriteToDb() throws Exception {
+        Message m = messageWithState(IGNORED);
 
         messageLoggingListener.messageProcessed(null, m);
 
