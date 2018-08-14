@@ -10,6 +10,8 @@ import com.google.common.base.Charsets;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Timestamp;
 import org.joda.time.DateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
@@ -22,6 +24,8 @@ import java.util.Set;
 @ConditionalOnProperty(name = "conversation.events.enabled", havingValue = "true")
 public class KafkaConversationEventService implements ConversationEventService {
 
+    private static final Logger LOG = LoggerFactory.getLogger(KafkaConversationEventService.class);
+
     private final QueueService queueService;
 
     @Autowired
@@ -30,6 +34,8 @@ public class KafkaConversationEventService implements ConversationEventService {
     }
 
     public void sendConversationCreatedEvent(String tenant, String adId, String conversationId, Map<String, String> metadata, Set<Participant> participants, DateTime createAt) {
+        LOG.trace("Send a new ConversationCreatedEvent into Kafka: Tenant: '{}', AdId: '{}', ConversationId: '{}'", tenant, adId, conversationId);
+
         Instant time = Instant.ofEpochMilli(createAt.getMillis());
         ConversationCreated conversationCreated = ConversationCreated.newBuilder()
                 .setAdId(adId)
@@ -51,6 +57,9 @@ public class KafkaConversationEventService implements ConversationEventService {
     }
 
     public void sendMessageAddedEvent(String tenant, String conversationId, String senderUserId, String messageId, String message, Map<String, String> metadata) {
+        LOG.trace("Send a new MessageAddedEvent into Kafka: Tenant: '{}', ConversationId: '{}', SenderId: '{}', MessageId: '{}'",
+                tenant, conversationId, senderUserId, messageId);
+
         MessageAdded messageAdded = MessageAdded.newBuilder()
                 .setId(UUID.newBuilder()
                         .setUuid(messageId)
