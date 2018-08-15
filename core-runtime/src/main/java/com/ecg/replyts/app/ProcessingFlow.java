@@ -143,6 +143,8 @@ class ProcessingFlow {
 
         String cleanedMessage = contentOverridingPostProcessorService.getCleanedMessage(conversation, message);
         String messageId = message.getHeaders().get("X-Message-ID");
+
+        LOG.info("TYPE OF CONVERSATION SERVICE: " + conversationEventService.getClass());
         conversationEventService.sendMessageAddedEvent(shortTenant, conversation.getId(), getSenderUserId(conversation, message), messageId, cleanedMessage, message.getHeaders());
     }
 
