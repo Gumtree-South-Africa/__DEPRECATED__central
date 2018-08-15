@@ -30,6 +30,7 @@ public class KafkaConversationEventService implements ConversationEventService {
 
     @Autowired
     public KafkaConversationEventService(QueueService queueService) {
+        LOG.info("Kafka Sender is Initialized");
         this.queueService = queueService;
     }
 
