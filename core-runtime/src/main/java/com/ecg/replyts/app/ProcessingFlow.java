@@ -113,6 +113,8 @@ class ProcessingFlow {
     }
 
     void inputForConversationEventsQueue(MessageProcessingContext context) {
+        LOG.info("Input for Conversation QUEUE, terminated? -> " + context.isTerminated());
+
         if (!context.isTerminated()) {
             try {
                 sendConversationEvents(context.getConversation());
@@ -126,6 +128,9 @@ class ProcessingFlow {
     }
 
     private void sendConversationEvents(Conversation conversation) {
+        Message message = Iterables.getLast(conversation.getMessages());
+        LOG.info("Send ConversationEvents: " + message.getId());
+
         if (conversation == null || conversation.getMessages() == null) {
             LOG.warn("conversation.getMessages() == null");
             return;
@@ -136,7 +141,6 @@ class ProcessingFlow {
                     conversation.getId(), conversation.getCustomValues(), getParticipants(conversation), conversation.getCreatedAt());
         }
 
-        Message message = Iterables.getLast(conversation.getMessages());
         String cleanedMessage = contentOverridingPostProcessorService.getCleanedMessage(conversation, message);
         String messageId = message.getHeaders().get("X-Message-ID");
         conversationEventService.sendMessageAddedEvent(shortTenant, conversation.getId(), getSenderUserId(conversation, message), messageId, cleanedMessage, message.getHeaders());
