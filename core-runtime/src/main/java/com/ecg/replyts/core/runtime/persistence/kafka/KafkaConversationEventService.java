@@ -34,7 +34,7 @@ public class KafkaConversationEventService implements ConversationEventService {
     }
 
     public void sendConversationCreatedEvent(String tenant, String adId, String conversationId, Map<String, String> metadata, Set<Participant> participants, DateTime createAt) {
-        LOG.trace("Send a new ConversationCreatedEvent into Kafka: Tenant: '{}', AdId: '{}', ConversationId: '{}'", tenant, adId, conversationId);
+        LOG.info("Send a new ConversationCreatedEvent into Kafka: Tenant: '{}', AdId: '{}', ConversationId: '{}'", tenant, adId, conversationId);
 
         Instant time = Instant.ofEpochMilli(createAt.getMillis());
         ConversationCreated conversationCreated = ConversationCreated.newBuilder()
@@ -57,7 +57,7 @@ public class KafkaConversationEventService implements ConversationEventService {
     }
 
     public void sendMessageAddedEvent(String tenant, String conversationId, String senderUserId, String messageId, String message, Map<String, String> metadata) {
-        LOG.trace("Send a new MessageAddedEvent into Kafka: Tenant: '{}', ConversationId: '{}', SenderId: '{}', MessageId: '{}'",
+        LOG.info("Send a new MessageAddedEvent into Kafka: Tenant: '{}', ConversationId: '{}', SenderId: '{}', MessageId: '{}'",
                 tenant, conversationId, senderUserId, messageId);
 
         MessageAdded messageAdded = MessageAdded.newBuilder()
