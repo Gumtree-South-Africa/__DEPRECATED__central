@@ -141,6 +141,7 @@ class ProcessingFlow {
                     conversation.getId(), conversation.getCustomValues(), getParticipants(conversation), conversation.getCreatedAt());
         }
 
+        LOG.info("IN THE MIDDLE");
         String cleanedMessage = contentOverridingPostProcessorService.getCleanedMessage(conversation, message);
         String messageId = message.getHeaders().get("X-Message-ID");
 
