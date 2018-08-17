@@ -1,6 +1,7 @@
 package com.ecg.replyts.core.webapi.screeningv2;
 
 import com.codahale.metrics.Timer;
+import com.ecg.comaas.events.Conversation;
 import com.ecg.replyts.app.ConversationEventListeners;
 import com.ecg.replyts.core.api.model.CloakedReceiverContext;
 import com.ecg.replyts.core.api.model.MailCloakingService;
@@ -11,6 +12,8 @@ import com.ecg.replyts.core.api.model.conversation.command.AddCustomValueCommand
 import com.ecg.replyts.core.api.model.conversation.command.ConversationClosedAndDeletedForUserCommand;
 import com.ecg.replyts.core.api.model.conversation.command.ConversationClosedCommand;
 import com.ecg.replyts.core.api.model.mail.MailAddress;
+import com.ecg.replyts.core.api.processing.ConversationEventService;
+import com.ecg.replyts.core.api.util.ConversationEventConverter;
 import com.ecg.replyts.core.api.webapi.commands.GetConversationCommand;
 import com.ecg.replyts.core.api.webapi.commands.payloads.AddCustomValuePayload;
 import com.ecg.replyts.core.api.webapi.commands.payloads.ChangeConversationStatePayload;
@@ -27,8 +30,13 @@ import com.google.common.base.Preconditions;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.util.Optional;
 
@@ -49,6 +57,10 @@ class ConversationController {
     private final ConversationEventListeners conversationEventListeners;
     private final UserIdentifierService userIdentifierService;
     private final Timer loadConversationTimer = TimingReports.newTimer("core-conversationController.loadConversation");
+    private final ConversationEventService conversationEventService;
+
+    @Value("${replyts.tenant.short:${replyts.tenant}}")
+    private String shortTenant;
 
     @Autowired
     ConversationController(MutableConversationRepository conversationRepository,
@@ -56,13 +68,15 @@ class ConversationController {
                            MailCloakingService mailCloakingService,
                            DocumentSink documentSink,
                            ConversationEventListeners conversationEventListeners,
-                           UserIdentifierService userIdentifierService) {
+                           UserIdentifierService userIdentifierService,
+                           ConversationEventService conversationEventService) {
         this.conversationRepository = conversationRepository;
         this.converter = converter;
         this.mailCloakingService = mailCloakingService;
         this.documentSink = documentSink;
         this.conversationEventListeners = conversationEventListeners;
         this.userIdentifierService = userIdentifierService;
+        this.conversationEventService = conversationEventService;
     }
 
     /**
@@ -114,16 +128,20 @@ class ConversationController {
 
         ((DefaultMutableConversation) conversation).commit(conversationRepository, conversationEventListeners);
 
+        Conversation.Participant.Role role = ConversationRole.getRole(changeConversationStatePayload.getIssuerEmail(), conversation).getParticipantRole();
+        Conversation.Participant participant = ConversationEventConverter.createParticipant(changeConversationStatePayload.getIssuerId(), null, changeConversationStatePayload.getIssuerEmail(), role);
+        conversationEventService.sendConversationDeletedEvent(shortTenant, conversationId, participant);
+
         return ResponseObject.of(RequestState.OK);
     }
 
-    @RequestMapping(value="/conversation/{conversationId}/customValue", method = PUT)
+    @RequestMapping(value = "/conversation/{conversationId}/customValue", method = PUT)
     @ResponseBody
     ResponseObject<?> addCustomValue(@PathVariable("conversationId") String convId, @RequestBody AddCustomValuePayload cmd) {
         MutableConversation byId = conversationRepository.getById(convId);
         byId.applyCommand(new AddCustomValueCommand(convId, cmd.getKey(), cmd.getValue()));
 
-        ((DefaultMutableConversation)byId).commit(conversationRepository, conversationEventListeners);
+        ((DefaultMutableConversation) byId).commit(conversationRepository, conversationEventListeners);
         documentSink.sink(byId);
 
         return ResponseObject.of(converter.convertConversation(byId));
@@ -154,10 +172,10 @@ class ConversationController {
 
         Preconditions.checkArgument(
                 issuerId.equalsIgnoreCase(buyerId) || issuerId.equalsIgnoreCase(sellerId) ||
-            issuerEmail.equalsIgnoreCase(buyerEmail) || issuerEmail.equalsIgnoreCase(sellerEmail),
-            "issuerId '%s' or issuerEmail '%s' are not one of: buyerId '%s',  sellerId '%s', buyerEmail '%s' or sellerEmail '%s'",
-            issuerId, issuerEmail,
-            buyerId, sellerId,
-            buyerEmail, sellerEmail);
+                        issuerEmail.equalsIgnoreCase(buyerEmail) || issuerEmail.equalsIgnoreCase(sellerEmail),
+                "issuerId '%s' or issuerEmail '%s' are not one of: buyerId '%s',  sellerId '%s', buyerEmail '%s' or sellerEmail '%s'",
+                issuerId, issuerEmail,
+                buyerId, sellerId,
+                buyerEmail, sellerEmail);
     }
 }

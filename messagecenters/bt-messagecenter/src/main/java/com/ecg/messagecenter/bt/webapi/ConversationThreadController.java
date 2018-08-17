@@ -1,6 +1,7 @@
 package com.ecg.messagecenter.bt.webapi;
 
 import com.ecg.messagecenter.bt.persistence.ConversationThread;
+import com.ecg.comaas.events.Conversation.Participant;
 import com.ecg.messagecenter.bt.webapi.requests.MessageCenterClosePostBoxConversationCommand;
 import com.ecg.messagecenter.bt.webapi.responses.PostBoxSingleConversationThreadResponse;
 import com.ecg.messagecenter.core.persistence.simple.PostBox;
@@ -14,6 +15,8 @@ import com.ecg.replyts.core.api.model.conversation.ConversationRole;
 import com.ecg.replyts.core.api.model.conversation.ConversationState;
 import com.ecg.replyts.core.api.model.conversation.MutableConversation;
 import com.ecg.replyts.core.api.model.conversation.command.ConversationClosedCommand;
+import com.ecg.replyts.core.api.processing.ConversationEventService;
+import com.ecg.replyts.core.api.util.ConversationEventConverter;
 import com.ecg.replyts.core.api.webapi.envelope.RequestState;
 import com.ecg.replyts.core.api.webapi.envelope.ResponseObject;
 import com.ecg.replyts.core.runtime.persistence.conversation.DefaultMutableConversation;
@@ -22,6 +25,7 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.propertyeditors.StringArrayPropertyEditor;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -36,7 +40,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
@@ -61,6 +64,13 @@ public class ConversationThreadController {
 
     @Autowired
     private ConversationEventListeners conversationEventListeners;
+
+    @Autowired
+    private ConversationEventService conversationEventService;
+
+    @Value("${replyts.tenant.short:${replyts.tenant}}")
+    private String shortTenant;
+
 
     @InitBinder
     public void initBinderInternal(WebDataBinder binder) {
@@ -91,10 +101,14 @@ public class ConversationThreadController {
 
         String buyerEmail = conversation.getSellerId();
         String sellerEmail = conversation.getBuyerId();
-        ConversationRole role = conversation.isClosedBy(ConversationRole.Buyer)?ConversationRole.Buyer:ConversationRole.Seller;
+        ConversationRole role = conversation.isClosedBy(ConversationRole.Buyer) ? ConversationRole.Buyer : ConversationRole.Seller;
 
-        updatePostBox(buyerEmail,conversationId,role);
-        updatePostBox(sellerEmail,conversationId,role);
+        updatePostBox(buyerEmail, conversationId, role);
+        updatePostBox(sellerEmail, conversationId, role);
+
+        String id = conversation.isClosedBy(ConversationRole.Buyer) ? conversation.getBuyerId() : conversation.getSellerId();
+        Participant participant = ConversationEventConverter.createParticipant(id, null, email, role.getParticipantRole());
+        conversationEventService.sendConversationDeletedEvent(shortTenant, conversationId, participant);
 
         return ResponseObject.of(RequestState.OK);
     }

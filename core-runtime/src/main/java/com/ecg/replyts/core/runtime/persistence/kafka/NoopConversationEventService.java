@@ -21,4 +21,9 @@ public class NoopConversationEventService implements ConversationEventService {
     public void sendMessageAddedEvent(String tenant, String conversationId, String senderUserId, String messageId, String message, Map<String, String> metaData) {
         // noop
     }
+
+    @Override
+    public void sendConversationDeletedEvent(String tenant, String conversationId, Conversation.Participant participant) {
+        // noop
+    }
 }

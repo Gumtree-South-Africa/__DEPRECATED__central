@@ -1,6 +1,7 @@
 package com.ecg.replyts.core.runtime.persistence.kafka;
 
 import com.ecg.comaas.events.Conversation.ConversationCreated;
+import com.ecg.comaas.events.Conversation.ConversationDeleted;
 import com.ecg.comaas.events.Conversation.Envelope;
 import com.ecg.comaas.events.Conversation.MessageAdded;
 import com.ecg.comaas.events.Conversation.Participant;
@@ -64,6 +65,21 @@ public class KafkaConversationEventService implements ConversationEventService {
                 .setTenant(tenant)
                 .setConversationId(conversationId)
                 .setMessageAdded(messageAdded)
+                .build();
+
+        queueService.publishSynchronously(KafkaTopicService.CONVERSATION_EVENTS_KAFKA_TOPIC, conversationId, envelope);
+    }
+
+    @Override
+    public void sendConversationDeletedEvent(String tenant, String conversationId, Participant participant) {
+        ConversationDeleted conversationDeleted = ConversationDeleted.newBuilder()
+                .addParticipants(participant)
+                .build();
+
+        Envelope envelope = Envelope.newBuilder()
+                .setTenant(tenant)
+                .setConversationId(conversationId)
+                .setConversationDeleted(conversationDeleted)
                 .build();
 
         queueService.publishSynchronously(KafkaTopicService.CONVERSATION_EVENTS_KAFKA_TOPIC, conversationId, envelope);

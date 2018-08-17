@@ -1,15 +1,19 @@
 package com.ecg.replyts.core.api.model.conversation;
 
+import com.ecg.comaas.events.Conversation.Participant.Role;
+
 /**
  * Role of a user in a {@link Conversation}.
  */
 public enum ConversationRole {
-    Buyer("buyer"), Seller("seller");
+    Buyer("buyer", Role.BUYER), Seller("seller", Role.SELLER);
 
-    private String roleStringRepresentation;
+    private final String roleStringRepresentation;
+    private final Role participantRole;
 
-    private ConversationRole(String roleName) {
+    ConversationRole(String roleName, Role participantRole) {
         this.roleStringRepresentation = roleName;
+        this.participantRole = participantRole;
     }
 
     public boolean matches(String roleName) {
@@ -18,5 +22,9 @@ public enum ConversationRole {
 
     public static ConversationRole getRole(String mail, Conversation conv) {
         return conv.getBuyerId().equalsIgnoreCase(mail) ? Buyer : Seller;
+    }
+
+    public Role getParticipantRole() {
+        return participantRole;
     }
 }
