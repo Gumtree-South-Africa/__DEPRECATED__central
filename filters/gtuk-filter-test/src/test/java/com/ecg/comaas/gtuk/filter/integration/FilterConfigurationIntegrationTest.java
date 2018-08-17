@@ -43,7 +43,7 @@ public class FilterConfigurationIntegrationTest {
     }
 
     @Test
-    public void loadsVolumeConfigTwice() throws IOException, URISyntaxException, JSONException {
+    public void loadsVolumeConfigTwice() throws URISyntaxException, JSONException {
         URL url = getClass().getResource("/gtukJsonContract/velocity.json");
         assertConfigLoadingReturns200(Arrays.asList(Paths.get(url.toURI()), Paths.get(url.toURI())));
     }

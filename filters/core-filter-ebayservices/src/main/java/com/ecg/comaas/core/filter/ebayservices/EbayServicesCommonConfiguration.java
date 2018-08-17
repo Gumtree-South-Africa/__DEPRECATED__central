@@ -8,6 +8,7 @@ import de.mobile.ebay.service.oauthtoken.OAuthProviderConfigBean;
 import de.mobile.ebay.service.oauthtoken.OAuthTokenProviderImpl;
 import de.mobile.ebay.service.restclient.RestClientFactory;
 import de.mobile.ebay.service.restclient.RestClientFactoryBuilder;
+import okhttp3.OkHttpClient;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -16,6 +17,8 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class EbayServicesCommonConfiguration {
+
+    private static HttpClientMockInterceptor mockInterceptor = new HttpClientMockInterceptor();
 
     @Bean
     @ConditionalOnProperty(value = "comaas.filter.ebayservices.iprisk.enabled", havingValue = "true", matchIfMissing = true)
@@ -50,7 +53,12 @@ public class EbayServicesCommonConfiguration {
     }
 
     @Bean
-    public RestClientFactory ebayServicesRestClientFactory(@Value("${comaas.filter.ebayservices.proxyUrl:}") String ebayServicesProxyUrl) {
+    public RestClientFactory ebayServicesRestClientFactory(@Value("${comaas.filter.ebayservices.proxyUrl:}") String ebayServicesProxyUrl,
+                                                           @Value("${comaas.filter.ebayservices.mock.http.client:false}") Boolean mockHttpClient) {
+        if (mockHttpClient) {
+            return () -> new OkHttpClient.Builder().addInterceptor(mockInterceptor);
+        }
+
         RestClientFactoryBuilder restClientFactoryBuilder = new RestClientFactoryBuilder();
         restClientFactoryBuilder.setMaxTotalConnections(100);
         restClientFactoryBuilder.setSocketTimeout(3);
@@ -66,13 +74,19 @@ public class EbayServicesCommonConfiguration {
             @Value("${comaas.filter.ebayservices.http.maxConnectionsPerRoute:30}") int maxConnectionsPerRoute,
             @Value("${comaas.filter.ebayservices.http.maxConnectionsTotal:100}") int maxConnections,
             @Value("${comaas.filter.ebayservices.http.proxy.host:}") String proxyHost,
-            @Value("${comaas.filter.ebayservices.http.proxy.port:0}") int proxyPort
+            @Value("${comaas.filter.ebayservices.http.proxy.port:0}") int proxyPort,
+            @Value("${comaas.filter.ebayservices.mock.http.client:false}") Boolean mockHttpClient
     ) {
-        if (Strings.isNullOrEmpty(proxyHost)) {
-            return HttpClientFactory.createCloseableHttpClient(connectionTimeout, connectionTimeout, socketTimeout,
-                    maxConnectionsPerRoute, maxConnections);
-        }
-        return HttpClientFactory.createCloseableHttpClientWithProxy(connectionTimeout, connectionTimeout, socketTimeout,
-                maxConnectionsPerRoute, maxConnections, proxyHost, proxyPort);
+        CloseableHttpClient closeableHttpClient = Strings.isNullOrEmpty(proxyHost)
+                ? HttpClientFactory.createCloseableHttpClient(connectionTimeout, connectionTimeout, socketTimeout, maxConnectionsPerRoute, maxConnections)
+                : HttpClientFactory.createCloseableHttpClientWithProxy(connectionTimeout, connectionTimeout, socketTimeout, maxConnectionsPerRoute, maxConnections, proxyHost, proxyPort);
+
+        return mockHttpClient
+                ? new HttpMockClient(closeableHttpClient)
+                : closeableHttpClient;
+    }
+
+    public static HttpClientMockInterceptor getMockInterceptor() {
+        return mockInterceptor;
     }
 }

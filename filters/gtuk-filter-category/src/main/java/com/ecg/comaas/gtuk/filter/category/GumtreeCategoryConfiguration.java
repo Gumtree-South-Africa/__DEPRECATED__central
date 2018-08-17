@@ -1,9 +1,14 @@
 package com.ecg.comaas.gtuk.filter.category;
 
+import com.gumtree.api.category.CategoryMapperFactory;
 import com.gumtree.api.category.CategoryModel;
 import com.gumtree.api.category.CategoryReadApi;
+import com.gumtree.api.category.CategoryReadApiClient;
 import com.gumtree.api.config.CategoryModelFactory;
-import com.gumtree.api.config.CategoryReadApiFactory;
+import com.gumtree.common.util.http.HttpClientFactory;
+import com.gumtree.common.util.http.JsonHttpClient;
+import org.apache.http.client.HttpClient;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -28,9 +33,21 @@ public class GumtreeCategoryConfiguration {
     @Value("${gumtree.category.api.cache.reload.interval:5000}")
     private Integer cacheCheckInterval;
 
+    @Value("${gumtree.category.api.use.mock:false}")
+    private Boolean useMock;
+
     @Bean
     public CategoryReadApi categoryReadApi() {
-        return new CategoryReadApiFactory(hostname, port, socketTimeout, connectionTimeout, retryCount).create();
+        return useMock
+                ? new MockCategoryReadApi()
+                : buildCategoryReadApi();
+    }
+
+    public CategoryReadApi buildCategoryReadApi() {
+        ObjectMapper objectMapper = (new CategoryMapperFactory()).create();
+        HttpClient httpClient = (new HttpClientFactory()).create(socketTimeout, connectionTimeout, retryCount);
+        JsonHttpClient jsonHttpClient = new JsonHttpClient(httpClient, objectMapper);
+        return new CategoryReadApiClient(hostname, port, jsonHttpClient);
     }
 
     @Bean

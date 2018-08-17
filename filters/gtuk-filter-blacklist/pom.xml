@@ -21,9 +21,18 @@
         </dependency>
 
         <dependency>
+            <groupId>com.gumtree.gumshield.api</groupId>
+            <artifactId>client</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.gumtree.gumshield.api</groupId>
+            <artifactId>api-client</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>gumtree-common</groupId>
             <artifactId>util</artifactId>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>ecg.comaas</groupId>

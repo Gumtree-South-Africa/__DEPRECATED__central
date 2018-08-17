@@ -1,5 +1,6 @@
 package com.ecg.comaas.core.filter.ebayservices.userstate;
 
+import com.ecg.comaas.core.filter.ebayservices.MockStateHolder;
 import com.ecg.comaas.core.filter.ebayservices.TestPropertiesUtils;
 import com.ecg.replyts.core.api.model.conversation.ProcessingFeedback;
 import com.ecg.replyts.core.api.util.JsonObjects;
@@ -8,6 +9,8 @@ import com.ecg.replyts.integration.test.MailInterceptor;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -21,13 +24,19 @@ public class UserStateFilterIntegrationTest {
     @Rule
     public ReplyTsIntegrationTestRule itRule = new ReplyTsIntegrationTestRule(TestPropertiesUtils.getProperties(TENANT_EBAYK));
 
+    @BeforeClass
+    public static void initMockInterceptor() {
+        MockStateHolder.loadFromFile(UserStateFilterIntegrationTest.class.getResourceAsStream("/mockingInterceptor.config"));
+    }
+
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         ObjectNode jsonNode = JsonObjects.builder().attr("UNKNOWN", 1).attr("CONFIRMED", 1).attr("SUSPENDED", 1).build();
         itRule.registerConfig(UserStateFilterFactory.IDENTIFIER, jsonNode);
     }
 
     @Test
+    @Ignore
     public void whenUserStateDoesNotHitFilter_shouldGenerateEmptyFeedback() throws Exception {
         MailInterceptor.ProcessedMail processedMail = itRule.deliver(MailBuilder.aNewMail()
                 .adId("123")

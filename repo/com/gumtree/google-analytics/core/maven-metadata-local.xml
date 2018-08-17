@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata>
+    <groupId>com.gumtree.google-analytics</groupId>
+    <artifactId>core</artifactId>
+    <versioning>
+        <versions>
+            <version>3.0-SNAPSHOT</version>
+        </versions>
+        <lastUpdated>20180816125413</lastUpdated>
+    </versioning>
+</metadata>

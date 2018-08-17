@@ -134,7 +134,7 @@
             <repositories>
                 <repository>
                     <id>gtukNexus</id>
-                    <url>https://gtuk-nexus.es.dus1.cloud/nexus/content/repositories/public/</url>
+                    <url>file://${maven.multiModuleProjectDirectory}/repo/</url>
                     <releases>
                         <enabled>true</enabled>
                     </releases>
@@ -698,6 +698,8 @@
         <gt.comaas.models.version>1.8</gt.comaas.models.version>
         <gt.geoip.lib.version>1.0.0</gt.geoip.lib.version>
 
+        <resteasy-jaxrs.version>2.3.7.Final</resteasy-jaxrs.version>
+
         <!-- it artifact versions -->
         <statsd.client.version>3.0.1</statsd.client.version>
         <thymeleaf.version>2.1.4.RELEASE</thymeleaf.version>
@@ -719,6 +721,7 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <jackson-mapper-asl.version>1.9.2</jackson-mapper-asl.version>
     </properties>
 
 
@@ -864,68 +867,21 @@
                 <version>${gt.gumshield.api.version}</version>
                 <exclusions>
                     <exclusion>
-                        <groupId>gumtree-common</groupId>
-                        <artifactId>util</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>javax.activation</groupId>
-                        <artifactId>activation</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>javassist</groupId>
-                        <artifactId>javassist</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.codehaus.jackson</groupId>
-                        <artifactId>jackson-core-asl</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.codehaus.jackson</groupId>
-                        <artifactId>jackson-mapper-asl</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.slf4j</groupId>
-                        <artifactId>jcl-over-slf4j</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>commons-codec</groupId>
-                        <artifactId>commons-codec</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.hibernate.javax.persistence</groupId>
-                        <artifactId>hibernate-jpa-2.0-api</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>cglib</groupId>
-                        <artifactId>cglib</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.springframework</groupId>
-                        <artifactId>spring-web</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>com.fasterxml.jackson.core</groupId>
-                        <artifactId>jackson-databind</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.springframework</groupId>
-                        <artifactId>spring-aop</artifactId>
+                        <groupId>org.jboss.resteasy</groupId>
+                        <artifactId>resteasy-jackson-provider</artifactId>
                     </exclusion>
                 </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>com.gumtree.gumshield.api</groupId>
+                <artifactId>api-client</artifactId>
+                <version>${gt.gumshield.api.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.gumtree.comaas</groupId>
                 <artifactId>comaas-domain</artifactId>
                 <version>${gt.comaas.models.version}</version>
                 <exclusions>
-                    <exclusion>
-                        <groupId>org.json</groupId>
-                        <artifactId>json</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>com.google.code.gson</groupId>
-                        <artifactId>gson</artifactId>
-                    </exclusion>
                     <exclusion>
                         <groupId>com.google.guava</groupId>
                         <artifactId>guava</artifactId>
@@ -971,12 +927,27 @@
                 <groupId>com.gumtree.libs</groupId>
                 <artifactId>geoip-lib</artifactId>
                 <version>${gt.geoip.lib.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.gumtree.shared-commons</groupId>
+                <artifactId>healthchecks</artifactId>
+                <version>5.1</version>
+            </dependency>
+            <dependency>
+                <groupId>org.jboss.resteasy</groupId>
+                <artifactId>resteasy-jaxrs</artifactId>
+                <version>${resteasy-jaxrs.version}</version>
                 <exclusions>
                     <exclusion>
-                        <groupId>org.springframework</groupId>
-                        <artifactId>spring-beans</artifactId>
+                        <groupId>javax.activation</groupId>
+                        <artifactId>activation</artifactId>
                     </exclusion>
                 </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.codehaus.jackson</groupId>
+                <artifactId>jackson-mapper-asl</artifactId>
+                <version>${jackson-mapper-asl.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.glassfish.grizzly</groupId>

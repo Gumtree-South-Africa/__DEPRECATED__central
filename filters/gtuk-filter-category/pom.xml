@@ -17,15 +17,6 @@
     <dependencies>
         <dependency>
             <groupId>ecg.comaas</groupId>
-            <artifactId>core-runtime</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>gumtree-common</groupId>
-            <artifactId>util</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>ecg.comaas</groupId>
             <artifactId>gtuk-coremod-shared</artifactId>
         </dependency>
         <dependency>
@@ -35,6 +26,10 @@
         <dependency>
             <groupId>com.gumtree.api.category</groupId>
             <artifactId>read-client</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.codehaus.jackson</groupId>
+            <artifactId>jackson-mapper-asl</artifactId>
         </dependency>
         <dependency>
             <groupId>org.scala-lang</groupId>

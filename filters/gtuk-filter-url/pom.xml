@@ -19,7 +19,6 @@
             <groupId>ecg.comaas</groupId>
             <artifactId>gtuk-coremod-shared</artifactId>
         </dependency>
-
         <dependency>
             <groupId>ecg.comaas</groupId>
             <artifactId>core-integration-test-api</artifactId>

@@ -68,7 +68,6 @@
         <dependency>
             <groupId>gumtree-common</groupId>
             <artifactId>util</artifactId>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>ecg.comaas</groupId>

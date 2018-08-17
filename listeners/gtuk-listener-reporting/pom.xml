@@ -17,14 +17,9 @@
     <dependencies>
         <dependency>
             <groupId>ecg.comaas</groupId>
-            <artifactId>core-runtime</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>ecg.comaas</groupId>
             <artifactId>gtuk-coremod-shared</artifactId>
             <version>${project.version}</version>
         </dependency>
-
         <dependency>
             <groupId>com.sun.mail</groupId>
             <artifactId>javax.mail</artifactId>

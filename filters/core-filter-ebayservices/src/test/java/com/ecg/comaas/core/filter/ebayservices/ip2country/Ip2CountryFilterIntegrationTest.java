@@ -1,6 +1,8 @@
 package com.ecg.comaas.core.filter.ebayservices.ip2country;
 
+import com.ecg.comaas.core.filter.ebayservices.MockStateHolder;
 import com.ecg.comaas.core.filter.ebayservices.TestPropertiesUtils;
+import com.ecg.comaas.core.filter.ebayservices.userstate.UserStateFilterIntegrationTest;
 import com.ecg.replyts.core.api.model.conversation.ProcessingFeedback;
 import com.ecg.replyts.core.api.util.JsonObjects;
 import com.ecg.replyts.integration.test.MailBuilder;
@@ -8,6 +10,7 @@ import com.ecg.replyts.integration.test.MailInterceptor;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -21,8 +24,13 @@ public class Ip2CountryFilterIntegrationTest {
     @Rule
     public ReplyTsIntegrationTestRule itRule = new ReplyTsIntegrationTestRule(TestPropertiesUtils.getProperties(TENANT_EBAYK));
 
+    @BeforeClass
+    public static void initMockInterceptor() {
+        MockStateHolder.loadFromFile(UserStateFilterIntegrationTest.class.getResourceAsStream("/mockingInterceptor.config"));
+    }
+
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         ObjectNode config = JsonObjects.builder().attr("DEFAULT", 50).attr("DE", 0).attr("NL", 200).build();
         itRule.registerConfig(Ip2CountryFilterFactory.IDENTIFIER, config);
     }
