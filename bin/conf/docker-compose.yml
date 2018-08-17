@@ -41,7 +41,6 @@ services:
     image: mysql:5.7.21
     volumes:
       - ./mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
-    restart: always
     ports:
       - "3306:3306"
     environment:
