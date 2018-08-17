@@ -282,6 +282,8 @@ EOH
         SWIFT_USERNAME = "[[ .swift_username ]]"
         SWIFT_PASSWORD = "[[ .swift_password ]]"
         SWIFT_KEYSTONE = "https://keystone.[[ .region ]].cloud.ecg.so/v2.0"
+        ESAAS_USERNAME = "[[ .esaas_username ]]"
+        ESAAS_PASSWORD = "[[ .esaas_password ]]"
       }
 
       service {
