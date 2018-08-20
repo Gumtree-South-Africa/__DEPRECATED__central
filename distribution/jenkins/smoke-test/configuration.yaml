@@ -1,5 +1,5 @@
 tenants:
-  disabled: []
+  disabled: [mvca]
 smokeTest:
   version:
       lp:
