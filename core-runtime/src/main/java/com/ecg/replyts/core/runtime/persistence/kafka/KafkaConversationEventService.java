@@ -20,7 +20,7 @@ import java.util.Map;
 import java.util.Set;
 
 @Service
-@ConditionalOnProperty(name = "conversation.events.enabled", havingValue = "true")
+@ConditionalOnProperty(name = "conversation.events.enabled", havingValue = "true", matchIfMissing = true)
 public class KafkaConversationEventService implements ConversationEventService {
 
     private final QueueService queueService;

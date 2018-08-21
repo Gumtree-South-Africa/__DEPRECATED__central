@@ -10,7 +10,7 @@ import java.util.Map;
 import java.util.Set;
 
 @Service
-@ConditionalOnProperty(name = "conversation.events.enabled", havingValue = "false", matchIfMissing = true)
+@ConditionalOnProperty(name = "conversation.events.enabled", havingValue = "false")
 public class NoopConversationEventService implements ConversationEventService {
     @Override
     public void sendConversationCreatedEvent(String tenant, String adId, String conversationId, Map<String, String> metadata, Set<Conversation.Participant> participants, DateTime createAt) {

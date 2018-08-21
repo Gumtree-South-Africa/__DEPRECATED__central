@@ -1,5 +1,6 @@
 package com.ecg.replyts.core.runtime.mailparser;
 
+import com.datastax.driver.core.utils.UUIDs;
 import com.ecg.replyts.core.api.model.mail.Mail;
 import com.google.common.base.CharMatcher;
 import com.google.common.collect.ImmutableMultimap;
@@ -24,6 +25,10 @@ class HeaderDecoder {
             String normalizedName = normalizeHeaderName(f.getName());
             String value = decodeRfc2047(f.getBody());
             resultMapBdr.put(normalizedName, value);
+        }
+        //TODO: akalasok, should be remove with COMAAS-1118
+        if (mail.getHeader().getField("X-Message-ID") == null) {
+            resultMapBdr.put("X-Message-ID", UUIDs.timeBased().toString());
         }
         return resultMapBdr.build();
     }
