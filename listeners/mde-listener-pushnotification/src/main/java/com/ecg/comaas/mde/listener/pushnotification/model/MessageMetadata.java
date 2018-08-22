@@ -1,12 +1,14 @@
 package com.ecg.comaas.mde.listener.pushnotification.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
 
 import java.util.Map;
 import java.util.Objects;
 
+@JsonIgnoreProperties
 public class MessageMetadata {
 
     private String text;
