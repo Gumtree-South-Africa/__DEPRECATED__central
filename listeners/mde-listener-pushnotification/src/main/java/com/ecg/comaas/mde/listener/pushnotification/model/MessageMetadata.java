@@ -8,7 +8,7 @@ import com.google.common.base.MoreObjects;
 import java.util.Map;
 import java.util.Objects;
 
-@JsonIgnoreProperties
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class MessageMetadata {
 
     private String text;
