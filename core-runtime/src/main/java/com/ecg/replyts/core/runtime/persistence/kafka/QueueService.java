@@ -1,7 +1,11 @@
 package com.ecg.replyts.core.runtime.persistence.kafka;
 
 import com.google.protobuf.Message;
-import org.apache.kafka.clients.producer.*;
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.Producer;
+import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.slf4j.Logger;
@@ -14,6 +18,7 @@ import javax.annotation.PreDestroy;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
 
 import static java.lang.String.format;
 
@@ -53,8 +58,15 @@ public class QueueService {
         Producer<String, byte[]> producer = producers.computeIfAbsent(topicName, topic -> newProducer());
         ProducerRecord<String, byte[]> record = new ProducerRecord<>(topicName, null, key, payload);
 
-        producer.send(record);
-        producer.flush();
+        try {
+            RecordMetadata metadata = producer.send(record).get();
+            LOG.trace("record metadata: {}", metadata.toString());
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            LOG.warn("interrupted while waiting for the producer to send a record");
+        } catch (ExecutionException e) {
+            throw new RuntimeException("failed to send a kafka record", e);
+        }
     }
 
     private Producer<String, byte[]> newProducer() {
