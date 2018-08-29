@@ -1,5 +1,6 @@
 package com.ecg.messagecenter.gtau.robot.service;
 
+import com.datastax.driver.core.utils.UUIDs;
 import com.ecg.messagecenter.gtau.robot.api.requests.payload.MessagePayload;
 import com.ecg.messagecenter.gtau.robot.api.requests.payload.RichMessage;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
@@ -24,12 +25,23 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.Optional;
 
-import static com.ecg.messagecenter.gtau.robot.service.ContentUtils.Header.*;
+import static com.ecg.messagecenter.gtau.robot.service.ContentUtils.Header.AD;
+import static com.ecg.messagecenter.gtau.robot.service.ContentUtils.Header.FROM;
+import static com.ecg.messagecenter.gtau.robot.service.ContentUtils.Header.MESSAGE_LINKS;
+import static com.ecg.messagecenter.gtau.robot.service.ContentUtils.Header.MESSAGE_SENDER;
+import static com.ecg.messagecenter.gtau.robot.service.ContentUtils.Header.REPLY_CHANNEL;
+import static com.ecg.messagecenter.gtau.robot.service.ContentUtils.Header.RICH_TEXT_LINKS;
+import static com.ecg.messagecenter.gtau.robot.service.ContentUtils.Header.RICH_TEXT_MESSAGE;
+import static com.ecg.messagecenter.gtau.robot.service.ContentUtils.Header.ROBOT;
+import static com.ecg.messagecenter.gtau.robot.service.ContentUtils.Header.SKIP_RESPONSE_DATA;
+import static com.ecg.messagecenter.gtau.robot.service.ContentUtils.Header.SUBJECT;
 import static com.ecg.replyts.core.api.model.conversation.command.AddMessageCommandBuilder.anAddMessageCommand;
 
 public final class ContentUtils {
 
     private static final Logger LOG = LoggerFactory.getLogger(ContentUtils.class);
+
+    private static final String X_MESSAGE_ID = "X-Message-ID";
 
     private ContentUtils() {
     }
@@ -50,7 +62,9 @@ public final class ContentUtils {
                 .addHeader(ROBOT.key, ROBOT.value)
                 .addHeader(SKIP_RESPONSE_DATA.key, SKIP_RESPONSE_DATA.value)
                 .addHeader(REPLY_CHANNEL.key, REPLY_CHANNEL.value)
-                .addHeader(MESSAGE_LINKS.key, JSONSerializer.toJSON(payload.getLinks()).toString());
+                .addHeader(MESSAGE_LINKS.key, JSONSerializer.toJSON(payload.getLinks()).toString())
+                //TODO: akalasok, should be remove with COMAAS-1118
+                .addHeader(X_MESSAGE_ID, UUIDs.timeBased().toString());
 
         if (payload.getSender() != null) {
             builder.addHeader(MESSAGE_SENDER.key, JSONSerializer.toJSON(payload.getSender()).toString());
