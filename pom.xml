@@ -135,6 +135,7 @@
                 <repository>
                     <id>gtukNexus</id>
                     <url>file://${maven.multiModuleProjectDirectory}/repo/</url>
+                    <!--url>https://gtuk-nexus.es.dus1.cloud/nexus/content/repositories/public/</url-->
                     <releases>
                         <enabled>true</enabled>
                     </releases>
@@ -693,7 +694,7 @@
         <gt.category.api.client.version>${gt.version}</gt.category.api.client.version>
         <gumtree.dependencies.version>4.30712</gumtree.dependencies.version>
         <gt.replies.models.version>${gumtree.dependencies.version}</gt.replies.models.version>
-        <gt.gumshield.api.version>4.30712</gt.gumshield.api.version>
+        <gt.gumshield.api.version>4.36538</gt.gumshield.api.version>
         <gt.gumtree.common.version>${gumtree.dependencies.version}</gt.gumtree.common.version>
         <gt.comaas.models.version>1.8</gt.comaas.models.version>
         <gt.geoip.lib.version>1.0.0</gt.geoip.lib.version>
