@@ -94,7 +94,7 @@ void loadPropsIntoConsul(final String tenant, final String version, final String
     }
 }
 
-void deployNomad(final String tenant, final String environment, final String version, final String dc, final Integer nrOfInstancesHttp, final Integer nrOfInstancesNewMsg, final String providedPipelineBranch) {
+void deployNomad(final String tenant, final String environment, final String version, final String dc, final String providedPipelineBranch) {
     final String tenantShort = commonFunctions.getAlias(tenant)
 
     checkout scm: [$class: 'GitSCM', userRemoteConfigs: [[credentialsId: 'GITHUB', url: 'git@github.corp.ebay.com:ecg-comaas/central.git']], branches: [[name: providedPipelineBranch]]], poll: false
@@ -137,13 +137,9 @@ void deployNomad(final String tenant, final String environment, final String ver
             }
         }
 
-        // Have a maximum of 1/4th of the allocations restart at once, to reduce rebalancing load on Kafka
-        final Integer maxParallelHttp = nrOfInstancesHttp.intdiv(4) <= 1 ? 1 : nrOfInstancesHttp.intdiv(4)
-        final Integer maxParallelNewMsg = nrOfInstancesNewMsg.intdiv(4) <= 1 ? 1 : nrOfInstancesNewMsg.intdiv(4)
-
         final String hazelcastGroupName = UUID.randomUUID().toString()
 
-        final String vars = "-var-file=/deployment/environments/${environment}.tf " +
+        final String vars = "-var-file=/deployment/environments/${environment}/${tenantShort}.yaml " +
                 "-var='version=${version}' " +
                 "-var='urlprefixes=${urlprefixes}' " +
                 "-var='swift_username=${SWIFT_USERNAME}' " +
@@ -156,10 +152,6 @@ void deployNomad(final String tenant, final String environment, final String ver
                 "-var='tenant_short=${tenantShort}' " +
                 "-var='environment=${environment}' " +
                 "-var='region=${dc}' " +
-                "-var='api_count=${nrOfInstancesHttp}' " +
-                "-var='api_max_parallel=${maxParallelHttp}' " +
-                "-var='newmsg_count=${nrOfInstancesNewMsg}' " +
-                "-var='newmsg_max_parallel=${maxParallelNewMsg}' " +
                 "-var='hazelcast_group_name=${hazelcastGroupName}'"
         final String levantCmd = "docker run --network host --rm -v \$(pwd)/distribution/jenkins/deployment/:/deployment:ro jrasell/levant:0.0.4 levant"
 
@@ -168,8 +160,8 @@ void deployNomad(final String tenant, final String environment, final String ver
     }
 }
 
-void deployToEnv(final String tenant, final String environment, final String version, final String dc, final Integer nrOfInstancesHttp, final Integer nrOfInstancesNewMsg, final String providedPipelineBranch) {
-    deployNomad(tenant, environment, version, dc, nrOfInstancesHttp, nrOfInstancesNewMsg, providedPipelineBranch)
+void deployToEnv(final String tenant, final String environment, final String version, final String dc, final String providedPipelineBranch) {
+    deployNomad(tenant, environment, version, dc, providedPipelineBranch)
 }
 
 static boolean useLpVersionForProd(final String versionToDeploy, final String environmentShort) {
@@ -180,8 +172,6 @@ node("master") {
     checkout scm
 
     checkInputParameters(PROVIDED_VERSION, PROVIDED_ENV, PROVIDED_DC, PROVIDED_TENANT)
-
-    configFile = readYaml file: "distribution/jenkins/deployment/configuration.yaml"
 
     final String tenant = PROVIDED_TENANT
     final String environmentShort = PROVIDED_ENV
@@ -206,9 +196,6 @@ node("master") {
     }
 
     currentBuild.description = "$PROVIDED_TENANT/$dc/$versionToDeploy"
-
-    Integer nrOfInstancesHttp = environmentShort == 'lp' ? configFile.instances.lp : configFile.instances.prod.http[tenant] as Integer
-    Integer nrOfInstancesNewMsg = environmentShort == 'lp' ? configFile.instances.lp : configFile.instances.prod.newmsg[tenant] as Integer
 
     stage("Deploying") {
         node("$environmentShort && $dc") {
@@ -242,13 +229,13 @@ node("master") {
 
                     loadPropsIntoConsul(tenant, versionToDeploy, environmentShort)
 
-                    deployToEnv(tenant, environmentShort, versionToDeploy, dc, nrOfInstancesHttp, nrOfInstancesNewMsg, PROVIDED_PIPELINE_BRANCH as String)
+                    deployToEnv(tenant, environmentShort, versionToDeploy, dc, PROVIDED_PIPELINE_BRANCH as String)
 
                     commonFunctions.sendGrafanaMetric(commonFunctions.getAlias(tenant), dc, environmentShort, "finished", "deployed $versionToDeploy")
 
                     final String activeDcSlack = activeDcSlackString(tenant, dc, environmentShort)
                     final String slackMessage = "Comaas version `$versionToDeploy` for `$tenant` successfully deployed to " +
-                            "`$environmentShort` in `$dc` ${activeDcSlack} with ${nrOfInstancesHttp} API nodes, ${nrOfInstancesNewMsg} message ingesting nodes"
+                            "`$environmentShort` in `$dc` ${activeDcSlack}"
                     sendToSlack('#00FF00', tenant, slackMessage, environmentShort)
                 } catch (ex) {
                     deploymentFailed(tenant, versionToDeploy, dc, environmentShort, ex)

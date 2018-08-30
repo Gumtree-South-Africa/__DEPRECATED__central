@@ -5,11 +5,8 @@ job "comaas-[[ .tenant_short ]]" {
   type = "service"
 
   meta {
-    docker_image = "[[.registry_namespace]]/comaas-[[ .tenant ]]:[[.version]]"
-    restart_jenkins_job_nr = "[[.restart_jenkins_job_nr]]"
-    version = "[[.version]]"
-    esaas_username = "[[ .esaas_username ]]"
-    esaas_password = "[[ .esaas_password ]]"
+    docker_image = "[[ .docker_namespace ]]/comaas-[[ .tenant ]]:[[ .version ]]"
+    version = "[[ .version ]]"
   }
 
   update {
@@ -23,7 +20,7 @@ job "comaas-[[ .tenant_short ]]" {
 
   group "newmsg" {
 
-    count = [[.newmsg_count]]
+    count = [[ .newmsg.count ]]
 
     constraint {
       attribute = "${node.class}"
@@ -31,28 +28,28 @@ job "comaas-[[ .tenant_short ]]" {
     }
 
     update {
-      max_parallel = [[.newmsg_max_parallel]]
+      max_parallel = [[ .newmsg.max_parallel ]]
     }
 
     task "newmsg" {
       driver = "docker"
 
       config {
-        image = "[[.registry_namespace]]/comaas-[[ .tenant ]]:[[.version]]"
+        image = "[[ .docker_namespace ]]/comaas-[[ .tenant ]]:[[ .version ]]"
         network_mode = "host"
 
         auth {
-          username = "[[.docker_username]]"
-          password = "[[.docker_password]]"
+          username = "[[ .docker_username ]]"
+          password = "[[ .docker_password ]]"
         }
       }
 
       env {
-        HEAP_SIZE = "[[ .newmsg_heap_size ]]"
+        HEAP_SIZE = "[[ .newmsg.heap ]]"
         JAVA_OPTS = ""
         TENANT = "[[ .tenant ]]"
         MAIL_PROVIDER_STRATEGY = "kafka"
-        HAZELCAST_GROUP_NAME = "[[.hazelcast_group_name]]"
+        HAZELCAST_GROUP_NAME = "[[ .hazelcast_group_name ]]"
         SWIFT_USERNAME = "[[ .swift_username ]]"
         SWIFT_PASSWORD = "[[ .swift_password ]]"
         SWIFT_KEYSTONE = "https://keystone.[[ .region ]].cloud.ecg.so/v2.0"
@@ -63,7 +60,7 @@ job "comaas-[[ .tenant_short ]]" {
       service {
         name = "${JOB}"
         tags = [
-          "version-[[.version]]",
+          "version-[[ .version ]]",
           "newmsg"
         ]
       }
@@ -92,10 +89,11 @@ job "comaas-[[ .tenant_short ]]" {
       }
 
       resources {
-        cpu    = [[.newmsg_resources_cpu]]
-        memory = [[.newmsg_resources_mem]]
+        cpu    = [[ .newmsg.cpu ]]
+        memory = [[ .newmsg.memory ]]
         network {
           mbits = 100
+
           // keep this, Comaas needs it to start up
           port "http" {}
           port "hazelcast" {}
@@ -103,38 +101,10 @@ job "comaas-[[ .tenant_short ]]" {
         }
       }
     }
-
-    task "filebeat" {
-      driver = "docker"
-      config {
-        image = "ebayclassifiedsgroup/filebeat:5.6.4"
-        args = [
-          "-c", "/local/config/filebeat.yml"
-        ]
-
-        network_mode = "host"
-      }
-
-      template {
-        data = <<EOH
-[[ .filebeat_config ]]
-EOH
-        destination = "local/config/filebeat.yml"
-      }
-
-      resources {
-        cpu = 100
-        memory = 256
-        network {
-          mbits = 1
-        }
-      }
-    }
-  },
+  }
 
   group "http" {
-
-    count = [[.api_count]]
+    count = [[ .http.count ]]
 
     constraint {
       attribute = "${node.class}"
@@ -142,24 +112,24 @@ EOH
     }
 
     update {
-      max_parallel = [[.api_max_parallel]]
+      max_parallel = [[ .http.max_parallel ]]
     }
 
     task "http" {
       driver = "docker"
 
       config {
-        image = "[[.registry_namespace]]/comaas-[[ .tenant ]]:[[.version]]"
+        image = "[[ .docker_namespace ]]/comaas-[[ .tenant ]]:[[ .version ]]"
         network_mode = "host"
 
         auth {
-            username = "[[.docker_username]]"
-            password = "[[.docker_password]]"
+            username = "[[ .docker_username ]]"
+            password = "[[ .docker_password ]]"
         }
       }
 
       env {
-        HEAP_SIZE = "[[ .api_heap_size ]]"
+        HEAP_SIZE = "[[ .http.heap ]]"
         JAVA_OPTS = ""
         TENANT = "[[ .tenant ]]"
         HAZELCAST_GROUP_NAME = "[[.hazelcast_group_name]]"
@@ -212,8 +182,8 @@ EOH
       }
 
       resources {
-        cpu    = [[.api_resources_cpu]]
-        memory = [[.api_resources_mem]]
+        cpu    = [[ .http.cpu ]]
+        memory = [[ .http.memory ]]
         network {
             mbits = 100
             port "http" {}
@@ -222,37 +192,9 @@ EOH
         }
       }
     }
-
-    task "filebeat" {
-      driver = "docker"
-      config {
-        image = "ebayclassifiedsgroup/filebeat:5.6.4"
-        args = [
-          "-c", "/local/config/filebeat.yml"
-        ]
-
-        network_mode = "host"
-      }
-
-      template {
-        data = <<EOH
-[[ .filebeat_config ]]
-EOH
-        destination = "local/config/filebeat.yml"
-      }
-
-      resources {
-        cpu = 100
-        memory = 256
-        network {
-          mbits = 1
-        }
-      }
-    }
-  },
+  }
 
   group "cronjob" {
-
     count = 1
 
     constraint {
@@ -264,21 +206,21 @@ EOH
       driver = "docker"
 
       config {
-        image = "[[.registry_namespace]]/comaas-[[ .tenant ]]:[[.version]]"
+        image = "[[ .docker_namespace ]]/comaas-[[ .tenant ]]:[[ .version ]]"
         network_mode = "host"
 
         auth {
-          username = "[[.docker_username]]"
-          password = "[[.docker_password]]"
+          username = "[[ .docker_username ]]"
+          password = "[[ .docker_password ]]"
         }
       }
 
       env {
-        HEAP_SIZE = "[[ .cronjob_heap_size ]]"
+        HEAP_SIZE = "[[ .cronjob.heap ]]"
         JAVA_OPTS = ""
         TENANT = "[[ .tenant ]]"
         COMAAS_RUN_CRON_JOBS = "true"
-        HAZELCAST_GROUP_NAME = "[[.hazelcast_group_name]]"
+        HAZELCAST_GROUP_NAME = "[[ .hazelcast_group_name ]]"
         SWIFT_USERNAME = "[[ .swift_username ]]"
         SWIFT_PASSWORD = "[[ .swift_password ]]"
         SWIFT_KEYSTONE = "https://keystone.[[ .region ]].cloud.ecg.so/v2.0"
@@ -305,41 +247,14 @@ EOH
       }
 
       resources {
-        cpu    = [[.cronjob_resources_cpu]]
-        memory = [[.cronjob_resources_mem]]
+        cpu    = [[ .cronjob.cpu ]]
+        memory = [[ .cronjob.memory ]]
         network {
           mbits = 100
           // keep this, Comaas needs it to start up
           port "http" {}
           port "hazelcast" {}
           port "prometheus" {}
-        }
-      }
-    }
-
-    task "filebeat" {
-      driver = "docker"
-      config {
-        image = "ebayclassifiedsgroup/filebeat:5.6.4"
-        args = [
-          "-c", "/local/config/filebeat.yml"
-        ]
-
-        network_mode = "host"
-      }
-
-      template {
-        data = <<EOH
-[[ .filebeat_config ]]
-EOH
-        destination = "local/config/filebeat.yml"
-      }
-
-      resources {
-        cpu = 100
-        memory = 256
-        network {
-          mbits = 1
         }
       }
     }

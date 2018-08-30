@@ -57,14 +57,6 @@ String getOriginalVersion(final String tenantShort, final String env, final Stri
     ).trim()
 }
 
-Integer getMaxParallel(final String tenantShort, final String taskGroup) {
-    final Integer count = sh(
-            script: "curl -s nomad001:4646/v1/job/comaas-${tenantShort} | jq -r '.TaskGroups[] | select(.Name == \"${taskGroup}\") | .Count'",
-            returnStdout: true
-    ).trim()
-    return count.intdiv(4) <= 1 ? 1 : count.intdiv(4)
-}
-
 node("master") {
     checkInputParameters(PROVIDED_DC, PROVIDED_TENANT)
 
@@ -104,10 +96,6 @@ node("master") {
     stage("Restarting Comaas") {
         node("$environment && $dc") {
             final String version = getOriginalVersion(tenantShort, environment, dc)
-            final String restartJenkinsJob = env.BUILD_NUMBER
-
-            final Integer maxParallelNewMsg = getMaxParallel(tenantShort, "newmsg")
-            final Integer maxParallelHttp = getMaxParallel(tenantShort, "http")
 
             // Is this really necessary? Can we pass the files to the builder instead?
             checkout scm
@@ -151,7 +139,7 @@ node("master") {
                 }
 
                 final String hazelcastGroupName = UUID.randomUUID().toString()
-                final String vars = "-var-file=/deployment/environments/${environment}.tf " +
+                final String vars = "-var-file=/deployment/environments/${environment}/${tenantShort}.yaml " +
                             "-var='version=${version}' " +
                             "-var='urlprefixes=${urlprefixes}' " +"-var='swift_username=${SWIFT_USERNAME}' " +
                             "-var='swift_password=${SWIFT_PASSWORD}' " +
@@ -163,10 +151,7 @@ node("master") {
                             "-var='tenant_short=${tenantShort}' " +
                             "-var='environment=${environment}' " +
                             "-var='region=${dc}' " +
-                            "-var='api_max_parallel=${maxParallelHttp}' " +
-                            "-var='newmsg_max_parallel=${maxParallelNewMsg}' " +
-                            "-var='restart_jenkins_job_nr=${restartJenkinsJob}' "+
-                        "-var='hazelcast_group_name=${hazelcastGroupName}'"
+                            "-var='hazelcast_group_name=${hazelcastGroupName}'"
                 final String levantCmd = "docker run --network host --rm -v \$(pwd)/distribution/jenkins/deployment/:/deployment:ro jrasell/levant:0.0.4 levant"
 
                 sh "$levantCmd render ${vars} /deployment/comaas.nomad"
