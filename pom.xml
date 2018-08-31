@@ -692,7 +692,7 @@
         <gt.version>3.0-SNAPSHOT</gt.version>
         <gt.google.analytics.version>${gt.version}</gt.google.analytics.version>
         <gt.category.api.client.version>${gt.version}</gt.category.api.client.version>
-        <gumtree.dependencies.version>4.30712</gumtree.dependencies.version>
+        <gumtree.dependencies.version>4.36538</gumtree.dependencies.version>
         <gt.replies.models.version>${gumtree.dependencies.version}</gt.replies.models.version>
         <gt.gumshield.api.version>4.36538</gt.gumshield.api.version>
         <gt.gumtree.common.version>${gumtree.dependencies.version}</gt.gumtree.common.version>
