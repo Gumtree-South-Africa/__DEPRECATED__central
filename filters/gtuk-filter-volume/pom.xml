@@ -24,10 +24,6 @@
             <artifactId>util</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.gumtree.gumshield.api</groupId>
-            <artifactId>api-client</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.codehaus.jackson</groupId>
             <artifactId>jackson-mapper-asl</artifactId>
         </dependency>
@@ -40,16 +36,8 @@
             <artifactId>antlr-runtime</artifactId>
         </dependency>
         <dependency>
-            <groupId>ecg.comaas</groupId>
-            <artifactId>core-runtime</artifactId>
-        </dependency>
-        <dependency>
             <groupId>com.gumtree.comaas</groupId>
             <artifactId>comaas-domain</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.jboss.resteasy</groupId>
-            <artifactId>resteasy-jaxrs</artifactId>
         </dependency>
         <dependency>
             <groupId>com.gumtree.shared-commons</groupId>

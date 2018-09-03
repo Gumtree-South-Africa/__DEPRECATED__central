@@ -19,14 +19,12 @@
             <groupId>ecg.comaas</groupId>
             <artifactId>core-messagecenter</artifactId>
         </dependency>
+
         <dependency>
             <groupId>ecg.comaas</groupId>
             <artifactId>gtuk-coremod-shared</artifactId>
         </dependency>
-        <dependency>
-            <groupId>com.gumtree.gumshield.api</groupId>
-            <artifactId>api-client</artifactId>
-        </dependency>
+
         <dependency>
             <groupId>net.sf.json-lib</groupId>
             <artifactId>json-lib</artifactId>

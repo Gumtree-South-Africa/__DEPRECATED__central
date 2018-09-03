@@ -134,8 +134,8 @@
             <repositories>
                 <repository>
                     <id>gtukNexus</id>
-                    <url>file://${maven.multiModuleProjectDirectory}/repo/</url>
-                    <!--url>https://gtuk-nexus.es.dus1.cloud/nexus/content/repositories/public/</url-->
+                    <!--url>file://${maven.multiModuleProjectDirectory}/repo/</url-->
+                    <url>https://gtuk-nexus.es.dus1.cloud/nexus/repository/public/</url>
                     <releases>
                         <enabled>true</enabled>
                     </releases>
@@ -837,6 +837,14 @@
                         <groupId>commons-beanutils</groupId>
                         <artifactId>commons-beanutils</artifactId>
                     </exclusion>
+                    <exclusion>
+                        <groupId>org.codehaus.jackson</groupId>
+                        <artifactId>jackson-mapper-asl</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.codehaus.jackson</groupId>
+                        <artifactId>jackson-core-asl</artifactId>
+                    </exclusion>
                 </exclusions>
             </dependency>
             <dependency>
@@ -871,11 +879,19 @@
                         <groupId>org.jboss.resteasy</groupId>
                         <artifactId>resteasy-jackson-provider</artifactId>
                     </exclusion>
+                    <exclusion>
+                        <groupId>org.jboss.resteasy</groupId>
+                        <artifactId>resteasy-jaxrs</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.codehaus.jackson</groupId>
+                        <artifactId>jackson-mapper-asl</artifactId>
+                    </exclusion>
                 </exclusions>
             </dependency>
             <dependency>
                 <groupId>com.gumtree.gumshield.api</groupId>
-                <artifactId>api-client</artifactId>
+                <artifactId>model</artifactId>
                 <version>${gt.gumshield.api.version}</version>
             </dependency>
             <dependency>
@@ -950,14 +966,6 @@
                 <artifactId>resteasy-jackson-provider</artifactId>
                 <version>${resteasy-jaxrs.version}</version>
                 <exclusions>
-                    <exclusion>
-                        <groupId>org.codehaus.jackson</groupId>
-                        <artifactId>jackson-xc</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.codehaus.jackson</groupId>
-                        <artifactId>jackson-jaxrs</artifactId>
-                    </exclusion>
                     <exclusion>
                         <groupId>org.codehaus.jackson</groupId>
                         <artifactId>jackson-mapper-asl</artifactId>
