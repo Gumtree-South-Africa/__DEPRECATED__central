@@ -28,15 +28,10 @@
             <artifactId>core-runtime</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.gumtree.comaas</groupId>
-            <artifactId>comaas-domain</artifactId>
-        </dependency>
-        <dependency>
             <groupId>net.sf.opencsv</groupId>
             <artifactId>opencsv</artifactId>
             <version>2.3</version>
         </dependency>
-
         <dependency>
             <groupId>ecg.comaas</groupId>
             <artifactId>core-integration-test-api</artifactId>

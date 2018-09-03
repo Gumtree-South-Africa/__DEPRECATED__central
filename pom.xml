@@ -134,7 +134,6 @@
             <repositories>
                 <repository>
                     <id>gtukNexus</id>
-                    <!--url>file://${maven.multiModuleProjectDirectory}/repo/</url-->
                     <url>https://gtuk-nexus.es.dus1.cloud/nexus/repository/public/</url>
                     <releases>
                         <enabled>true</enabled>

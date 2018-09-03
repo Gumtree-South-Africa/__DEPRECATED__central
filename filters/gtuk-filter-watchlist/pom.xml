@@ -21,16 +21,6 @@
         </dependency>
 
         <dependency>
-            <groupId>com.gumtree.gumshield.api</groupId>
-            <artifactId>client</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>gumtree-common</groupId>
-            <artifactId>util</artifactId>
-        </dependency>
-
-        <dependency>
             <groupId>ecg.comaas</groupId>
             <artifactId>core-integration-test-api</artifactId>
             <scope>test</scope>
