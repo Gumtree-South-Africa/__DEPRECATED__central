@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 import java.util.stream.Stream;
 
 @Component
-@ConditionalOnProperty(name = "mail.provider.strategy", havingValue = "kafka", matchIfMissing = true)
+@ConditionalOnProperty(name = "mail.provider.strategy", havingValue = "kafka")
 public class KafkaMessageProcessingPoolManager extends MessageProcessingPoolManager {
     private final int newMailProcessingThreads;
     private final int retryProcessingThreads;
