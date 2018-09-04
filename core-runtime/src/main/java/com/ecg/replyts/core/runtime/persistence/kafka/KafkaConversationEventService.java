@@ -52,7 +52,7 @@ public class KafkaConversationEventService implements ConversationEventService {
                 .setConversationCreated(conversationCreated)
                 .build();
 
-        LOG.trace("ConversationCreatedEvent \n" + envelope);
+        LOG.info("ConversationCreatedEvent \n" + envelope);
         queueService.publishSynchronously(KafkaTopicService.CONVERSATION_EVENTS_KAFKA_TOPIC, conversationId, envelope);
     }
 
@@ -72,7 +72,7 @@ public class KafkaConversationEventService implements ConversationEventService {
                 .setMessageAdded(messageAdded)
                 .build();
 
-        LOG.trace("MessageAddedEvent \n" + envelope);
+        LOG.info("MessageAddedEvent \n" + envelope);
         queueService.publishSynchronously(KafkaTopicService.CONVERSATION_EVENTS_KAFKA_TOPIC, conversationId, envelope);
     }
 
@@ -88,7 +88,7 @@ public class KafkaConversationEventService implements ConversationEventService {
                 .setConversationDeleted(conversationDeleted)
                 .build();
 
-        LOG.trace("ConversationDeletedEvent \n" + envelope);
+        LOG.info("ConversationDeletedEvent \n" + envelope);
         queueService.publishSynchronously(KafkaTopicService.CONVERSATION_EVENTS_KAFKA_TOPIC, conversationId, envelope);
     }
 }
