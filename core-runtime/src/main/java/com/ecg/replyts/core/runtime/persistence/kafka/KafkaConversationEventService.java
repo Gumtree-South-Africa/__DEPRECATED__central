@@ -11,6 +11,8 @@ import com.google.common.base.Charsets;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Timestamp;
 import org.joda.time.DateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
@@ -22,6 +24,8 @@ import java.util.Set;
 @Service
 @ConditionalOnProperty(name = "conversation.events.enabled", havingValue = "true", matchIfMissing = true)
 public class KafkaConversationEventService implements ConversationEventService {
+
+    private static final Logger LOG = LoggerFactory.getLogger(KafkaConversationEventService.class);
 
     private final QueueService queueService;
 
@@ -48,6 +52,7 @@ public class KafkaConversationEventService implements ConversationEventService {
                 .setConversationCreated(conversationCreated)
                 .build();
 
+        LOG.trace("ConversationCreatedEvent \n" + envelope);
         queueService.publishSynchronously(KafkaTopicService.CONVERSATION_EVENTS_KAFKA_TOPIC, conversationId, envelope);
     }
 
@@ -67,6 +72,7 @@ public class KafkaConversationEventService implements ConversationEventService {
                 .setMessageAdded(messageAdded)
                 .build();
 
+        LOG.trace("MessageAddedEvent \n" + envelope);
         queueService.publishSynchronously(KafkaTopicService.CONVERSATION_EVENTS_KAFKA_TOPIC, conversationId, envelope);
     }
 
@@ -82,6 +88,7 @@ public class KafkaConversationEventService implements ConversationEventService {
                 .setConversationDeleted(conversationDeleted)
                 .build();
 
+        LOG.trace("ConversationDeletedEvent \n" + envelope);
         queueService.publishSynchronously(KafkaTopicService.CONVERSATION_EVENTS_KAFKA_TOPIC, conversationId, envelope);
     }
 }
