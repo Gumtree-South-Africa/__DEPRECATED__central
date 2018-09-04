@@ -56,17 +56,8 @@ public class QueueService {
 
     private void publishSynchronously(String topicName, String key, byte[] payload) {
         Producer<String, byte[]> producer = producers.computeIfAbsent(topicName, topic -> newProducer());
-        ProducerRecord<String, byte[]> record = new ProducerRecord<>(topicName, null, key, payload);
-
-        try {
-            RecordMetadata metadata = producer.send(record).get();
-            LOG.trace("record metadata: {}", metadata.toString());
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            LOG.warn("interrupted while waiting for the producer to send a record");
-        } catch (ExecutionException e) {
-            throw new RuntimeException("failed to send a kafka record", e);
-        }
+        producer.send(new ProducerRecord<>(topicName, null, key, payload));
+        producer.flush();
     }
 
     private Producer<String, byte[]> newProducer() {
