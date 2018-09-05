@@ -1,8 +1,0 @@
-tenants:
-  disabled: [mvca]
-smokeTest:
-  version:
-      lp:
-        default: 0.1.40
-      prod:
-        default: 0.1.40
