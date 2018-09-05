@@ -7,6 +7,7 @@ import com.ecg.replyts.app.postprocessorchain.PostProcessorChain;
 import com.ecg.replyts.app.preprocessorchain.PreProcessorManager;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;
+import com.ecg.replyts.core.api.model.conversation.MessageDirection;
 import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.processing.ConversationEventService;
 import com.ecg.replyts.core.api.processing.MessageFixer;
@@ -23,10 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static com.ecg.comaas.events.Conversation.*;
 import static java.util.Arrays.asList;
@@ -139,11 +137,15 @@ class ProcessingFlow {
         Message message = Iterables.getLast(conversation.getMessages());
         String cleanedMessage = contentOverridingPostProcessorService.getCleanedMessage(conversation, message);
         String messageId = message.getHeaders().get("X-Message-ID");
-        conversationEventService.sendMessageAddedEvent(shortTenant, conversation.getId(), getSenderUserId(conversation, message), messageId, cleanedMessage, message.getHeaders());
+        Optional<String> senderIdOpt = getSenderUserId(conversation, message);
+
+        conversationEventService.sendMessageAddedEvent(shortTenant, conversation.getId(), senderIdOpt, messageId, cleanedMessage, message.getHeaders());
     }
 
-    private String getSenderUserId(Conversation conversation, Message message) {
-        return conversation.getUserId(message.getMessageDirection().getFromRole());
+    private Optional<String> getSenderUserId(Conversation conversation, Message message) {
+        return message.getMessageDirection() == MessageDirection.BUYER_TO_SELLER
+                ? userIdentifierService.getBuyerUserId(conversation.getCustomValues())
+                : userIdentifierService.getSellerUserId(conversation.getCustomValues());
     }
 
     public Set<Participant> getParticipants(Conversation conversation) {

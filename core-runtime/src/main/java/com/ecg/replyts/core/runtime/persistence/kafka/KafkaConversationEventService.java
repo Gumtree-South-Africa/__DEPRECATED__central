@@ -11,17 +11,22 @@ import com.google.common.base.Charsets;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Timestamp;
 import org.joda.time.DateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 @Service
 @ConditionalOnProperty(name = "conversation.events.enabled", havingValue = "true", matchIfMissing = true)
 public class KafkaConversationEventService implements ConversationEventService {
+
+    private static final Logger LOG = LoggerFactory.getLogger(KafkaConversationEventService.class);
 
     private final QueueService queueService;
 
@@ -48,25 +53,29 @@ public class KafkaConversationEventService implements ConversationEventService {
                 .setConversationCreated(conversationCreated)
                 .build();
 
+        LOG.trace("ConversationCreatedEvent: \n" + envelope);
         queueService.publishSynchronously(KafkaTopicService.CONVERSATION_EVENTS_KAFKA_TOPIC, conversationId, envelope);
     }
 
-    public void sendMessageAddedEvent(String tenant, String conversationId, String senderUserId, String messageId, String message, Map<String, String> metadata) {
-        MessageAdded messageAdded = MessageAdded.newBuilder()
+    public void sendMessageAddedEvent(String tenant, String conversationId, Optional<String> senderUserId, String messageId, String message, Map<String, String> metadata) {
+        MessageAdded.Builder builder = MessageAdded.newBuilder()
                 .setId(UUID.newBuilder()
                         .setUuid(messageId)
                         .build())
-                .setSenderUserId(senderUserId)
                 .setText(ByteString.copyFrom(message, Charsets.UTF_8))
-                .putAllMetadata(metadata)
-                .build();
+                .putAllMetadata(metadata);
+
+        if (senderUserId.isPresent()) {
+            builder.setSenderUserId(senderUserId.get());
+        }
 
         Envelope envelope = Envelope.newBuilder()
                 .setTenant(tenant)
                 .setConversationId(conversationId)
-                .setMessageAdded(messageAdded)
+                .setMessageAdded(builder.build())
                 .build();
 
+        LOG.trace("MessageAddedEvent: \n" + envelope);
         queueService.publishSynchronously(KafkaTopicService.CONVERSATION_EVENTS_KAFKA_TOPIC, conversationId, envelope);
     }
 
@@ -82,6 +91,7 @@ public class KafkaConversationEventService implements ConversationEventService {
                 .setConversationDeleted(conversationDeleted)
                 .build();
 
+        LOG.trace("ConversationDeleteEvent: \n" + envelope);
         queueService.publishSynchronously(KafkaTopicService.CONVERSATION_EVENTS_KAFKA_TOPIC, conversationId, envelope);
     }
 }
