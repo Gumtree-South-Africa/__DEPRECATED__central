@@ -6,6 +6,7 @@ import com.ecg.replyts.core.runtime.logging.MDCConstants;
 import com.ecg.replyts.core.runtime.persistence.kafka.KafkaTopicService;
 import com.ecg.replyts.core.runtime.persistence.kafka.QueueService;
 import com.google.protobuf.Timestamp;
+import org.apache.kafka.clients.consumer.CommitFailedException;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.errors.WakeupException;
@@ -18,9 +19,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 
-import static com.ecg.replyts.core.runtime.prometheus.MessageProcessingMetrics.incMsgAbandonedCounter;
-import static com.ecg.replyts.core.runtime.prometheus.MessageProcessingMetrics.incMsgRetriedCounter;
-import static com.ecg.replyts.core.runtime.prometheus.MessageProcessingMetrics.incMsgUnparseableCounter;
+import static com.ecg.replyts.core.runtime.prometheus.MessageProcessingMetrics.*;
 
 @NotThreadSafe
 abstract class KafkaMessageProcessor implements MessageProcessor {
@@ -73,24 +72,25 @@ abstract class KafkaMessageProcessor implements MessageProcessor {
                 decodeMessage(messageRecord).ifPresent(message -> {
                     try {
                         processMessage(message);
+                        doCommitSync();
                     } catch (HangingThreadException e) {
                         commitAndShutdown();
-                    } finally {
-                        consumer.commitSync();
                     }
                 });
             });
-        } catch (WakeupException ignored) {
+        } catch (WakeupException e) {
             // This exception is raised when the consumer is in its poll() loop, waking it up. We can ignore it here,
             // because this very likely means that we are shutting down Comaas.
+            LOG.debug("Process next: ", e);
         } catch (Exception e) {
             closeConsumer();
+            LOG.debug("Process next failed: ", e);
         }
     }
 
     private void commitAndShutdown() {
         try {
-            consumer.commitSync();
+            doCommitSync();
             closeConsumer();
         } finally {
             stopApplication();
@@ -178,5 +178,22 @@ abstract class KafkaMessageProcessor implements MessageProcessor {
     private void failMessage(final byte[] payload, final Exception e) {
         LOG.error("Could not handle message, writing raw value to failed topic", e);
         queueService.publishSynchronously(KafkaTopicService.getTopicFailed(shortTenant), payload);
+    }
+
+    private void doCommitSync() {
+        try {
+            consumer.commitSync();
+        } catch (WakeupException e) {
+            // we're shutting down, but finish the commit first and then
+            // rethrow the exception so that the main loop can exit
+            LOG.debug("Commit sync: ", e);
+            doCommitSync();
+            throw e;
+        } catch (CommitFailedException e) {
+            // the commit failed with an unrecoverable error. if there is any
+            // internal state which depended on the commit, you can clean it
+            // up here. otherwise it's reasonable to ignore the error and go on
+            LOG.debug("Commit sync failed", e);
+        }
     }
 }

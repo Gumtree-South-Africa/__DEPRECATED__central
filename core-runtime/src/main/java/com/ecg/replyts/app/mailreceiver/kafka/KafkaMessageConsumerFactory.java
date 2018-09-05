@@ -45,6 +45,10 @@ class KafkaMessageConsumerFactory {
         // the time Comaas is allowed to take before the broker takes away this partition. The default is 5m.
         props.put(ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG, maxPollIntervalMs);
 
+        // Taking into account that we commit offset manually (see com.ecg.replyts.app.mailreceiver.kafka.KafkaMessageProcessor.doCommitSync)
+        // autocommit in background can lead to unexpected behavior on consuming side
+        props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
+
         final KafkaConsumer<String, byte[]> consumer = new KafkaConsumer<>(props);
         consumer.subscribe(Collections.singletonList(topicName));
         return consumer;
