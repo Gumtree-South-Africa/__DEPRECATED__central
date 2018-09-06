@@ -4,6 +4,7 @@ import com.google.protobuf.Message;
 import org.apache.kafka.clients.producer.*;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.apache.kafka.common.serialization.StringSerializer;
+import org.elasticsearch.common.UUIDs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -13,6 +14,7 @@ import javax.annotation.Nullable;
 import javax.annotation.PreDestroy;
 import java.util.Map;
 import java.util.Properties;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 
@@ -72,7 +74,7 @@ public class QueueService {
         String allocId = System.getenv("NOMAD_ALLOC_ID");
         if (allocId != null) {
             long threadId = Thread.currentThread().getId();
-            props.put(ProducerConfig.CLIENT_ID_CONFIG, format("%s-%d", allocId, threadId));
+            props.put(ProducerConfig.CLIENT_ID_CONFIG, format("%s-%d-%s", allocId, threadId, UUID.randomUUID()));
         }
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class.getName());
