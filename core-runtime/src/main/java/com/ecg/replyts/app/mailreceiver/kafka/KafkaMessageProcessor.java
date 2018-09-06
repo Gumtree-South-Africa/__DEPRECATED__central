@@ -81,9 +81,9 @@ abstract class KafkaMessageProcessor implements MessageProcessor {
         } catch (WakeupException e) {
             // This exception is raised when the consumer is in its poll() loop, waking it up. We can ignore it here,
             // because this very likely means that we are shutting down Comaas.
-            LOG.debug("Process next: ", e);
+            LOG.debug("WakeupException process next", e);
         } catch (Exception e) {
-            LOG.error("Process next failed: ", e);
+            LOG.error("Process next failed", e);
         }
     }
 
@@ -169,13 +169,13 @@ abstract class KafkaMessageProcessor implements MessageProcessor {
     // After n retries, we abandon the message by putting it in the abandoned topic
     void abandonMessage(final Message retryableMessage, final Exception e) {
         incMsgAbandonedCounter();
-        LOG.error("Mail processing abandoned for message with correlationId {}", retryableMessage.getCorrelationId(), e);
+        LOG.warn("Mail processing abandoned for message with correlationId {}", retryableMessage.getCorrelationId(), e);
         publishToTopic(KafkaTopicService.getTopicAbandoned(shortTenant), retryableMessage);
     }
 
     // Don't know what to do... Put it in the failed queue! Most likely unparseable json
     private void failMessage(final byte[] payload, final Exception e) {
-        LOG.error("Could not handle message, writing raw value to failed topic", e);
+        LOG.warn("Could not handle message, writing raw value to failed topic", e);
         queueService.publishSynchronously(KafkaTopicService.getTopicFailed(shortTenant), payload);
     }
 
@@ -185,7 +185,7 @@ abstract class KafkaMessageProcessor implements MessageProcessor {
         } catch (WakeupException e) {
             // we're shutting down, but finish the commit first and then
             // rethrow the exception so that the main loop can exit
-            LOG.debug("Commit sync: ", e);
+            LOG.debug("WakeupException in commit sync", e);
             doCommitSync();
             throw e;
         } catch (CommitFailedException e) {
