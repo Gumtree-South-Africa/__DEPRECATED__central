@@ -84,7 +84,7 @@ abstract class KafkaMessageProcessor implements MessageProcessor {
             LOG.debug("Process next: ", e);
         } catch (Exception e) {
             closeConsumer();
-            LOG.debug("Process next failed: ", e);
+            LOG.warn("Process next failed: ", e);
         }
     }
 

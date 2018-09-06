@@ -27,6 +27,9 @@ public class QueueService {
     @Value("${kafka.core.servers}")
     private String bootstrapServers;
 
+    @Value("${kafka.core.max.request.size:16000000}") // 16 mb
+    private int maxRequestSize;
+
     private Map<String, Producer<String, byte[]>> producers = new ConcurrentHashMap<>();
 
     @PreDestroy
@@ -71,6 +74,7 @@ public class QueueService {
         Properties props = new Properties();
 
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+        props.put(ProducerConfig.MAX_REQUEST_SIZE_CONFIG, maxRequestSize); // 16 Mb
         String allocId = System.getenv("NOMAD_ALLOC_ID");
         if (allocId != null) {
             long threadId = Thread.currentThread().getId();
