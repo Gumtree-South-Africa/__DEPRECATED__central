@@ -83,8 +83,7 @@ abstract class KafkaMessageProcessor implements MessageProcessor {
             // because this very likely means that we are shutting down Comaas.
             LOG.debug("Process next: ", e);
         } catch (Exception e) {
-            closeConsumer();
-            LOG.warn("Process next failed: ", e);
+            LOG.error("Process next failed: ", e);
         }
     }
 
