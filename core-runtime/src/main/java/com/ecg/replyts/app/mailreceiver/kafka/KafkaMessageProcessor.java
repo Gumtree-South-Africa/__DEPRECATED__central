@@ -88,6 +88,8 @@ abstract class KafkaMessageProcessor implements MessageProcessor {
             // because this very likely means that we are shutting down Comaas.
             LOG.debug("WakeupException process next", e);
         } catch (Exception e) {
+            // In cause we failed to write to retry queue we are likely to fail to make progress.
+            // Considering this is fine.  Failing to write to abandoned queue would not stop the processing.
             LOG.error("Process next failed", e);
         }
     }
@@ -173,9 +175,13 @@ abstract class KafkaMessageProcessor implements MessageProcessor {
 
     // After n retries, we abandon the message by putting it in the abandoned topic
     void abandonMessage(final Message retryableMessage, final Exception e) {
-        incMsgAbandonedCounter();
-        LOG.warn("Mail processing abandoned for message with correlationId {}", retryableMessage.getCorrelationId(), e);
-        publishToTopic(KafkaTopicService.getTopicAbandoned(shortTenant), retryableMessage);
+        try {
+            incMsgAbandonedCounter();
+            LOG.warn("Mail processing abandoned for message with correlationId {}", retryableMessage.getCorrelationId(), e);
+            publishToTopic(KafkaTopicService.getTopicAbandoned(shortTenant), retryableMessage);
+        } catch (Exception failedEx) {
+            LOG.error("Failed to write message to abandon queue", failedEx);
+        }
     }
 
     // Don't know what to do... Put it in the failed queue! Most likely unparseable json
