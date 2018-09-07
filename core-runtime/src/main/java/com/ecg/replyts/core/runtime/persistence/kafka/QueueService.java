@@ -1,13 +1,10 @@
 package com.ecg.replyts.core.runtime.persistence.kafka;
 
 import com.google.protobuf.Message;
-import org.apache.kafka.clients.producer.KafkaProducer;
-import org.apache.kafka.clients.producer.Producer;
-import org.apache.kafka.clients.producer.ProducerConfig;
-import org.apache.kafka.clients.producer.ProducerRecord;
-import org.apache.kafka.clients.producer.RecordMetadata;
+import org.apache.kafka.clients.producer.*;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.apache.kafka.common.serialization.StringSerializer;
+import org.elasticsearch.common.UUIDs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,6 +14,7 @@ import javax.annotation.Nullable;
 import javax.annotation.PreDestroy;
 import java.util.Map;
 import java.util.Properties;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 
@@ -28,6 +26,9 @@ public class QueueService {
 
     @Value("${kafka.core.servers}")
     private String bootstrapServers;
+
+    @Value("${kafka.core.max.request.size:16000000}") // 16 mb
+    private int maxRequestSize;
 
     private Map<String, Producer<String, byte[]>> producers = new ConcurrentHashMap<>();
 
@@ -56,18 +57,28 @@ public class QueueService {
 
     private void publishSynchronously(String topicName, String key, byte[] payload) {
         Producer<String, byte[]> producer = producers.computeIfAbsent(topicName, topic -> newProducer());
-        producer.send(new ProducerRecord<>(topicName, null, key, payload));
-        producer.flush();
+        ProducerRecord<String, byte[]> record = new ProducerRecord<>(topicName, null, key, payload);
+
+        try {
+            RecordMetadata metadata = producer.send(record).get();
+            LOG.trace("record metadata: {}", metadata.toString());
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            LOG.warn("interrupted while waiting for the producer to send a record");
+        } catch (ExecutionException e) {
+            throw new RuntimeException("failed to send a kafka record", e);
+        }
     }
 
     private Producer<String, byte[]> newProducer() {
         Properties props = new Properties();
 
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+        props.put(ProducerConfig.MAX_REQUEST_SIZE_CONFIG, maxRequestSize); // 16 Mb
         String allocId = System.getenv("NOMAD_ALLOC_ID");
         if (allocId != null) {
             long threadId = Thread.currentThread().getId();
-            props.put(ProducerConfig.CLIENT_ID_CONFIG, format("%s-%d", allocId, threadId));
+            props.put(ProducerConfig.CLIENT_ID_CONFIG, format("%s-%d-%s", allocId, threadId, UUID.randomUUID()));
         }
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class.getName());

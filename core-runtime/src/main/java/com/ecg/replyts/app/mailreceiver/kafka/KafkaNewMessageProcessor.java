@@ -105,9 +105,9 @@ public class KafkaNewMessageProcessor extends KafkaMessageProcessor {
             executor.shutdownNow();
             try {
                 if (executor.awaitTermination(messageTaskCancellationTimeoutMs, TimeUnit.MILLISECONDS)) {
-                    retryOrAbandon(message, new Exception("Message processing timed out"));
+                    retryOrAbandon(message, new RuntimeException("Message processing timed out"));
                 } else {
-                    abandonMessage(message, new Exception("Shutting down comaas since we could not stop message processing in time"));
+                    abandonMessage(message, new RuntimeException("Shutting down comaas since we could not stop message processing in time"));
                     throw new HangingThreadException();
                 }
 
