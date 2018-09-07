@@ -1,7 +1,9 @@
 package com.ecg.replyts.app.mailreceiver.kafka;
 
+import com.codahale.metrics.Counter;
 import com.ecg.comaas.protobuf.MessageOuterClass.Message;
 import com.ecg.replyts.app.mailreceiver.MessageProcessor;
+import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.logging.MDCConstants;
 import com.ecg.replyts.core.runtime.persistence.kafka.KafkaTopicService;
 import com.ecg.replyts.core.runtime.persistence.kafka.QueueService;
@@ -24,6 +26,8 @@ import static com.ecg.replyts.core.runtime.prometheus.MessageProcessingMetrics.*
 @NotThreadSafe
 abstract class KafkaMessageProcessor implements MessageProcessor {
     private static final Logger LOG = LoggerFactory.getLogger(KafkaMessageProcessor.class);
+
+    private static final Counter MAIL_PROCESSING_TIMEDOUT_COUNTER = TimingReports.newCounter("mail-processing-timedout");
 
     private static final long KAFKA_POLL_TIMEOUT_MS = 1000;
 
@@ -74,6 +78,7 @@ abstract class KafkaMessageProcessor implements MessageProcessor {
                         processMessage(message);
                         doCommitSync();
                     } catch (HangingThreadException e) {
+                        MAIL_PROCESSING_TIMEDOUT_COUNTER.inc();
                         commitAndShutdown();
                     }
                 });
