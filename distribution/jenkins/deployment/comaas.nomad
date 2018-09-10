@@ -43,6 +43,8 @@ job "comaas-[[ .tenant_short ]]" {
           password = "[[ .docker_password ]]"
         }
       }
+      
+      shutdown_delay = "5s"
 
       env {
         HEAP_SIZE = "[[ .newmsg.heap ]]"
