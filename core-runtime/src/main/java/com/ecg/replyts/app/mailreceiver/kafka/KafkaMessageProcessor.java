@@ -8,6 +8,7 @@ import com.ecg.replyts.core.runtime.logging.MDCConstants;
 import com.ecg.replyts.core.runtime.persistence.kafka.KafkaTopicService;
 import com.ecg.replyts.core.runtime.persistence.kafka.QueueService;
 import com.google.protobuf.Timestamp;
+import kafka.common.ThreadShutdownException;
 import org.apache.kafka.clients.consumer.CommitFailedException;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -20,6 +21,7 @@ import java.io.IOException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
+import java.util.concurrent.ExecutionException;
 
 import static com.ecg.replyts.core.runtime.prometheus.MessageProcessingMetrics.*;
 
@@ -79,7 +81,8 @@ abstract class KafkaMessageProcessor implements MessageProcessor {
                         doCommitSync();
                     } catch (HangingThreadException e) {
                         MAIL_PROCESSING_TIMEDOUT_COUNTER.inc();
-                        commitAndShutdown();
+                        doCommitSync();
+                        shutdown();
                     }
                 });
             });
@@ -94,9 +97,8 @@ abstract class KafkaMessageProcessor implements MessageProcessor {
         }
     }
 
-    private void commitAndShutdown() {
+    private void shutdown() {
         try {
-            doCommitSync();
             closeConsumer();
         } finally {
             stopApplication();
@@ -134,7 +136,11 @@ abstract class KafkaMessageProcessor implements MessageProcessor {
     protected abstract void processMessage(Message message);
 
     private void publishToTopic(final String topic, final Message retryableMessage) {
-        queueService.publishSynchronously(topic, retryableMessage);
+        try {
+            queueService.publishSynchronously(topic, retryableMessage);
+        } catch (Exception ex) {
+            LOG.error("Failed to publish message to retry topic!", ex);
+        }
     }
 
     // Some messages are unparseable, so we don't even retry, instead they go on the unparseable topic
@@ -204,6 +210,8 @@ abstract class KafkaMessageProcessor implements MessageProcessor {
             // internal state which depended on the commit, you can clean it
             // up here. otherwise it's reasonable to ignore the error and go on
             LOG.debug("Commit sync failed", e);
+        } catch (Exception e) {
+            LOG.warn("Commit sync failed", e);
         }
     }
 }

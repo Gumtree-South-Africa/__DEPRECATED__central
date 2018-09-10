@@ -194,7 +194,7 @@ public class KafkaNewMessageProcessorTest {
         assertThat(topicNameCaptor.getValue()).isEqualTo(TOPIC_ABANDONED);
         assertThat(retryableMessageCaptor.getValue()).isEqualToComparingFieldByField(wanted);
         verify(consumer).commitSync();
-        verify(consumer).close();
+        assertThat(consumer.closed()).isTrue();
     }
 
     @Test

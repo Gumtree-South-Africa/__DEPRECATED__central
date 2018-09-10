@@ -102,20 +102,20 @@ public class KafkaNewMessageProcessor extends KafkaMessageProcessor {
             LOG.debug("Processed message with correlation id {} successfully", message.getCorrelationId());
         } catch (TimeoutException e) {
             LOG.info("Message processing time exceeded {} seconds. Trying to stop the thread", messageProcessingTimeoutMs);
-            executor.shutdownNow();
             try {
+                executor.shutdownNow();
                 if (executor.awaitTermination(messageTaskCancellationTimeoutMs, TimeUnit.MILLISECONDS)) {
                     retryOrAbandon(message, new RuntimeException("Message processing timed out"));
                 } else {
                     abandonMessage(message, new RuntimeException("Shutting down comaas since we could not stop message processing in time"));
                     throw new HangingThreadException();
                 }
-
             } catch (InterruptedException e1) {
                 throw new HangingThreadException();
+            } finally {
+                //create new executor for next message
+                executor = createMessageProcessingExecutor();
             }
-            //create new executor for next message
-            executor = createMessageProcessingExecutor();
         } catch (InterruptedException e) {
             retryOrAbandon(message, e);
             Thread.currentThread().interrupt();
