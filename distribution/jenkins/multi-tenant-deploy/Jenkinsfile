@@ -16,7 +16,7 @@ banner= """```
 """
 
 def checkInputParameters(providedVersion, providedTenants) {
-    if (providedVersion != '' && !(providedVersion =~ /^\d{4}\.\d{2}\..+/)) {
+    if (! providedVersion?.trim() || providedVersion != '' && !(providedVersion =~ /^\d{4}\.\d{2}\..+/)) {
         error("Provided version does not have the form 'YYYY.mm.xxx', or is empty")
     }
     if( ! providedTenants?.trim()) {
