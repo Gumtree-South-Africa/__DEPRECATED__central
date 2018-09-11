@@ -3,13 +3,23 @@ package com.ecg.messagebox.service;
 import com.datastax.driver.core.utils.UUIDs;
 import com.ecg.messagebox.controllers.requests.PartnerMessagePayload;
 import com.ecg.messagebox.events.MessageAddedEventProcessor;
-import com.ecg.messagebox.model.*;
+import com.ecg.messagebox.model.Attachment;
+import com.ecg.messagebox.model.ConversationMetadata;
+import com.ecg.messagebox.model.ConversationThread;
+import com.ecg.messagebox.model.ImmutableAttachment;
+import com.ecg.messagebox.model.Message;
+import com.ecg.messagebox.model.MessageMetadata;
+import com.ecg.messagebox.model.MessageNotification;
+import com.ecg.messagebox.model.MessageType;
+import com.ecg.messagebox.model.Participant;
+import com.ecg.messagebox.model.PostBox;
+import com.ecg.messagebox.model.Visibility;
 import com.ecg.messagebox.persistence.CassandraPostBoxRepository;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;
 import com.ecg.replyts.core.api.model.conversation.UserUnreadCounts;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
-import com.ecg.replyts.core.runtime.cluster.Guids;
+import com.ecg.replyts.core.runtime.cluster.ConversationGUID;
 import com.ecg.replyts.core.runtime.identifier.UserIdentifierService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,7 +27,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static com.ecg.messagebox.model.ParticipantRole.BUYER;
@@ -189,7 +203,7 @@ public class CassandraPostBoxService implements PostBoxService {
         List<String> conversationIds = getConversationsById(buyer.getUserId(), payload.getAdId(), 1);
         boolean createNewConversation = conversationIds.isEmpty();
         String conversationId = conversationIds.stream().findAny()
-                .orElse(Guids.next());
+                .orElse(ConversationGUID.next());
 
         MessageDirection messageDirection = getMessageDirection(buyer, seller, payload.getSenderUserId());
         boolean increaseBuyerUnreadCount = messageDirection == MessageDirection.SELLER_TO_BUYER;

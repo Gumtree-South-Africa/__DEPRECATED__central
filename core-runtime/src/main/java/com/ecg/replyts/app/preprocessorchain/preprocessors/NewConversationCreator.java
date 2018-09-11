@@ -6,7 +6,7 @@ import com.ecg.replyts.core.api.model.conversation.command.NewConversationComman
 import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.ecg.replyts.core.runtime.TimingReports;
-import com.ecg.replyts.core.runtime.cluster.Guids;
+import com.ecg.replyts.core.runtime.cluster.ConversationGUID;
 import com.ecg.replyts.core.runtime.logging.MDCConstants;
 import com.ecg.replyts.core.runtime.persistence.conversation.DefaultMutableConversation;
 import org.slf4j.Logger;
@@ -44,7 +44,7 @@ public class NewConversationCreator {
         String seller = mail.getDeliveredTo();
         String sellerSecret = uniqueConversationSecret.nextSecret();
 
-        NewConversationCommand newConversationBuilderCommand = aNewConversationCommand(Guids.next()).
+        NewConversationCommand newConversationBuilderCommand = aNewConversationCommand(ConversationGUID.next()).
                 withAdId(mail.getAdId()).
                 withBuyer(buyer, buyerSecret).
                 withSeller(seller, sellerSecret).

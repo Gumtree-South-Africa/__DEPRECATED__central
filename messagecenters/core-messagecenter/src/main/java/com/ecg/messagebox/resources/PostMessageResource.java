@@ -1,7 +1,6 @@
 package com.ecg.messagebox.resources;
 
 import com.datastax.driver.core.utils.UUIDs;
-import com.ecg.comaas.protobuf.MessageOuterClass;
 import com.ecg.comaas.events.Conversation;
 import com.ecg.comaas.protobuf.MessageOuterClass;
 import com.ecg.comaas.protobuf.MessageOuterClass.Message;
@@ -25,7 +24,7 @@ import com.ecg.replyts.core.api.model.conversation.event.ConversationCreatedEven
 import com.ecg.replyts.core.api.persistence.ConversationIndexKey;
 import com.ecg.replyts.core.api.processing.ConversationEventService;
 import com.ecg.replyts.core.api.util.ConversationEventConverter;
-import com.ecg.replyts.core.runtime.cluster.Guids;
+import com.ecg.replyts.core.runtime.cluster.ConversationGUID;
 import com.ecg.replyts.core.runtime.cluster.XidFactory;
 import com.ecg.replyts.core.runtime.identifier.UserIdentifierService;
 import com.ecg.replyts.core.runtime.persistence.conversation.MutableConversationRepository;
@@ -58,7 +57,14 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.Instant;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.TreeMap;
 
 import static com.ecg.messagebox.model.ParticipantRole.BUYER;
 import static com.ecg.messagebox.model.ParticipantRole.SELLER;
@@ -145,7 +151,7 @@ public class PostMessageResource {
         customValues.put(userIdentifierService.getBuyerUserIdName(), buyer.getUserId());
         customValues.put(userIdentifierService.getSellerUserIdName(), seller.getUserId());
 
-        NewConversationCommand newConversationBuilderCommand = aNewConversationCommand(Guids.next())
+        NewConversationCommand newConversationBuilderCommand = aNewConversationCommand(ConversationGUID.next())
                 .withAdId(adId)
                 .withBuyer(buyer.getEmail(), uniqueConversationSecret.nextSecret())
                 .withSeller(seller.getEmail(), uniqueConversationSecret.nextSecret())
