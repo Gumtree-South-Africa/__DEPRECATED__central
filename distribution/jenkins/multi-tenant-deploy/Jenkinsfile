@@ -1,0 +1,115 @@
+#!/usr/bin/env groovy
+
+library "commonFunctions@${PROVIDED_PIPELINE_BRANCH}"
+
+banner= """```                                                                                                 
+######                                    
+#     # ###### #####  #       ####  #   # 
+#     # #      #    # #      #    #  # #  
+#     # #####  #    # #      #    #   #   
+#     # #      #####  #      #    #   #   
+#     # #      #      #      #    #   #   
+######  ###### #      ######  ####    #   
+
+```
+
+"""
+
+def checkInputParameters(providedVersion, providedTenants) {
+    if (providedVersion != '' && !(providedVersion =~ /^\d{4}\.\d{2}\..+/)) {
+        error("Provided version does not have the form 'YYYY.mm.xxx', or is empty")
+    }
+    if( ! providedTenants?.trim()) {
+        error("Must specify the tenant(s). Provided tenants is empty")
+    }
+}
+
+void sendToSlack(final String colour, final String message, final String env) {
+    if (env == 'PROD' || env == 'ALL') {
+        commonFunctions.sendToSlackProdChannel(colour, message)
+    } else {
+        commonFunctions.sendToSlackJenkinsChannel(colour, message)
+    }
+}
+
+buildResults = [:]
+buildSteps = [:]
+
+Closure wrapInStep(env, dc, tenant, stageName) {
+    return {
+        node("${env}&&${dc}") {
+            stage("$stageName") {
+                deploy(dc, tenant, env, PROVIDED_VERSION)
+            }
+        }
+    }
+}
+
+def deployToLp(tenant) {
+    stageKey ="Deploying '${PROVIDED_VERSION}' for '${tenant}' to LP in AMS1"
+    stageName = "Deploying '${tenant}' to LP in AMS1"
+    buildSteps[stageKey] = wrapInStep("lp", "ams1", tenant, stageName)
+}
+
+def deployToProd(tenant) {
+    passiveDC = commonFunctions.getPassiveDcProd(tenant)
+    activeDC = commonFunctions.getActiveDC(tenant, "prod")
+    stagePassive ="Deploying '${PROVIDED_VERSION}' for '${tenant}' to PROD in passive DC/${passiveDC}"
+    stagePassiveName ="Deploying '${tenant}' to PROD ${passiveDC}"
+    buildSteps[stagePassive] = wrapInStep("prod", passiveDC, tenant, stagePassiveName)
+
+    stageActive = "Deploying '${PROVIDED_VERSION}' for '${tenant}' to PROD in ACTIVE DC/${activeDC}"
+    stageActiveName ="Deploying '${tenant}' to PROD/A ${activeDC}"
+    buildSteps[stageActive] = wrapInStep("prod", activeDC, tenant, stageActiveName )
+}
+
+node("master") {
+    checkout scm
+
+    checkInputParameters(PROVIDED_VERSION, PROVIDED_TENANTS)
+    echo "Performing deploy for tenants: $PROVIDED_TENANTS"
+    startMessage = banner + "Deploying version '${PROVIDED_VERSION}' to tenants '${PROVIDED_TENANTS}' in environments ${PROVIDED_ENV} "
+    sendToSlack('#FFFF00', startMessage, PROVIDED_ENV)
+
+    currentBuild.description = "$PROVIDED_ENV/$PROVIDED_VERSION/$PROVIDED_TENANTS"
+
+    List<String> tenants = Arrays.asList(PROVIDED_TENANTS.split("\\s*,\\s*"));
+
+    tenants.each { tenant ->
+        if (PROVIDED_ENV == 'ALL') {
+            deployToLp(tenant)
+            deployToProd(tenant)
+        } else if (PROVIDED_ENV == 'LP') {
+            deployToLp(tenant)
+        } else if (PROVIDED_ENV == 'PROD') {
+            deployToProd(tenant)
+        } else {
+            println "Unknown PROVIDED_ENV must be one of ALL|PROD|LP where ALL = PROD + LP"
+        }
+    }
+
+    buildSteps.each{ key, step ->
+        buildResults[key] = step()
+        if ( buildResults[key] != 'SUCCESS') {
+            failedMessage = banner + "Multi-tenant deploy pipeline FAILED: Stage deploy '${key}' failed: ${buildResults[key]}. Check the tenant's deploy pipeline for more information"
+            sendToSlack('#FF0000', failedMessage, PROVIDED_ENV)
+            error(failedMessage)
+        }
+    }
+    message = banner + "Multi-tenant deploy pipeline completed SUCCESSFULLY. Deployed version '${PROVIDED_VERSION}' for '${PROVIDED_TENANTS}' in '${PROVIDED_ENV}' "
+    sendToSlack('#00FF00', message, PROVIDED_ENV)
+    println message
+}
+
+Closure deploy(dc, tenant, env, version) {
+
+    println "Deploying version '${version}' for '${tenant}'/'${dc}' in '${env}' "
+
+    def buildjob = build job: "deploy-to-${env}", propagate: false,
+            parameters: [[$class: 'StringParameterValue', name: 'PROVIDED_TENANT', value: "$tenant"],
+                         [$class: 'StringParameterValue', name: 'PROVIDED_DC', value: "$dc"],
+                         [$class: 'StringParameterValue', name: 'PROVIDED_ENV', value: "$env"],
+                         [$class: 'StringParameterValue', name: 'PROVIDED_VERSION', value: "$version"],
+            ]
+    return buildjob.getResult()
+}
