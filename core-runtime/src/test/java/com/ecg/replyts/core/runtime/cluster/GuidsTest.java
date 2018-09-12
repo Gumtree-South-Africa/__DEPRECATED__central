@@ -18,7 +18,7 @@ public class GuidsTest {
     private Clock clock;
 
     @Mock
-    private Guids.JvmIdentifier pi;
+    private Guids.SystemIdentifier pi;
 
     @Mock
     private Date date;
@@ -33,6 +33,13 @@ public class GuidsTest {
         when(pi.getId()).thenReturn("pid");
 
         guids = new Guids(10l, clock, pi);
+    }
+
+    @Test
+    public void testSystemIdentifier() throws Exception {
+
+        // just assuring is not throwing any exception
+        new Guids.SystemIdentifier();
     }
 
     @Test
@@ -54,6 +61,6 @@ public class GuidsTest {
 
     @Test
     public void jvmIdentifierSameResultForCallingItTwice() {
-        assertThat(new Guids.JvmIdentifier().getId()).isEqualTo(new Guids.JvmIdentifier().getId());
+        assertThat(new Guids.SystemIdentifier().getId()).isEqualTo(new Guids.SystemIdentifier().getId());
     }
 }
