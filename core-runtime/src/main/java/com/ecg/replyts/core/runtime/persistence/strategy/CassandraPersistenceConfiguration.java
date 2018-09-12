@@ -319,7 +319,7 @@ public class CassandraPersistenceConfiguration {
         private SpeculativeExecutionPolicy buildSpeculativeExecutionPolicy(Collection<InetSocketAddress> cassandraContactPoints) {
             // A non-default (noop) speculative execution policy won't work (throwing NoHostAvailableException)
             // if there's only one host available.
-            if (!speculativePolicyEnabled || cassandraContactPoints.size() <= 1) {
+            if (!speculativePolicyEnabled) {
                 return Policies.defaultSpeculativeExecutionPolicy(); // NOOP speculative policy
             }
 
