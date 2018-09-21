@@ -44,8 +44,6 @@ public class DefaultMessageProcessingCoordinator implements MessageProcessingCoo
     public static final String TENANT_ID_EMAIL_HEADER = "X-Comaas-Tenant";
 
     private static final Timer OVERALL_TIMER = TimingReports.newTimer("processing-total");
-    private static final io.prometheus.client.Counter X_COMAAS_TENANT_COUNTER = io.prometheus.client.Counter.build("ingest_tenant_header_total",
-            "Incoming Emails with(out) the X-Comaas-Tenant header").labelNames("present").register();
 
     private final List<MessageProcessedListener> messageProcessedListeners = new ArrayList<>();
     private final ProcessingFlow processingFlow;
@@ -77,10 +75,10 @@ public class DefaultMessageProcessingCoordinator implements MessageProcessingCoo
      * throws an exception, an abnormal behaviour occurred during processing, indicating the the Mail Receiver should try
      * to redeliver that message at a later time.
      */
+    @SuppressWarnings("UnstableApiUsage")
     @Override
-    public final Optional<String> accept(@WillNotClose InputStream input) throws IOException, ParsingException {
+    public final boolean accept(String messageId, @WillNotClose InputStream input) throws IOException, ParsingException {
         Stopwatch stopwatch = Stopwatch.createStarted();
-        String messageId = Guids.next();
         byte[] bytes = ByteStreams.toByteArray(input);
 
         try (Timer.Context ignored = OVERALL_TIMER.time()) {
@@ -89,19 +87,15 @@ public class DefaultMessageProcessingCoordinator implements MessageProcessingCoo
             Optional<Mail> mail = parseMail(bytes);
             if (!mail.isPresent()) {
                 // Return here, if unparseable, message is persisted in parse mail.
-                return Optional.empty();
+                return false;
             }
 
-            // TODO akobiakov: the purpose of the two lines below is to monitor the fact whether the tenants have
-            // started providing an extra headers in the emails originating from their backend (see COMAAS-1046).
-            // As soon as COMAAS-1046 is closed, either this code or this to-do can be removed.
-            boolean containsTenantCode = mail.get().containsHeader(TENANT_ID_EMAIL_HEADER);
-            X_COMAAS_TENANT_COUNTER.labels(String.valueOf(containsTenantCode)).inc();
             MessageProcessingContext context = processingContextFactory.newContext(mail.get(), messageId);
             setMDC(context);
             contentLengthCounter.inc(bytes.length);
 
-            return Optional.of(handleContext(Optional.of(bytes), context));
+            handleContext(Optional.of(bytes), context);
+            return true;
         } catch (ParsingException e) {
             LOG.warn("Could not parse mail with id {}", messageId, e);
             handleTermination(Termination.unparseable(e), messageId, Optional.empty(), Optional.empty(), Optional.of(bytes),
@@ -121,7 +115,7 @@ public class DefaultMessageProcessingCoordinator implements MessageProcessingCoo
     }
 
     @Override
-    public String handleContext(Optional<byte[]> bytes, MessageProcessingContext context) {
+    public void handleContext(Optional<byte[]> bytes, MessageProcessingContext context) {
         setMDC(context);
 
         if (context.getOutgoingMail() != null) {
@@ -140,7 +134,6 @@ public class DefaultMessageProcessingCoordinator implements MessageProcessingCoo
         } else {
             handleSuccess(context, bytes);
         }
-        return context.getMessageId();
     }
 
     private void setMDC(MessageProcessingContext context) {

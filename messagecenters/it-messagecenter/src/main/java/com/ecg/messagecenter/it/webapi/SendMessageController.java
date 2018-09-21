@@ -1,5 +1,6 @@
 package com.ecg.messagecenter.it.webapi;
 
+import com.datastax.driver.core.utils.UUIDs;
 import com.ecg.messagecenter.core.persistence.simple.PostBox;
 import com.ecg.messagecenter.core.persistence.simple.PostBoxId;
 import com.ecg.messagecenter.core.persistence.simple.SimplePostBoxRepository;
@@ -27,24 +28,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
-
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -195,7 +186,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
                              String buyerName, String subject) throws IOException, ParsingException {
         ConversationMessage conversationMessage =
                 new ConversationMessage(adId, from, to, message, buyerName, subject);
-        coordinator.accept(conversationMessage.asInputStream());
+        coordinator.accept(UUIDs.timeBased().toString(), conversationMessage.asInputStream());
     }
 
     private class Address {

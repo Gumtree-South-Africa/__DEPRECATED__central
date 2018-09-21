@@ -73,8 +73,7 @@ public class CassandraPostBoxService implements PostBoxService {
         String messageTypeStr = rtsMessage.getHeaders().getOrDefault("X-Message-Type", MessageType.EMAIL.getValue()).toLowerCase();
         MessageType messageType = MessageType.get(messageTypeStr);
         String customData = rtsMessage.getHeaders().get("X-Message-Metadata");
-        String messageIdStr = rtsMessage.getHeaders().get("X-Message-ID");
-        UUID messageId = messageIdStr != null ? UUID.fromString(messageIdStr) : UUIDs.timeBased();
+        UUID messageId = UUID.fromString(rtsMessage.getId());
         List<Attachment> attachments = rtsMessage.getAttachmentFilenames()
                 .stream()
                 .map(fileName -> ImmutableAttachment.builder()

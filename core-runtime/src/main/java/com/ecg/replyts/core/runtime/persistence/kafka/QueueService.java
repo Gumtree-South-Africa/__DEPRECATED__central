@@ -4,7 +4,6 @@ import com.google.protobuf.Message;
 import org.apache.kafka.clients.producer.*;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.apache.kafka.common.serialization.StringSerializer;
-import org.elasticsearch.common.UUIDs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,13 +23,18 @@ import static java.lang.String.format;
 public class QueueService {
     private static final Logger LOG = LoggerFactory.getLogger(QueueService.class);
 
-    @Value("${kafka.core.servers}")
-    private String bootstrapServers;
+    private final String bootstrapServers;
 
-    @Value("${kafka.core.max.request.size:16000000}") // 16 mb
-    private int maxRequestSize;
+    private final int maxRequestSizeBytes;
 
     private Map<String, Producer<String, byte[]>> producers = new ConcurrentHashMap<>();
+
+    public QueueService(@Value("${kafka.core.servers}") String bootstrapServers,
+                        @Value("${kafka.core.max.request.size.bytes:16000000}")
+                                int maxRequestSizeBytes) {
+        this.bootstrapServers = bootstrapServers;
+        this.maxRequestSizeBytes = maxRequestSizeBytes;
+    }
 
     @PreDestroy
     void destroy() {
@@ -74,7 +78,7 @@ public class QueueService {
         Properties props = new Properties();
 
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
-        props.put(ProducerConfig.MAX_REQUEST_SIZE_CONFIG, maxRequestSize); // 16 Mb
+        props.put(ProducerConfig.MAX_REQUEST_SIZE_CONFIG, maxRequestSizeBytes);
         String allocId = System.getenv("NOMAD_ALLOC_ID");
         if (allocId != null) {
             long threadId = Thread.currentThread().getId();

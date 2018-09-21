@@ -1,5 +1,6 @@
 package com.ecg.replyts.integration.test;
 
+import com.datastax.driver.core.utils.UUIDs;
 import com.ecg.replyts.core.runtime.indexer.test.DirectESIndexer;
 import com.ecg.replyts.core.runtime.mailparser.ParsingException;
 import io.prometheus.client.CollectorRegistry;
@@ -97,7 +98,7 @@ public class IntegrationTestRunner extends ExternalResource {
 
     public MailInterceptor.ProcessedMail deliver(String mailIdentifier, byte[] out, int deliveryTimeoutSeconds) {
         try {
-            replytsRunner.getMessageProcessingCoordinator().accept(new ByteArrayInputStream(out));
+            replytsRunner.getMessageProcessingCoordinator().accept(UUIDs.timeBased().toString(), new ByteArrayInputStream(out));
         } catch (IOException | ParsingException e) {
             throw new RuntimeException(e);
         }

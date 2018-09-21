@@ -1,11 +1,6 @@
 package com.ecg.replyts.core.runtime.persistence.kafka;
 
-import com.ecg.comaas.events.Conversation.ConversationCreated;
-import com.ecg.comaas.events.Conversation.ConversationDeleted;
-import com.ecg.comaas.events.Conversation.Envelope;
-import com.ecg.comaas.events.Conversation.MessageAdded;
-import com.ecg.comaas.events.Conversation.Participant;
-import com.ecg.comaas.events.Conversation.UUID;
+import com.ecg.comaas.events.Conversation.*;
 import com.ecg.replyts.core.api.processing.ConversationEventService;
 import com.google.common.base.Charsets;
 import com.google.protobuf.ByteString;
@@ -65,9 +60,7 @@ public class KafkaConversationEventService implements ConversationEventService {
                 .setText(ByteString.copyFrom(message, Charsets.UTF_8))
                 .putAllMetadata(metadata);
 
-        if (senderUserId.isPresent()) {
-            builder.setSenderUserId(senderUserId.get());
-        }
+        senderUserId.ifPresent(builder::setSenderUserId);
 
         Envelope envelope = Envelope.newBuilder()
                 .setTenant(tenant)

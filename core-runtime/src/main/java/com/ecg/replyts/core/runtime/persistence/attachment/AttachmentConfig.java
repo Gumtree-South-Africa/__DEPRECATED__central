@@ -23,7 +23,7 @@ public class AttachmentConfig {
     private int batchSize;
 
     @Value("${kafka.attachment.max.request.size:15500000}")
-    private int maxRequestSize;
+    private int maxRequestSizeBytes;
 
     @Value("${kafka.attachment.topic:attachment}")
     private String topic;
@@ -57,7 +57,7 @@ public class AttachmentConfig {
                 .withStoreTimeoutMs(storeTimeoutMs)
                 .withBatchSize(batchSize)
                 .withCompressionType(compressionType)
-                .withMaxRequestSize(maxRequestSize);
+                .withMaxRequestSize(maxRequestSizeBytes);
 
         Timer save = TimingReports.newTimer("attachment.kafka-save-timer");
         Counter attachment_counter = TimingReports.newCounter("attachment.kafka-attachment-counter");

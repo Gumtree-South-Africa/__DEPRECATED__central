@@ -19,19 +19,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
 
-
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 import static com.ecg.replyts.core.api.model.conversation.command.AddMessageCommandBuilder.anAddMessageCommand;
@@ -138,7 +132,7 @@ public class KafkaNewMessageProcessor extends KafkaMessageProcessor {
         if (rawEmail != null && !rawEmail.isEmpty()) {
             // A presence of a raw email represents the deprecated way of ingesting emails
             // See https://github.corp.ebay.com/ecg-comaas/comaas-adr/blob/master/adr-004-kmail-transition-period.md
-            messageProcessingCoordinator.accept(new ByteArrayInputStream(rawEmail.toByteArray()));
+            messageProcessingCoordinator.accept(kafkaMessage.getMessageId(), new ByteArrayInputStream(rawEmail.toByteArray()));
         } else {
             MutableConversation conversation = getConversation(kafkaMessage.getPayload().getConversationId());
             Collection<Attachment> attachments = kafkaMessage.getAttachmentsList().stream()

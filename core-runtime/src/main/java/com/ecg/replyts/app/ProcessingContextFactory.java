@@ -35,8 +35,12 @@ public class ProcessingContextFactory {
     @Value("${email.recipient.override:false}")
     private boolean overrideRecipient;
 
+    private final AnonymizedMailConverter anonymizedMailConverter;
+
     @Autowired
-    private AnonymizedMailConverter anonymizedMailConverter;
+    public ProcessingContextFactory(AnonymizedMailConverter anonymizedMailConverter) {
+        this.anonymizedMailConverter = anonymizedMailConverter;
+    }
 
     /**
      * Creates and returns a new MessageProcessingContext, that holds the given mail and the given message id. messageId must be globally unique.

@@ -2,25 +2,12 @@ package com.ecg.messagebox.service;
 
 import com.datastax.driver.core.utils.UUIDs;
 import com.ecg.messagebox.events.MessageAddedEventProcessor;
-import com.ecg.messagebox.model.ConversationMetadata;
-import com.ecg.messagebox.model.ConversationThread;
-import com.ecg.messagebox.model.MessageMetadata;
-import com.ecg.messagebox.model.MessageNotification;
-import com.ecg.messagebox.model.MessageType;
-import com.ecg.messagebox.model.Participant;
-import com.ecg.messagebox.model.ParticipantRole;
-import com.ecg.messagebox.model.PostBox;
-import com.ecg.messagebox.model.Visibility;
+import com.ecg.messagebox.model.*;
 import com.ecg.messagebox.persistence.CassandraPostBoxRepository;
 import com.ecg.messagebox.util.MessagePreProcessor;
 import com.ecg.messagebox.util.messages.DefaultMessagesResponseFactory;
-import com.ecg.replyts.core.api.model.conversation.Conversation;
-import com.ecg.replyts.core.api.model.conversation.ConversationState;
+import com.ecg.replyts.core.api.model.conversation.*;
 import com.ecg.replyts.core.api.model.conversation.Message;
-import com.ecg.replyts.core.api.model.conversation.MessageDirection;
-import com.ecg.replyts.core.api.model.conversation.MessageState;
-import com.ecg.replyts.core.api.model.conversation.MutableConversation;
-import com.ecg.replyts.core.api.model.conversation.UserUnreadCounts;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import com.ecg.replyts.core.runtime.identifier.UserIdentifierService;
 import com.ecg.replyts.core.runtime.model.conversation.ImmutableConversation;
@@ -30,7 +17,6 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeUtils;
 import org.joda.time.DateTimeZone;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -44,21 +30,16 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
-import static com.ecg.replyts.core.api.model.conversation.MessageDirection.SELLER_TO_BUYER;
 import static com.ecg.replyts.core.runtime.model.conversation.ImmutableConversation.Builder.aConversation;
 import static com.ecg.replyts.core.runtime.model.conversation.ImmutableMessage.Builder.aMessage;
 import static com.google.common.collect.Lists.newArrayList;
 import static java.util.Collections.singletonList;
 import static java.util.Optional.empty;
 import static org.joda.time.DateTime.now;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.*;
 
 @RunWith(SpringRunner.class)
@@ -150,9 +131,9 @@ public class CassandraPostBoxServiceTest {
 
     @Test
     public void processNewMessageWithCorrectSubject() {
-        Message rtsMsg1 = newMessage("1", SELLER_TO_BUYER, MessageState.SENT, DEFAULT_SUBJECT);
-        Message rtsMsg2 = newMessage("2", SELLER_TO_BUYER, MessageState.SENT, "Another subject");
-        Conversation conversation = newConversationWithMessages(CONVERSATION_ID_1, singletonList(rtsMsg1)).build();
+        Message rtsMsg1 = newMessage(UUIDs.timeBased().toString(), DEFAULT_SUBJECT);
+        Message rtsMsg2 = newMessage(UUIDs.timeBased().toString(), "Another subject");
+        Conversation conversation = newConversationWithMessages(singletonList(rtsMsg1)).build();
 
         when(userIdentifierService.getBuyerUserId(conversation)).thenReturn(Optional.of(USER_ID_1));
         when(userIdentifierService.getSellerUserId(conversation)).thenReturn(Optional.of(USER_ID_2));
@@ -164,17 +145,17 @@ public class CassandraPostBoxServiceTest {
         verify(postBoxRepo).createConversation(eq(USER_ID_1), conversationThreadArgCaptor.capture(), messageArgCaptor.capture(), anyBoolean());
 
         ConversationThread capturedConversationThread = conversationThreadArgCaptor.getValue();
-        Assert.assertEquals(DEFAULT_SUBJECT, capturedConversationThread.getMetadata().getEmailSubject());
-        Assert.assertEquals(CONVERSATION_ID_1, capturedConversationThread.getId());
-        Assert.assertEquals(AD_ID_1, capturedConversationThread.getAdId());
-        Assert.assertEquals(Visibility.ACTIVE, capturedConversationThread.getVisibility());
-        Assert.assertEquals(MessageNotification.RECEIVE, capturedConversationThread.getMessageNotification());
+        assertEquals(DEFAULT_SUBJECT, capturedConversationThread.getMetadata().getEmailSubject());
+        assertEquals(CONVERSATION_ID_1, capturedConversationThread.getId());
+        assertEquals(AD_ID_1, capturedConversationThread.getAdId());
+        assertEquals(Visibility.ACTIVE, capturedConversationThread.getVisibility());
+        assertEquals(MessageNotification.RECEIVE, capturedConversationThread.getMessageNotification());
 
         DateTime messageIdDate = new DateTime(UUIDs.unixTimestamp(messageArgCaptor.getValue().getId()));
         DateTime currentTime = new DateTime();
-        Assert.assertEquals(messageIdDate.dayOfMonth(), currentTime.dayOfMonth());
-        Assert.assertEquals(messageIdDate.monthOfYear(), currentTime.monthOfYear());
-        Assert.assertEquals(messageIdDate.year(), currentTime.year());
+        assertEquals(messageIdDate.dayOfMonth(), currentTime.dayOfMonth());
+        assertEquals(messageIdDate.monthOfYear(), currentTime.monthOfYear());
+        assertEquals(messageIdDate.year(), currentTime.year());
 
         verify(responseDataCalculator).storeResponseData(USER_ID_1, conversation, rtsMsg2);
     }
@@ -183,16 +164,15 @@ public class CassandraPostBoxServiceTest {
     public void processNewMessageWithMetadataHeader() {
         Map<String, String> headers = new HashMap<>();
         headers.put("X-Message-Type", "asq");
-        headers.put("X-Message-ID", UUIDs.timeBased().toString());
         headers.put("X-Message-Metadata", "metadata");
         headers.put("X-Conversation-Title", "conversation title");
         headers.put("Subject", "subject");
 
-        Message rtsMsg = newMessageWithHeaders("1", SELLER_TO_BUYER, MessageState.SENT, headers);
+        Message rtsMsg = newMessageWithHeaders(headers);
 
         ArgumentCaptor<com.ecg.messagebox.model.Message> messageArgCaptor = ArgumentCaptor.forClass(com.ecg.messagebox.model.Message.class);
 
-        Conversation rtsConversation = newConversation(CONVERSATION_ID_1).withMessages(singletonList(rtsMsg)).build();
+        Conversation rtsConversation = newConversation().withMessages(singletonList(rtsMsg)).build();
 
         List<Participant> participants = newArrayList(
                 new Participant(USER_ID_1, BUYER_NAME_VALUE, rtsConversation.getBuyerId(), ParticipantRole.BUYER),
@@ -211,21 +191,21 @@ public class CassandraPostBoxServiceTest {
 
         DateTime messageIdDate = new DateTime(UUIDs.unixTimestamp(capturedMessage.getId()));
         DateTime currentTime = new DateTime();
-        Assert.assertEquals(messageIdDate.dayOfMonth(), currentTime.dayOfMonth());
-        Assert.assertEquals(messageIdDate.monthOfYear(), currentTime.monthOfYear());
-        Assert.assertEquals(messageIdDate.year(), currentTime.year());
+        assertEquals(messageIdDate.dayOfMonth(), currentTime.dayOfMonth());
+        assertEquals(messageIdDate.monthOfYear(), currentTime.monthOfYear());
+        assertEquals(messageIdDate.year(), currentTime.year());
 
-        Assert.assertEquals("text 123", capturedMessage.getText());
-        Assert.assertEquals(USER_ID_2, capturedMessage.getSenderUserId());
-        Assert.assertEquals(MessageType.ASQ, capturedMessage.getType());
-        Assert.assertEquals("metadata", capturedMessage.getCustomData());
+        assertEquals("text 123", capturedMessage.getText());
+        assertEquals(USER_ID_2, capturedMessage.getSenderUserId());
+        assertEquals(MessageType.ASQ, capturedMessage.getType());
+        assertEquals("metadata", capturedMessage.getCustomData());
 
         ConversationThread conversation = conversationThreadArgCaptor.getValue();
-        Assert.assertEquals(conversation.getId(), rtsConversation.getId());
-        Assert.assertEquals(conversation.getAdId(), rtsConversation.getAdId());
-        Assert.assertEquals(conversation.getVisibility(), Visibility.ACTIVE);
-        Assert.assertEquals(conversation.getMessageNotification(), MessageNotification.RECEIVE);
-        Assert.assertEquals(conversation.getParticipants(), participants);
+        assertEquals(conversation.getId(), rtsConversation.getId());
+        assertEquals(conversation.getAdId(), rtsConversation.getAdId());
+        assertEquals(conversation.getVisibility(), Visibility.ACTIVE);
+        assertEquals(conversation.getMessageNotification(), MessageNotification.RECEIVE);
+        assertEquals(conversation.getParticipants(), participants);
     }
 
 
@@ -233,17 +213,16 @@ public class CassandraPostBoxServiceTest {
     public void processNewMessageWithMetadataImageUrlHeader() {
         Map<String, String> headers = new HashMap<>();
         headers.put("X-Message-Type", "asq");
-        headers.put("X-Message-ID", "f866b110-857b-11e6-9367-5bbf510138cd");
         headers.put("X-Message-Metadata", "metadata");
         headers.put("X-Conversation-Title", "conversation title");
         headers.put("X-Conversation-Image-Url", "conversation.image.url");
         headers.put("Subject", "subject");
 
-        Message rtsMsg = newMessageWithHeaders("1", SELLER_TO_BUYER, MessageState.SENT, headers);
+        Message rtsMsg = newMessageWithHeaders(headers);
 
         ArgumentCaptor<com.ecg.messagebox.model.Message> messageArgCaptor = ArgumentCaptor.forClass(com.ecg.messagebox.model.Message.class);
 
-        Conversation rtsConversation = newConversation(CONVERSATION_ID_1).withMessages(singletonList(rtsMsg)).build();
+        Conversation rtsConversation = newConversation().withMessages(singletonList(rtsMsg)).build();
 
         ArgumentCaptor<ConversationThread> conversationThreadArgCaptor = ArgumentCaptor.forClass(ConversationThread.class);
 
@@ -255,7 +234,7 @@ public class CassandraPostBoxServiceTest {
         verify(postBoxRepo).createConversation(eq(USER_ID_1), conversationThreadArgCaptor.capture(), messageArgCaptor.capture(), eq(true));
 
         ConversationThread conversation = conversationThreadArgCaptor.getValue();
-        Assert.assertEquals(conversation.getMetadata().getImageUrl(), "conversation.image.url");
+        assertEquals(conversation.getMetadata().getImageUrl(), "conversation.image.url");
     }
 
     @Test
@@ -264,15 +243,14 @@ public class CassandraPostBoxServiceTest {
 
         Map<String, String> headers = new HashMap<>();
         headers.put("X-Message-Type", "asq");
-        headers.put("X-Message-ID", "f866b110-857b-11e6-9367-5bbf510138cd");
         headers.put("X-Conversation-Title", "title");
         headers.put("Subject", "subject");
-        Message rtsMsg = newMessageWithHeaders("1", SELLER_TO_BUYER, MessageState.SENT, headers);
+        Message rtsMsg = newMessageWithHeaders(headers);
 
         com.ecg.messagebox.model.Message newMessage = new com.ecg.messagebox.model.Message(
-                UUID.fromString("f866b110-857b-11e6-9367-5bbf510138cd"), "text 123", USER_ID_2, MessageType.ASQ, null, headers, Collections.emptyList());
+                UUID.fromString(rtsMsg.getId()), "text 123", USER_ID_2, MessageType.ASQ, null, headers, Collections.emptyList());
 
-        Conversation rtsConversation = newConversation(CONVERSATION_ID_1).withMessages(singletonList(rtsMsg)).build();
+        Conversation rtsConversation = newConversation().withMessages(singletonList(rtsMsg)).build();
 
         when(userIdentifierService.getBuyerUserId(rtsConversation)).thenReturn(Optional.of(USER_ID_1));
         when(userIdentifierService.getSellerUserId(rtsConversation)).thenReturn(Optional.of(USER_ID_2));
@@ -302,7 +280,8 @@ public class CassandraPostBoxServiceTest {
         when(postBoxRepo.getConversationWithMessages(USER_ID_1, CONVERSATION_ID_1, CURSOR, MESSAGE_LIMIT)).thenReturn(Optional.of(expectedConversationThread));
         Optional<ConversationThread> conversationThread = service.getConversation(USER_ID_1, CONVERSATION_ID_1, CURSOR, MESSAGE_LIMIT);
 
-        Assert.assertEquals(expectedConversationThread, conversationThread.get());
+        assertTrue(conversationThread.isPresent());
+        assertEquals(expectedConversationThread, conversationThread.get());
     }
 
 
@@ -316,7 +295,8 @@ public class CassandraPostBoxServiceTest {
         ConversationThread expectedConversationThread = repoConversationThread.addNumUnreadMessages(USER_ID_1, 0);
 
         verify(postBoxRepo).resetConversationUnreadCount(USER_ID_1, USER_ID_2, CONVERSATION_ID_1, AD_ID_1);
-        Assert.assertEquals(expectedConversationThread, conversationThread.get());
+        assertTrue(conversationThread.isPresent());
+        assertEquals(expectedConversationThread, conversationThread.get());
     }
 
     @Test
@@ -325,7 +305,7 @@ public class CassandraPostBoxServiceTest {
         when(postBoxRepo.getPostBox(USER_ID_1, Visibility.ACTIVE, CONVERSATION_OFFSET, CONVERSATION_LIMIT)).thenReturn(expectedPostBox);
         PostBox postBox = service.getConversations(USER_ID_1, Visibility.ACTIVE, CONVERSATION_OFFSET, CONVERSATION_LIMIT);
 
-        Assert.assertEquals(expectedPostBox, postBox);
+        assertEquals(expectedPostBox, postBox);
     }
 
     @Test
@@ -344,7 +324,7 @@ public class CassandraPostBoxServiceTest {
         PostBox returnedPostBox = service.archiveConversations(USER_ID_1, conversationIds, CONVERSATION_OFFSET, CONVERSATION_LIMIT);
 
         verify(postBoxRepo).archiveConversations(USER_ID_1, conversationAdIdsMap);
-        Assert.assertEquals(expectedPostBox, returnedPostBox);
+        assertEquals(expectedPostBox, returnedPostBox);
     }
 
     @Test
@@ -363,7 +343,7 @@ public class CassandraPostBoxServiceTest {
         PostBox returnedPostBox = service.activateConversations(USER_ID_1, conversationIds, CONVERSATION_OFFSET, CONVERSATION_LIMIT);
 
         verify(postBoxRepo).activateConversations(USER_ID_1, conversationAdIdsMap);
-        Assert.assertEquals(expectedPostBox, returnedPostBox);
+        assertEquals(expectedPostBox, returnedPostBox);
     }
 
 
@@ -374,7 +354,7 @@ public class CassandraPostBoxServiceTest {
 
         UserUnreadCounts userUnreadCounts = service.getUnreadCounts(USER_ID_1);
 
-        Assert.assertEquals(expectedUserUnreadCounts, userUnreadCounts);
+        assertEquals(expectedUserUnreadCounts, userUnreadCounts);
     }
 
     @Test
@@ -394,10 +374,10 @@ public class CassandraPostBoxServiceTest {
 
         com.ecg.messagebox.model.Message verifyMessage = captor.getValue();
 
-        Assert.assertEquals("text", verifyMessage.getText());
-        Assert.assertEquals(CassandraPostBoxService.SYSTEM_MESSAGE_USER_ID, verifyMessage.getSenderUserId());
-        Assert.assertEquals(MessageType.SYSTEM_MESSAGE, verifyMessage.getType());
-        Assert.assertEquals("custom data", verifyMessage.getCustomData());
+        assertEquals("text", verifyMessage.getText());
+        assertEquals(CassandraPostBoxService.SYSTEM_MESSAGE_USER_ID, verifyMessage.getSenderUserId());
+        assertEquals(MessageType.SYSTEM_MESSAGE, verifyMessage.getType());
+        assertEquals("custom data", verifyMessage.getCustomData());
         verifyZeroInteractions(messageAddedEventProcessor);
     }
 
@@ -411,10 +391,10 @@ public class CassandraPostBoxServiceTest {
 
         com.ecg.messagebox.model.Message verifyMessage = captor.getValue();
 
-        Assert.assertEquals("text", verifyMessage.getText());
-        Assert.assertEquals(CassandraPostBoxService.SYSTEM_MESSAGE_USER_ID, verifyMessage.getSenderUserId());
-        Assert.assertEquals(MessageType.SYSTEM_MESSAGE, verifyMessage.getType());
-        Assert.assertEquals("custom data", verifyMessage.getCustomData());
+        assertEquals("text", verifyMessage.getText());
+        assertEquals(CassandraPostBoxService.SYSTEM_MESSAGE_USER_ID, verifyMessage.getSenderUserId());
+        assertEquals(MessageType.SYSTEM_MESSAGE, verifyMessage.getType());
+        assertEquals("custom data", verifyMessage.getCustomData());
         verify(messageAddedEventProcessor).publishMessageAddedEvent(eq(conversation), any(String.class), eq("text"), eq(UNREAD_COUNTS));
     }
 
@@ -427,9 +407,9 @@ public class CassandraPostBoxServiceTest {
         headers.put("X-Skip-Response-Data", "true");
         headers.put("Subject", "subject");
 
-        Message rtsMsg = newMessageWithHeaders("1", SELLER_TO_BUYER, MessageState.SENT, headers);
+        Message rtsMsg = newMessageWithHeaders(headers);
 
-        Conversation rtsConversation = newConversation(CONVERSATION_ID_1).withMessages(singletonList(rtsMsg)).build();
+        Conversation rtsConversation = newConversation().withMessages(singletonList(rtsMsg)).build();
 
         when(userIdentifierService.getBuyerUserId(rtsConversation)).thenReturn(Optional.of(USER_ID_1));
         when(userIdentifierService.getSellerUserId(rtsConversation)).thenReturn(Optional.of(USER_ID_2));
@@ -439,9 +419,9 @@ public class CassandraPostBoxServiceTest {
         Mockito.verifyNoMoreInteractions(responseDataCalculator);
     }
 
-    private ImmutableConversation.Builder newConversation(String id) {
+    private ImmutableConversation.Builder newConversation() {
         return aConversation()
-                .withId(id)
+                .withId(CONVERSATION_ID_1)
                 .withAdId(AD_ID_1)
                 .withCreatedAt(new DateTime())
                 .withLastModifiedAt(new DateTime())
@@ -450,31 +430,30 @@ public class CassandraPostBoxServiceTest {
                         BUYER_NAME_KEY, BUYER_NAME_VALUE, SELLER_NAME_KEY, SELLER_NAME_VALUE));
     }
 
-    private ImmutableConversation.Builder newConversationWithMessages(String id, List<Message> messageList) {
-        return newConversation(id).withMessages(messageList);
+    private ImmutableConversation.Builder newConversationWithMessages(List<Message> messageList) {
+        return newConversation().withMessages(messageList);
     }
 
-    private Message newMessage(String id, MessageDirection direction, MessageState state, String subject) {
+    private Message newMessage(String id, String subject) {
         return aMessage()
                 .withId(id)
                 .withEventTimeUUID(UUID.randomUUID())
-                .withMessageDirection(direction)
-                .withState(state)
+                .withMessageDirection(MessageDirection.SELLER_TO_BUYER)
+                .withState(MessageState.SENT)
                 .withReceivedAt(new DateTime(2016, 1, 30, 20, 11, 52, DateTimeZone.forID("Europe/Amsterdam")))
                 .withLastModifiedAt(new DateTime(2016, 1, 30, 20, 1, 52, DateTimeZone.forID("Europe/Amsterdam")))
                 .withHeader("X-Message-Type", "asq")
-                .withHeader("X-Message-ID", UUIDs.timeBased().toString())
                 .withTextParts(singletonList("text 123"))
                 .withHeader("Subject", subject)
                 .build();
     }
 
-    private Message newMessageWithHeaders(String id, MessageDirection direction, MessageState state, Map<String, String> headers) {
+    private Message newMessageWithHeaders(Map<String, String> headers) {
         return aMessage()
-                .withId(id)
+                .withId(UUIDs.timeBased().toString())
                 .withEventTimeUUID(UUIDs.timeBased())
-                .withMessageDirection(direction)
-                .withState(state)
+                .withMessageDirection(MessageDirection.SELLER_TO_BUYER)
+                .withState(MessageState.SENT)
                 .withReceivedAt(new DateTime(2016, 1, 30, 20, 11, 52, DateTimeZone.forID("Europe/Amsterdam")))
                 .withLastModifiedAt(new DateTime(2016, 1, 30, 20, 1, 52, DateTimeZone.forID("Europe/Amsterdam")))
                 .withHeaders(headers)

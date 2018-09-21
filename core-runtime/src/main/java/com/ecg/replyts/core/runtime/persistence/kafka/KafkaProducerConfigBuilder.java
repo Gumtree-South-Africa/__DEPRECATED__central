@@ -45,8 +45,8 @@ public class KafkaProducerConfigBuilder<K, V> {
     // The acks parameter controls how many partition replicas must receive the record before the producer can consider the write successful.
     @Value("${kafka.core.ack:1}")
     private String ack;
-    @Value("${kafka.core.max.request.size:1000000}") // 1 mb
-    private int maxRequestSize;
+    @Value("${kafka.core.max.request.size.bytes:1000000}") // 1 mb
+    private int maxRequestSizeBytes;
     @Value("${kafka.core.max-in-flight-request-per-connection:500}")
     private int maxInFlightPerConnection;
     @Value("${kafka.core.request.timeout.ms:10000}")
@@ -142,7 +142,7 @@ public class KafkaProducerConfigBuilder<K, V> {
         }
 
         public KafkaProducerConfig withMaxRequestSize(int maxRequestSizeVal) {
-            maxRequestSize = maxRequestSizeVal;
+            maxRequestSizeBytes = maxRequestSizeVal;
             return this;
         }
 
@@ -168,7 +168,7 @@ public class KafkaProducerConfigBuilder<K, V> {
             configProperties.put(BATCH_SIZE_CONFIG, batchSize);
             configProperties.put(BUFFER_MEMORY_CONFIG, bufferMemory);
             configProperties.put(ACKS_CONFIG, ack);
-            configProperties.put(MAX_REQUEST_SIZE_CONFIG, maxRequestSize);
+            configProperties.put(MAX_REQUEST_SIZE_CONFIG, maxRequestSizeBytes);
             configProperties.put(LINGER_MS_CONFIG, lingerMs);
             configProperties.put(MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION, maxInFlightPerConnection);
             LOG.info("Kafka producer configuration: {} Topic: {}, Timeout: {} ms", configProperties, topic, storeTimeoutMs);
@@ -205,7 +205,7 @@ public class KafkaProducerConfigBuilder<K, V> {
         }
 
         public int getMaxRequestSize() {
-            return maxRequestSize;
+            return maxRequestSizeBytes;
         }
 
         public int getMaxInFlightPerConnection() {

@@ -1,27 +1,13 @@
 package com.ecg.replyts.core.runtime.model.conversation;
 
-import com.datastax.driver.core.utils.UUIDs;
 import com.ecg.replyts.app.textcleanup.ExtractedText;
-import com.ecg.replyts.core.api.model.conversation.Conversation;
-import com.ecg.replyts.core.api.model.conversation.FilterResultState;
-import com.ecg.replyts.core.api.model.conversation.Message;
-import com.ecg.replyts.core.api.model.conversation.MessageDirection;
-import com.ecg.replyts.core.api.model.conversation.MessageState;
-import com.ecg.replyts.core.api.model.conversation.ModerationResultState;
-import com.ecg.replyts.core.api.model.conversation.ProcessingFeedback;
+import com.ecg.replyts.core.api.model.conversation.*;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import org.joda.time.DateTime;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.TreeMap;
-import java.util.UUID;
+import java.util.*;
 
 public class ImmutableMessage implements Message {
 
@@ -65,21 +51,13 @@ public class ImmutableMessage implements Message {
         this.inResponseToMessageId = bdr.inResponseToMessageId;
         this.filterResultState = bdr.filterResultState;
         this.humanResultState = bdr.humanResultState;
-        this.headers = getHeadersWithMessageId(bdr);
+        this.headers = ImmutableSortedMap.copyOf(bdr.headers, String.CASE_INSENSITIVE_ORDER);
         this.processingFeedback = ImmutableList.copyOf(bdr.processingFeedback);
         this.lastEditor = bdr.lastEditor;
         this.attachments = bdr.attachments != null ? ImmutableList.copyOf(bdr.attachments) : Collections.emptyList();
         this.textParts = bdr.textParts != null ? ImmutableList.copyOf(bdr.textParts) : Collections.emptyList();
         this.plainTextBody = this.textParts.isEmpty() ? "" : this.textParts.get(0);
         this.eventTimeUUID = bdr.eventTimeUUID;
-    }
-
-    private ImmutableSortedMap<String, String> getHeadersWithMessageId(Builder bdr) {
-        //TODO: akalasok, should be remove with COMAAS-1118
-        Map<String, String> caseInsensitiveMetaValues = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
-        caseInsensitiveMetaValues.putAll(bdr.headers);
-        caseInsensitiveMetaValues.computeIfAbsent("X-Message-ID", k -> UUIDs.timeBased().toString());
-        return ImmutableSortedMap.copyOf(caseInsensitiveMetaValues, String.CASE_INSENSITIVE_ORDER);
     }
 
     @Override

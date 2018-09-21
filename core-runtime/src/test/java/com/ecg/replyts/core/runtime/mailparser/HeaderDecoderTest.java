@@ -14,9 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -95,7 +93,7 @@ public class HeaderDecoderTest {
     }
 
     @Test
-    public void testReplyTo() throws Exception {
+    public void testReplyTo() {
         addField("Reply-To", "bar@foo.com");
         ImmutableMultimap<String, String> headers = headerDecoder.decodeHeaders(mail);
         assertTrue(headers.containsEntry("Reply-To", "bar@foo.com"));

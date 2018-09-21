@@ -1,7 +1,6 @@
 package com.ecg.messagebox.resources;
 
 import com.datastax.driver.core.utils.UUIDs;
-import com.ecg.comaas.protobuf.MessageOuterClass;
 import com.ecg.comaas.events.Conversation;
 import com.ecg.comaas.protobuf.MessageOuterClass;
 import com.ecg.comaas.protobuf.MessageOuterClass.Message;
@@ -9,11 +8,7 @@ import com.ecg.comaas.protobuf.MessageOuterClass.Payload;
 import com.ecg.messagebox.controllers.requests.CreateConversationRequest;
 import com.ecg.messagebox.controllers.requests.PostMessageRequest;
 import com.ecg.messagebox.controllers.responses.CreateConversationResponse;
-import com.ecg.messagebox.model.ConversationMetadata;
-import com.ecg.messagebox.model.ConversationThread;
-import com.ecg.messagebox.model.MessageNotification;
-import com.ecg.messagebox.model.Participant;
-import com.ecg.messagebox.model.Visibility;
+import com.ecg.messagebox.model.*;
 import com.ecg.messagebox.persistence.CassandraPostBoxRepository;
 import com.ecg.messagebox.resources.exceptions.ClientException;
 import com.ecg.messagebox.resources.responses.ErrorResponse;
@@ -33,11 +28,7 @@ import com.ecg.replyts.core.runtime.persistence.kafka.KafkaTopicService;
 import com.ecg.replyts.core.runtime.persistence.kafka.QueueService;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Timestamp;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.annotations.*;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,15 +36,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestPart;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -71,8 +54,6 @@ import static org.joda.time.DateTime.now;
 public class PostMessageResource {
 
     private static final Logger LOG = LoggerFactory.getLogger(PostMessageResource.class);
-
-    private static final String X_MESSAGE_ID_HEADER = "X-Message-ID";
 
     private final MutableConversationRepository conversationRepository;
     private final UserIdentifierService userIdentifierService;
@@ -243,15 +224,7 @@ public class PostMessageResource {
     private Message.Builder buildMessage(String userId, String conversationId, PostMessageRequest postMessageRequest, String correlationIdHeader) {
         Instant now = Instant.now();
         String correlationId = correlationIdHeader != null ? correlationIdHeader : XidFactory.nextXid();
-
-        // This is undocumented behaviour which is set to be removed in COMAAS-1226
-        // At the moment we can't ignore X-Message-Id entirely and just write/read the messageId field of the
-        // kafka payload, because the emails originating from MP (the tenant itself) rely on this header to
-        // render the chat ui correctly. So we can only get rid of the edge case when MP is fully on the post message api.
-        // (sorry).
-        Map<String, String> caseInsensitiveMetaValues = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
-        caseInsensitiveMetaValues.putAll(postMessageRequest.metadata);
-        String messageId = caseInsensitiveMetaValues.computeIfAbsent(X_MESSAGE_ID_HEADER, k -> UUIDs.timeBased().toString());
+        String messageId = UUIDs.timeBased().toString();
 
         return Message
                 .newBuilder()
@@ -268,6 +241,6 @@ public class PostMessageResource {
                     .setUserId(userId)
                     .setMessage(postMessageRequest.message)
                     .build())
-                .putAllMetadata(caseInsensitiveMetaValues);
+                .putAllMetadata(postMessageRequest.metadata);
     }
 }

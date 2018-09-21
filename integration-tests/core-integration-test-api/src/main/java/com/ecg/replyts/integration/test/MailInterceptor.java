@@ -21,11 +21,7 @@ import org.springframework.context.annotation.Bean;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -121,15 +117,17 @@ public class MailInterceptor implements BeanPostProcessor {
     private MessageProcessingCoordinator wrapMessageProcessingCoordinator(MessageProcessingCoordinator realCoordinator) {
         return new MessageProcessingCoordinator() {
             @Override
-            public Optional<String> accept(InputStream input) throws IOException, ParsingException {
-                Optional<String> messageId = realCoordinator.accept(input);
-                messageId.ifPresent(this::markMessageAsProcessed);
-                return messageId;
+            public boolean accept(String messageId, InputStream input) throws IOException, ParsingException {
+                if (realCoordinator.accept(messageId, input)) {
+                    markMessageAsProcessed(messageId);
+                    return true;
+                }
+                return false;
             }
 
             @Override
-            public String handleContext(Optional<byte[]> bytes, MessageProcessingContext context) {
-                return realCoordinator.handleContext(bytes, context);
+            public void handleContext(Optional<byte[]> bytes, MessageProcessingContext context) {
+                realCoordinator.handleContext(bytes, context);
             }
 
             private void markMessageAsProcessed(String messageId) {

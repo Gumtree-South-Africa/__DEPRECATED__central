@@ -26,7 +26,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.*;
 
-import static com.ecg.comaas.events.Conversation.*;
+import static com.ecg.comaas.events.Conversation.Participant;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 
@@ -123,7 +123,7 @@ class ProcessingFlow {
         inputForSending(context);
     }
 
-    private void sendConversationEvents(Conversation conversation) {
+    void sendConversationEvents(Conversation conversation) {
         if (conversation == null || conversation.getMessages() == null) {
             LOG.warn("conversation.getMessages() == null");
             return;
@@ -136,10 +136,9 @@ class ProcessingFlow {
 
         Message message = Iterables.getLast(conversation.getMessages());
         String cleanedMessage = contentOverridingPostProcessorService.getCleanedMessage(conversation, message);
-        String messageId = message.getHeaders().get("X-Message-ID");
         Optional<String> senderIdOpt = getSenderUserId(conversation, message);
 
-        conversationEventService.sendMessageAddedEvent(shortTenant, conversation.getId(), senderIdOpt, messageId, cleanedMessage, message.getHeaders());
+        conversationEventService.sendMessageAddedEvent(shortTenant, conversation.getId(), senderIdOpt, message.getId(), cleanedMessage, message.getHeaders());
     }
 
     private Optional<String> getSenderUserId(Conversation conversation, Message message) {

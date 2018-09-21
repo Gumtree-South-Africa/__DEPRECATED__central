@@ -1,5 +1,6 @@
 package com.ecg.messagecenter.gtau.robot.service;
 
+import com.datastax.driver.core.utils.UUIDs;
 import com.ecg.messagecenter.gtau.robot.api.requests.payload.GetConversationsResponsePayload;
 import com.ecg.messagecenter.gtau.robot.api.requests.payload.MessagePayload;
 import com.ecg.replyts.app.ConversationEventListeners;
@@ -16,7 +17,6 @@ import com.ecg.replyts.core.api.search.RtsSearchResponse;
 import com.ecg.replyts.core.api.search.SearchService;
 import com.ecg.replyts.core.api.webapi.commands.payloads.SearchMessagePayload;
 import com.ecg.replyts.core.api.webapi.model.MessageRtsState;
-import com.ecg.replyts.core.runtime.cluster.Guids;
 import com.ecg.replyts.core.runtime.listener.MailPublisher;
 import com.ecg.replyts.core.runtime.persistence.conversation.DefaultMutableConversation;
 import com.ecg.replyts.core.runtime.persistence.conversation.MutableConversationRepository;
@@ -94,7 +94,7 @@ public class RobotService {
     }
 
     private void updateConversation(MutableConversation conversation, MessagePayload payload) {
-        final String messageId = Guids.next();
+        final String messageId = UUIDs.timeBased().toString();
         LOG.debug("Begin adding Message ID: {} to conversation {}", messageId, conversation.getId());
 
         conversation.applyCommand(ContentUtils.buildAddMessage(conversation, payload, messageId));

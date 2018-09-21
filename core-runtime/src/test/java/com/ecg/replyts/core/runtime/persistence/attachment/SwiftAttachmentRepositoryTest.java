@@ -1,7 +1,6 @@
 package com.ecg.replyts.core.runtime.persistence.attachment;
 
 import com.datastax.driver.core.utils.UUIDs;
-import com.ecg.replyts.core.runtime.cluster.Guids;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import org.junit.Assert;
@@ -57,15 +56,7 @@ public class SwiftAttachmentRepositoryTest {
                 values.put(container, messageId);
                 bucketCount.get(container).incrementAndGet();
             }
-            // Generate some message ids
-            for (int i = 0; i < 100; i++) {
-                String messageId = Guids.next();
-                counter++;
-                String container = swiftAttachmentRepository.getContainer(messageId);
-                values.put(container, messageId);
-                bucketCount.putIfAbsent(container, new AtomicInteger(0));
-                bucketCount.get(container).incrementAndGet();
-            }
+
             // Generate some timebased ids
             for (int i = 0; i < 100; i++) {
                 String messageId = UUIDs.timeBased().toString();
@@ -79,7 +70,7 @@ public class SwiftAttachmentRepositoryTest {
             assertEquals("Number of keys does not match number of buckets", swiftAttachmentRepository.getNumberOfBuckets(), bucketCount.keySet().size());
 
             // make sure they are evently dispersed in swiftAttachmentRepository.
-            int avgitemsPerBucket = (int) counter / swiftAttachmentRepository.getNumberOfBuckets();
+            int avgitemsPerBucket = counter / swiftAttachmentRepository.getNumberOfBuckets();
 
             for (String key : bucketCount.keySet()) {
                 String msg = String.format("Number of items per bucket %d significantly differs from average %d", avgitemsPerBucket, bucketCount.get(key).get());

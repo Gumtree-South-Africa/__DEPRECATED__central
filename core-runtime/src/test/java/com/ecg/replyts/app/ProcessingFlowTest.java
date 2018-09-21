@@ -20,17 +20,24 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.Collections;
+import java.util.Map;
 
+import static java.util.Arrays.asList;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
 @RunWith(SpringRunner.class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 @Import(ProcessingFlow.class)
+@TestPropertySource(properties = {
+        "replyts.tenant.short=tenant"
+})
 public class ProcessingFlowTest {
+
     @MockBean
     private PreProcessorManager preProcessor;
 
@@ -103,7 +110,7 @@ public class ProcessingFlowTest {
     }
 
     @Test(expected = IllegalStateException.class)
-    public void verifyMailMayNotBeTerminatedByPostProcessor() throws Exception {
+    public void verifyMailMayNotBeTerminatedByPostProcessor() {
         when(context.isTerminated()).thenReturn(true);
         flow.inputForPostProcessor(context);
     }
@@ -172,5 +179,24 @@ public class ProcessingFlowTest {
         when(context.isTerminated()).thenReturn(true);
         verify(conversationEventService, never()).sendConversationCreatedEvent(any(), any(), any(), any(), any(), any());
         verify(conversationEventService, never()).sendMessageAddedEvent(any(), any(), any(), any(), any(), any());
+    }
+
+    @Test
+    public void sendConversationEvents() {
+        Map<String, String> metaData = Collections.emptyMap();
+        Message message = mock(Message.class);
+        when(message.getId()).thenReturn("messageId");
+        when(message.getHeaders()).thenReturn(metaData);
+
+        Conversation conversation = mock(Conversation.class);
+        when(conversation.getId()).thenReturn("conversationId");
+        when(conversation.getMessages()).thenReturn(asList(mock(Message.class), message));
+
+        when(contentOverridingPostProcessorService.getCleanedMessage(conversation, message)).thenReturn("text");
+
+        flow.sendConversationEvents(conversation);
+
+        verify(conversationEventService).sendMessageAddedEvent("tenant", "conversationId",
+                null, "messageId", "text", metaData);
     }
 }
