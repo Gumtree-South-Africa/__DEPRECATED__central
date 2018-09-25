@@ -135,7 +135,7 @@ public class KafkaNewMessageProcessorTest {
     }
 
     @Test
-    public void longRunningTerminableMessage() {
+    public void longRunningTerminableMessage() throws InterruptedException {
         doAnswer((InvocationOnMock invocation) -> longRunningMessageProcessor(true)).when(messageProcessingCoordinator).handleContext(any(), any());
         Message wanted = setUpTest(0);
         KafkaNewMessageProcessor kafkaNewMessageProcessor = new KafkaNewMessageProcessor(messageProcessingCoordinator, queueService,
@@ -167,7 +167,7 @@ public class KafkaNewMessageProcessorTest {
     }
 
     @Test
-    public void longRunningNonTerminableMessage() {
+    public void longRunningNonTerminableMessage() throws InterruptedException {
         doAnswer((InvocationOnMock invocation) -> longRunningMessageProcessor(false)).when(messageProcessingCoordinator).handleContext(any(), any());
         Message wanted = setUpTest(0);
         KafkaNewMessageProcessor kafkaNewMessageProcessor = new KafkaNewMessageProcessor(messageProcessingCoordinator, queueService,
@@ -197,7 +197,7 @@ public class KafkaNewMessageProcessorTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void unparseableMessageWritesToUnparseableTopic() {
+    public void unparseableMessageWritesToUnparseableTopic() throws InterruptedException {
         doThrow(ParsingException.class).when(messageProcessingCoordinator).handleContext(any(), any());
         Message message = setUpTest(0);
         KafkaNewMessageProcessor kafkaNewMessageProcessor = new KafkaNewMessageProcessor(messageProcessingCoordinator, queueService,
@@ -224,7 +224,7 @@ public class KafkaNewMessageProcessorTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void failedMessageWritesToAbandonedTopicIfTooManyRetries() {
+    public void failedMessageWritesToAbandonedTopicIfTooManyRetries() throws InterruptedException {
         doThrow(IOException.class).when(messageProcessingCoordinator).handleContext(any(), any());
         final Message wanted = setUpTest(MAX_RETRIES);
         KafkaNewMessageProcessor kafkaNewMessageProcessor = new KafkaNewMessageProcessor(messageProcessingCoordinator, queueService,
@@ -252,7 +252,7 @@ public class KafkaNewMessageProcessorTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void failedMessageWritesToRetryTopicIfRetryCountAllows() {
+    public void failedMessageWritesToRetryTopicIfRetryCountAllows() throws InterruptedException {
         doThrow(IOException.class).when(messageProcessingCoordinator).handleContext(any(), any());
         when(mutableConversationRepository.getById(any())).thenReturn(mutableConversation);
 
@@ -282,7 +282,7 @@ public class KafkaNewMessageProcessorTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void undeserializableMessageWritesToFailedTopic() {
+    public void undeserializableMessageWritesToFailedTopic() throws InterruptedException {
         KafkaNewMessageProcessor kafkaNewMessageProcessor = new KafkaNewMessageProcessor(messageProcessingCoordinator, queueService,
                 kafkaMessageConsumerFactory, RETRY_ON_FAILED_MESSAGE_PERIOD_MINUTES, MAX_RETRIES, SHORT_TENANT,
                 mutableConversationRepository, processingContextFactory, userIdentifierService, 100L, 100L) {

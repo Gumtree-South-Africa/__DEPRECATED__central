@@ -23,7 +23,9 @@ Remove all containers using `cd docker; make down`
 
 Note that you will have to install Docker on your local machines, the automated tests rely on it.
 
-### Run COMaaS for a specific tenant from your IDE
+### Run COMaaS for a specific tenant
+ 
+#### Option 1. IDE
 
 Before running from IDE you have to import properties into consul manually to do that execute:  
 
@@ -64,6 +66,13 @@ replace `/Users/<USER_NAME>/dev/comaas/ecg-comaas-central` with you path to `ecg
 
 This will call exec:java through the 'verify' phase in the distribution module. 'maven.exec.skip' is normally true, which prevents exec:java from being called prior to the normal 'deploy' phase.
 
+#### Option 1. Build script
+
+  ```
+  ./bin/build.sh -T gtuk -P docker -E -D
+  ```
+  see bin/README.md for more details
+  
 ### Testing that your setup works
 
 1. Place a raw email in the `/tmp/mailreceiver` (file should start with `pre_`) on your local machine. Example email:

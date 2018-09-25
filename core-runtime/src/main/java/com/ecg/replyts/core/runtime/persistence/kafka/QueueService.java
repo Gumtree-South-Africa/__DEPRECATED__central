@@ -47,28 +47,25 @@ public class QueueService {
         });
     }
 
-    public void publishSynchronously(String topicName, Message message) {
+    public void publishSynchronously(String topicName, Message message) throws InterruptedException {
         publishSynchronously(topicName, null, message.toByteArray());
     }
 
-    public void publishSynchronously(String topicName, @Nullable String key, Message message) {
+    public void publishSynchronously(String topicName, @Nullable String key, Message message) throws InterruptedException {
         publishSynchronously(topicName, key, message.toByteArray());
     }
 
-    public void publishSynchronously(String topicName, byte[] payload) {
+    public void publishSynchronously(String topicName, byte[] payload) throws InterruptedException {
         publishSynchronously(topicName, null, payload);
     }
 
-    private void publishSynchronously(String topicName, String key, byte[] payload) {
+    private void publishSynchronously(String topicName, String key, byte[] payload) throws InterruptedException {
         Producer<String, byte[]> producer = producers.computeIfAbsent(topicName, topic -> newProducer());
         ProducerRecord<String, byte[]> record = new ProducerRecord<>(topicName, null, key, payload);
 
         try {
             RecordMetadata metadata = producer.send(record).get();
             LOG.trace("record metadata: {}", metadata.toString());
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            LOG.warn("interrupted while waiting for the producer to send a record");
         } catch (ExecutionException e) {
             throw new RuntimeException("failed to send a kafka record", e);
         }

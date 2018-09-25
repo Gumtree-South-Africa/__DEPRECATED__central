@@ -222,7 +222,9 @@ Usage:
     where TENANT is one or more of [ebayk,mp,kjca,mde,gtau,bt,it],
     ENVNAME is the properties profile name. common values [local, comaasqa, bare]
 
-    Examples: "$0 -t -T ebayk,mp " - build and test ebayk and mp distributions
+    Examples:
+    "$0 -t -T ebayk,mp " - build and test ebayk and mp distributions
+    "$0 -R gtuk " - building and testing (including integration tests) for gtuk
 
 EOF
 }

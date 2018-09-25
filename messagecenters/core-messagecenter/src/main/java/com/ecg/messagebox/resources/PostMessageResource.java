@@ -176,7 +176,9 @@ public class PostMessageResource {
             @ApiParam(value = "Message payload", required = true) @RequestBody PostMessageRequest postMessageRequest,
             @RequestHeader(value = "X-Correlation-ID", required = false) String correlationIdHeader) {
         Message.Builder kafkaMessage = buildMessage(userId, conversationId, postMessageRequest, correlationIdHeader);
-        queueService.publishSynchronously(KafkaTopicService.getTopicIncoming(shortTenant), kafkaMessage.build());
+
+        placeMessageOnIncomingQueue(kafkaMessage.build());
+
         return new PostMessageResponse(kafkaMessage.getMessageId());
     }
 
@@ -208,11 +210,26 @@ public class PostMessageResource {
                         .setBody(ByteString.readFrom(attachment.getInputStream()))
                 );
 
-        queueService.publishSynchronously(KafkaTopicService.getTopicIncoming(shortTenant), kafkaMessage.build());
+        placeMessageOnIncomingQueue(kafkaMessage.build());
+
         LOG.debug("Posted message for conversation id: {}, with message id {}, correlation id: {}, attachment name :{}, attachment size: {} bytes",
                 conversationId, kafkaMessage.getMessageId(), kafkaMessage.getCorrelationId(), attachment.getOriginalFilename(), attachment.getSize());
 
         return new PostMessageResponse(kafkaMessage.getMessageId());
+    }
+
+    /**
+     * Post message (constructed with or without attachment)
+     */
+    private void placeMessageOnIncomingQueue(Message m){
+        try {
+            queueService.publishSynchronously(KafkaTopicService.getTopicIncoming(shortTenant), m);
+        } catch (InterruptedException e) {
+            // we are not sure whether the message is now received by kafka or not. The caller should retry.
+            LOG.warn("Aborting POST because thread is interrupted. correlation id: {}", m.getCorrelationId());
+            Thread.currentThread().interrupt();
+            throw new ClientException(HttpStatus.INTERNAL_SERVER_ERROR, "Thread was interrupted.");
+        }
     }
 
     @ExceptionHandler(IllegalArgumentException.class)

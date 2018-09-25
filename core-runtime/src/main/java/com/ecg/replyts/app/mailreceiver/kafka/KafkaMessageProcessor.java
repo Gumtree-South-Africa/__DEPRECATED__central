@@ -8,7 +8,6 @@ import com.ecg.replyts.core.runtime.logging.MDCConstants;
 import com.ecg.replyts.core.runtime.persistence.kafka.KafkaTopicService;
 import com.ecg.replyts.core.runtime.persistence.kafka.QueueService;
 import com.google.protobuf.Timestamp;
-import kafka.common.ThreadShutdownException;
 import org.apache.kafka.clients.consumer.CommitFailedException;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -21,7 +20,6 @@ import java.io.IOException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
-import java.util.concurrent.ExecutionException;
 
 import static com.ecg.replyts.core.runtime.prometheus.MessageProcessingMetrics.*;
 
@@ -126,7 +124,7 @@ abstract class KafkaMessageProcessor implements MessageProcessor {
         try {
             retryableMessage = deserialize(data);
         } catch (IOException e) {
-            failMessage(data, e);
+            failMessageSwallowInterrupt(data, e);
             return Optional.empty();
         }
         return Optional.of(retryableMessage);
@@ -135,10 +133,16 @@ abstract class KafkaMessageProcessor implements MessageProcessor {
 
     protected abstract void processMessage(Message message);
 
-    private void publishToTopic(final String topic, final Message retryableMessage) {
+    /**
+     * WARNING! It's not good that this guy swallows interrupt. COMAAS-1339
+     */
+    private void publishToTopicSwallowInterrupt(final String topic, final Message retryableMessage) {
         try {
             queueService.publishSynchronously(topic, retryableMessage);
-        } catch (Exception ex) {
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            LOG.error("Failed to publish message to topic {} (COMAAS-1339): {}", topic, e);
+        } catch (RuntimeException ex) {
             LOG.error("Failed to publish message to retry topic!", ex);
         }
     }
@@ -146,7 +150,7 @@ abstract class KafkaMessageProcessor implements MessageProcessor {
     // Some messages are unparseable, so we don't even retry, instead they go on the unparseable topic
     void unparseableMessage(final Message retryableMessage) {
         incMsgUnparseableCounter();
-        publishToTopic(KafkaTopicService.getTopicUnparseable(shortTenant), retryableMessage);
+        publishToTopicSwallowInterrupt(KafkaTopicService.getTopicUnparseable(shortTenant), retryableMessage);
     }
 
     // Put the message in the retry topic with a specific delay
@@ -171,12 +175,12 @@ abstract class KafkaMessageProcessor implements MessageProcessor {
                 .setNextConsumptionTime(nextConsumptionTime)
                 .build();
 
-        publishToTopic(KafkaTopicService.getTopicRetry(shortTenant), retriedMessage);
+        publishToTopicSwallowInterrupt(KafkaTopicService.getTopicRetry(shortTenant), retriedMessage);
     }
 
     // Put the message back in the incoming topic
     void retryMessage(final Message retryableMessage) {
-        queueService.publishSynchronously(KafkaTopicService.getTopicIncoming(shortTenant), retryableMessage);
+        publishToTopicSwallowInterrupt(KafkaTopicService.getTopicIncoming(shortTenant), retryableMessage);
     }
 
     // After n retries, we abandon the message by putting it in the abandoned topic
@@ -184,16 +188,23 @@ abstract class KafkaMessageProcessor implements MessageProcessor {
         try {
             incMsgAbandonedCounter();
             LOG.warn("Mail processing abandoned for message with correlationId {}", retryableMessage.getCorrelationId(), e);
-            publishToTopic(KafkaTopicService.getTopicAbandoned(shortTenant), retryableMessage);
-        } catch (Exception failedEx) {
+            publishToTopicSwallowInterrupt(KafkaTopicService.getTopicAbandoned(shortTenant), retryableMessage);
+        } catch (RuntimeException failedEx) {
             LOG.error("Failed to write message to abandon queue", failedEx);
         }
     }
 
     // Don't know what to do... Put it in the failed queue! Most likely unparseable json
-    private void failMessage(final byte[] payload, final Exception e) {
-        LOG.warn("Could not handle message, writing raw value to failed topic", e);
-        queueService.publishSynchronously(KafkaTopicService.getTopicFailed(shortTenant), payload);
+    // WARNING: swallows interrupt COMAAS-1339
+    private void failMessageSwallowInterrupt(final byte[] payload, final Exception failReason) {
+        LOG.warn("Could not handle message, writing raw value to failed topic", failReason);
+        String topic = KafkaTopicService.getTopicFailed(shortTenant);
+        try {
+            queueService.publishSynchronously(topic, payload);
+        } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+            LOG.error("Failed to message to topic {} (COMAAS-1339 -- but this was a failed message anyway: {}): {}", topic, failReason, ex);
+        }
     }
 
     private void doCommitSync() {
@@ -210,7 +221,7 @@ abstract class KafkaMessageProcessor implements MessageProcessor {
             // internal state which depended on the commit, you can clean it
             // up here. otherwise it's reasonable to ignore the error and go on
             LOG.debug("Commit sync failed", e);
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             LOG.warn("Commit sync failed", e);
         }
     }

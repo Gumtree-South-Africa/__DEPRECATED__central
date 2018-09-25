@@ -49,7 +49,7 @@ public class KafkaConversationEventService implements ConversationEventService {
                 .build();
 
         LOG.trace("ConversationCreatedEvent: \n" + envelope);
-        queueService.publishSynchronously(KafkaTopicService.CONVERSATION_EVENTS_KAFKA_TOPIC, conversationId, envelope);
+        publishUnsafe(KafkaTopicService.CONVERSATION_EVENTS_KAFKA_TOPIC, conversationId, envelope);
     }
 
     public void sendMessageAddedEvent(String tenant, String conversationId, Optional<String> senderUserId, String messageId, String message, Map<String, String> metadata) {
@@ -69,7 +69,7 @@ public class KafkaConversationEventService implements ConversationEventService {
                 .build();
 
         LOG.trace("MessageAddedEvent: \n" + envelope);
-        queueService.publishSynchronously(KafkaTopicService.CONVERSATION_EVENTS_KAFKA_TOPIC, conversationId, envelope);
+        publishUnsafe(KafkaTopicService.CONVERSATION_EVENTS_KAFKA_TOPIC, conversationId, envelope);
     }
 
     @Override
@@ -85,6 +85,21 @@ public class KafkaConversationEventService implements ConversationEventService {
                 .build();
 
         LOG.trace("ConversationDeleteEvent: \n" + envelope);
-        queueService.publishSynchronously(KafkaTopicService.CONVERSATION_EVENTS_KAFKA_TOPIC, conversationId, envelope);
+        publishUnsafe(KafkaTopicService.CONVERSATION_EVENTS_KAFKA_TOPIC, conversationId, envelope);
+    }
+
+
+    /**
+     * Publish a message, synchronously, swallowing InterruptExceptions.
+     * WARNING: Using this will leave the caller in the dark on whether messages arrive or not! See COMAAS-1338
+     */
+    @Deprecated
+    public void publishUnsafe(String topicName, String key, Envelope envelope) {
+        try {
+            queueService.publishSynchronously(topicName, key, envelope);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            LOG.warn("Interrupted while trying to send a record to queue {}, and not propagating Exception to caller. Issue: COMAAS-1338!", topicName);
+        }
     }
 }

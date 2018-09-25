@@ -3,6 +3,7 @@ package nl.marktplaats.integration.volumefilter;
 import com.google.common.io.CharStreams;
 import nl.marktplaats.integration.support.ReceiverTestsSetup;
 import org.joda.time.DateTime;
+import org.junit.Ignore;
 import org.subethamail.wiser.WiserMessage;
 import org.testng.annotations.Test;
 
@@ -10,6 +11,7 @@ import java.io.InputStreamReader;
 import java.util.Date;
 
 
+@Ignore("Disable test because akobiakov said it's flakey and unimportant")
 public class VolumeFilterIntegrationTest extends ReceiverTestsSetup {
 
     @Test(groups = {"receiverTests"})
