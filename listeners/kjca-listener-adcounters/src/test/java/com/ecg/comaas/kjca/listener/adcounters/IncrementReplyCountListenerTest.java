@@ -7,6 +7,7 @@ import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;
 import com.ecg.replyts.core.api.model.conversation.MessageState;
 import com.ecg.replyts.core.api.model.conversation.ModerationResultState;
+import com.ecg.replyts.core.api.model.conversation.command.ConversationCommand;
 import com.ecg.replyts.core.api.model.conversation.command.NewConversationCommand;
 import com.ecg.replyts.core.api.model.conversation.event.ConversationEvent;
 import com.ecg.replyts.core.runtime.model.conversation.ImmutableConversation;
@@ -21,6 +22,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.List;
 
+import static com.ecg.replyts.core.api.model.conversation.command.AddMessageCommandBuilder.anAddMessageCommand;
 import static com.ecg.replyts.core.api.model.conversation.command.NewConversationCommandBuilder.aNewConversationCommand;
 import static com.ecg.replyts.core.api.model.mail.Mail.ADID_HEADER;
 import static org.mockito.Mockito.never;
@@ -37,46 +39,61 @@ public class IncrementReplyCountListenerTest {
     private TnsApiClient tnsApiClient;
 
     private String adId = "1";
+    private String conversationId = "c1";
 
     @Before
     public void setup() {
-        String newConversationId = "c1";
-
         incrementReplyCountListener = new IncrementReplyCountListener(tnsApiClient);
-        NewConversationCommand newConversationBuilderCommand = aNewConversationCommand(newConversationId).withAdId(adId).build();
+        NewConversationCommand newConversationBuilderCommand = aNewConversationCommand(conversationId).withAdId(adId).build();
         List<ConversationEvent> events = ImmutableConversation.apply(newConversationBuilderCommand);
-        conversation = ImmutableConversation.replay(events);
+        ImmutableConversation conv = ImmutableConversation.replay(events);
+
+        ConversationCommand addMessageCommand = anAddMessageCommand(conversationId, "messageId").
+                withMessageDirection(MessageDirection.BUYER_TO_SELLER).
+                withReceivedAt(new DateTime()).
+                build();
+        events = conv.apply(addMessageCommand);
+
+        conversation = conv.updateMany(events);
     }
 
     @Test
     public void firstMsgInConv_messageStateIsSent_countIncremented() throws Exception {
-        Message message = newMessage(MessageState.SENT, true);
+        Message message = newMessage(MessageState.SENT);
         incrementReplyCountListener.messageProcessed(conversation, message);
         verify(tnsApiClient, times(1)).incrementReplyCount(adId);
     }
 
     @Test
     public void firstMsgInConv_messageStateIsNotSent_countNotIncremented() throws Exception {
-        Message message = newMessage(MessageState.BLOCKED, true);
+        Message message = newMessage(MessageState.BLOCKED);
         incrementReplyCountListener.messageProcessed(conversation, message);
         verify(tnsApiClient, never()).incrementReplyCount(adId);
     }
 
     @Test
     public void followUpMsg_messageStateIsSent_countNotIncremented() throws Exception {
-        Message message = newMessage(MessageState.SENT, false);
-        incrementReplyCountListener.messageProcessed(conversation, message);
+        ImmutableConversation conv = ((ImmutableConversation) conversation);
+        ConversationCommand addMessageCommand = anAddMessageCommand(conversationId, "messageId2").
+                withMessageDirection(MessageDirection.BUYER_TO_SELLER).
+                withReceivedAt(new DateTime()).
+                build();
+        List<ConversationEvent> events = conv.apply(addMessageCommand);
+        ImmutableConversation conversationWith2Messages = conv.updateMany(events);
+
+        Message message = newMessage(MessageState.SENT);
+        incrementReplyCountListener.messageProcessed(conversationWith2Messages, message);
         verify(tnsApiClient, never()).incrementReplyCount(adId);
     }
 
     @Test
     public void followUpMsg_messageStateNotSent_countNotIncremented() throws Exception {
-        Message message = newMessage(MessageState.HELD, false);
+        Message message = newMessage(MessageState.HELD);
         incrementReplyCountListener.messageProcessed(conversation, message);
         verify(tnsApiClient, never()).incrementReplyCount(adId);
     }
 
-    public Message newMessage(MessageState state, boolean useAdIdHeader) {
+    public Message newMessage(MessageState state) {
         return ImmutableMessage.Builder.aMessage()
                 .withMessageDirection(MessageDirection.BUYER_TO_SELLER)
                 .withState(state)
@@ -84,7 +101,7 @@ public class IncrementReplyCountListenerTest {
                 .withLastModifiedAt(DateTime.now())
                 .withFilterResultState(FilterResultState.OK)
                 .withHumanResultState(ModerationResultState.GOOD)
-                .withHeader(useAdIdHeader ? ADID_HEADER : "X-Whatever", "adid")
+                .withHeader(ADID_HEADER, "adid")
                 .withProcessingFeedback(ProcessingFeedbackBuilder.aProcessingFeedback()
                         .withFilterName("filterName")
                         .withFilterInstance("filterInstantce"))

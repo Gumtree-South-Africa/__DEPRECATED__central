@@ -14,7 +14,6 @@ import org.springframework.stereotype.Component;
 
 import static com.ecg.replyts.core.api.model.Tenants.TENANT_KJCA;
 import static com.ecg.replyts.core.api.model.Tenants.TENANT_MVCA;
-import static com.ecg.replyts.core.api.model.mail.Mail.ADID_HEADER;
 
 @ComaasPlugin
 @Profile({TENANT_KJCA, TENANT_MVCA})
@@ -31,7 +30,7 @@ class IncrementReplyCountListener implements MessageProcessedListener {
 
     @Override
     public void messageProcessed(Conversation conversation, Message message) {
-        if (message.getState() == MessageState.SENT && isInitialPlatformReply(message)) {
+        if (message.getState() == MessageState.SENT && conversation.getMessages().size() < 2) {
             try {
                 tnsApiClient.incrementReplyCount(conversation.getAdId());
                 LOG.trace("Request for incrementing Ad({}) reply count has completed.", conversation.getAdId());
@@ -39,11 +38,5 @@ class IncrementReplyCountListener implements MessageProcessedListener {
                 LOG.error("Increment reply count failed for Ad {} ", conversation.getAdId(), e);
             }
         }
-    }
-
-    private boolean isInitialPlatformReply(Message message) {
-        // could be an auto-reattached follow-up if sent from same email
-        // for same ad on VIP
-        return message.getHeaders().containsKey(ADID_HEADER);
     }
 }
