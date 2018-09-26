@@ -29,7 +29,7 @@ public class KafkaRetryMessageProcessor extends KafkaMessageProcessor {
     }
 
     @Override
-    protected void processMessage(Message message) {
+    protected void processMessage(Message message) throws InterruptedException {
         LOG.debug("Found a message {} in the retry topic with next consumption time {}", message.getCorrelationId(), message.getNextConsumptionTime());
 
         Instant nextConsumptionTime = Instant.ofEpochSecond(

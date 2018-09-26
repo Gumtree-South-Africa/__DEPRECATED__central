@@ -7,10 +7,12 @@ import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.logging.MDCConstants;
 import com.ecg.replyts.core.runtime.persistence.kafka.KafkaTopicService;
 import com.ecg.replyts.core.runtime.persistence.kafka.QueueService;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.Timestamp;
 import org.apache.kafka.clients.consumer.CommitFailedException;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.common.errors.WakeupException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,7 +52,7 @@ abstract class KafkaMessageProcessor implements MessageProcessor {
 
     }
 
-    protected Message deserialize(final byte[] data) throws IOException {
+    protected Message deserialize(final byte[] data) throws InvalidProtocolBufferException {
         return Message.parseFrom(data);
     }
 
@@ -66,34 +68,54 @@ abstract class KafkaMessageProcessor implements MessageProcessor {
     protected abstract String getTopicName();
 
     @Override
-    public void processNext() {
+    public void processNext() throws InterruptedException {
         try {
             if (consumer == null) {
                 consumer = kafkaMessageConsumerFactory.createConsumer(this.getTopicName());
             }
-            consumer.poll(KAFKA_POLL_TIMEOUT_MS).forEach(messageRecord -> {
+            ConsumerRecords<String, byte[]> incomingRecords = consumer.poll(KAFKA_POLL_TIMEOUT_MS);
+
+            // use traditional for loop as it allows to propagate checked InterruptedException
+            for (ConsumerRecord<String, byte[]> messageRecord : incomingRecords) {
                 setTaskFields();
-                decodeMessage(messageRecord).ifPresent(message -> {
-                    try {
-                        processMessage(message);
-                        doCommitSync();
-                    } catch (HangingThreadException e) {
-                        MAIL_PROCESSING_TIMEDOUT_COUNTER.inc();
-                        doCommitSync();
-                        shutdown();
-                    }
-                });
-            });
+                processIncomingMessageData(messageRecord.value());
+            }
         } catch (WakeupException e) {
             // This exception is raised when the consumer is in its poll() loop, waking it up. We can ignore it here,
             // because this very likely means that we are shutting down Comaas.
-            LOG.debug("WakeupException process next", e);
-        } catch (Exception e) {
+            LOG.debug("WakeupException in processNext (Kafka sync operation interrupted), probably shutting down.", e);
+        } catch (RuntimeException e) {
             // In cause we failed to write to retry queue we are likely to fail to make progress.
             // Considering this is fine.  Failing to write to abandoned queue would not stop the processing.
             LOG.error("Process next failed", e);
         }
     }
+
+    /**
+     * handle the data and commit the queue (or not) according to the relevant edge-case-logic.
+     */
+    private void processIncomingMessageData(byte[] msgData) throws InterruptedException {
+        try {
+            Message message = deserialize(msgData);
+            processMessage(message);
+            doCommitSync();
+        } catch (InvalidProtocolBufferException e) {
+            queueService.publishSynchronously(KafkaTopicService.getTopicFailed(shortTenant), msgData);
+            doCommitSync();
+        } catch (HangingThreadException e) {
+            MAIL_PROCESSING_TIMEDOUT_COUNTER.inc();
+            // The HangingThreadException indicates that the message at hand triggers some bug in the application.
+            // So we want to skip that message.
+            // Therefore, commit the offset to the queue, even though the message was most likely not sent/retried.
+            // Other messages that are in parallel processing may have been sent, but not committed to the partition offset.
+            // That means they will be delivered twice.
+            doCommitSync();
+            shutdown();
+        }
+
+        // any other exception: do not commit the partition offset.
+    }
+
 
     private void shutdown() {
         try {
@@ -117,44 +139,16 @@ abstract class KafkaMessageProcessor implements MessageProcessor {
         System.exit(1);
     }
 
-
-    private Optional<Message> decodeMessage(ConsumerRecord<String, byte[]> messageRecord) {
-        final byte[] data = messageRecord.value();
-        final Message retryableMessage;
-        try {
-            retryableMessage = deserialize(data);
-        } catch (IOException e) {
-            failMessageSwallowInterrupt(data, e);
-            return Optional.empty();
-        }
-        return Optional.of(retryableMessage);
-    }
-
-
-    protected abstract void processMessage(Message message);
-
-    /**
-     * WARNING! It's not good that this guy swallows interrupt. COMAAS-1339
-     */
-    private void publishToTopicSwallowInterrupt(final String topic, final Message retryableMessage) {
-        try {
-            queueService.publishSynchronously(topic, retryableMessage);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            LOG.error("Failed to publish message to topic {} (COMAAS-1339): {}", topic, e);
-        } catch (RuntimeException ex) {
-            LOG.error("Failed to publish message to retry topic!", ex);
-        }
-    }
+    protected abstract void processMessage(Message message) throws InterruptedException;
 
     // Some messages are unparseable, so we don't even retry, instead they go on the unparseable topic
-    void unparseableMessage(final Message retryableMessage) {
+    void unparseableMessage(final Message retryableMessage) throws InterruptedException {
         incMsgUnparseableCounter();
-        publishToTopicSwallowInterrupt(KafkaTopicService.getTopicUnparseable(shortTenant), retryableMessage);
+        queueService.publishSynchronously(KafkaTopicService.getTopicUnparseable(shortTenant), retryableMessage);
     }
 
     // Put the message in the retry topic with a specific delay
-    void delayRetryMessage(final Message retryableMessage) {
+    void delayRetryMessage(final Message retryableMessage) throws InterruptedException {
         incMsgRetriedCounter();
         Instant currentConsumptionTime = Instant.ofEpochSecond(
                 retryableMessage.getNextConsumptionTime().getSeconds(),
@@ -175,35 +169,22 @@ abstract class KafkaMessageProcessor implements MessageProcessor {
                 .setNextConsumptionTime(nextConsumptionTime)
                 .build();
 
-        publishToTopicSwallowInterrupt(KafkaTopicService.getTopicRetry(shortTenant), retriedMessage);
+        queueService.publishSynchronously(KafkaTopicService.getTopicRetry(shortTenant), retriedMessage);
     }
 
     // Put the message back in the incoming topic
-    void retryMessage(final Message retryableMessage) {
-        publishToTopicSwallowInterrupt(KafkaTopicService.getTopicIncoming(shortTenant), retryableMessage);
+    void retryMessage(final Message retryableMessage) throws InterruptedException {
+        queueService.publishSynchronously(KafkaTopicService.getTopicIncoming(shortTenant), retryableMessage);
     }
 
     // After n retries, we abandon the message by putting it in the abandoned topic
-    void abandonMessage(final Message retryableMessage, final Exception e) {
+    void abandonMessage(final Message retryableMessage, final Exception e) throws InterruptedException {
         try {
             incMsgAbandonedCounter();
             LOG.warn("Mail processing abandoned for message with correlationId {}", retryableMessage.getCorrelationId(), e);
-            publishToTopicSwallowInterrupt(KafkaTopicService.getTopicAbandoned(shortTenant), retryableMessage);
+            queueService.publishSynchronously(KafkaTopicService.getTopicAbandoned(shortTenant), retryableMessage);
         } catch (RuntimeException failedEx) {
             LOG.error("Failed to write message to abandon queue", failedEx);
-        }
-    }
-
-    // Don't know what to do... Put it in the failed queue! Most likely unparseable json
-    // WARNING: swallows interrupt COMAAS-1339
-    private void failMessageSwallowInterrupt(final byte[] payload, final Exception failReason) {
-        LOG.warn("Could not handle message, writing raw value to failed topic", failReason);
-        String topic = KafkaTopicService.getTopicFailed(shortTenant);
-        try {
-            queueService.publishSynchronously(topic, payload);
-        } catch (InterruptedException ex) {
-            Thread.currentThread().interrupt();
-            LOG.error("Failed to message to topic {} (COMAAS-1339 -- but this was a failed message anyway: {}): {}", topic, failReason, ex);
         }
     }
 

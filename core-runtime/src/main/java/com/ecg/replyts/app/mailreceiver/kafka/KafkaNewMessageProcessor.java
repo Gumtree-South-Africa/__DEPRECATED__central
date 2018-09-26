@@ -18,11 +18,14 @@ import com.google.protobuf.ByteString;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
+import scala.Int;
+
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 import static com.ecg.replyts.core.api.model.conversation.command.AddMessageCommandBuilder.anAddMessageCommand;
@@ -76,27 +79,49 @@ public class KafkaNewMessageProcessor extends KafkaMessageProcessor {
     }
 
     @Override
-    protected void processMessage(Message message) {
+    protected void processMessage(Message message) throws InterruptedException {
         LOG.debug("Found a message in the incoming topic {}, tried so far: {} times", message.getCorrelationId(), message.getRetryCount());
 
+        // note that we are not dealing with concurrency here -- not for the AtomicBoolean, and not for the
+        // executor. It's only a way to run a separate thread, that might hang indefinitely -- and if it does,
+        // we want to propagate an interrupt up the stack, to signal that some thread is stuck.
+
+        // Because we're not sure if/how the interrupt flag can be read from outside the executor.
+        AtomicBoolean interrupted = new AtomicBoolean();
         Future<?> task = executor.submit(MDCConstants.setTaskFields(() -> {
             try {
-                chooseStrategyAndProcess(message);
-            } catch (ParsingException e) {
-                unparseableMessage(message);
-            } catch (Exception e) {
-                retryOrAbandon(message, e);
+                try {
+                    // chooseStrategyAndProcess seems not interruptible -- or it swallows interruptedException.
+                    // But it must be doing IO somewhere down the line?
+                    chooseStrategyAndProcess(message);
+                } catch (ParsingException e) {
+                    unparseableMessage(message);
+                } catch (IOException e) {
+                    retryOrAbandon(message, e);
+                }
+            } catch (InterruptedException e){
+                Thread.currentThread().interrupt();
+                interrupted.set(true);
             }
+
         }, Thread.currentThread().getName() + "-tns"));
 
         try {
             task.get(messageProcessingTimeoutMs, TimeUnit.MILLISECONDS);
+
+            if (interrupted.get()){
+                Thread.currentThread().interrupt();
+                throw new InterruptedException();
+            }
+
             LOG.debug("Processed message with correlation id {} successfully", message.getCorrelationId());
         } catch (TimeoutException e) {
             LOG.info("Message processing time exceeded {} seconds. Trying to stop the thread", messageProcessingTimeoutMs);
             try {
                 executor.shutdownNow();
-                if (executor.awaitTermination(messageTaskCancellationTimeoutMs, TimeUnit.MILLISECONDS)) {
+                if (executorRespectsInterrupt()) {
+                    // if the Below call is interrupted, the HangingThreadException is thrown, after which the
+                    // kafka offset is committed. That's NOT good, because we wanted to retry the message.
                     retryOrAbandon(message, new RuntimeException("Message processing timed out"));
                 } else {
                     abandonMessage(message, new RuntimeException("Shutting down comaas since we could not stop message processing in time"));
@@ -108,16 +133,19 @@ public class KafkaNewMessageProcessor extends KafkaMessageProcessor {
                 //create new executor for next message
                 executor = createMessageProcessingExecutor();
             }
-        } catch (InterruptedException e) {
-            retryOrAbandon(message, e);
-            Thread.currentThread().interrupt();
         } catch (ExecutionException e) {
             retryOrAbandon(message, e);
         }
-
     }
 
-    private void retryOrAbandon(Message message, Exception e) {
+    /**
+     * @return true iff the executor shut down in timely manner
+     */
+    private boolean executorRespectsInterrupt() throws InterruptedException {
+        return executor.awaitTermination(messageTaskCancellationTimeoutMs, TimeUnit.MILLISECONDS);
+    }
+
+    private void retryOrAbandon(Message message, Exception e) throws InterruptedException {
         if (message.getRetryCount() >= maxRetries) {
             abandonMessage(message, e);
         } else {
