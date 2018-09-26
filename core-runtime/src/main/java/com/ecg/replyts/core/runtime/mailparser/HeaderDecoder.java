@@ -18,7 +18,7 @@ class HeaderDecoder {
     );
 
     public ImmutableMultimap<String, String> decodeHeaders(Message mail) {
-        ImmutableMultimap.Builder<String, String> resultMapBdr = ImmutableMultimap.<String, String>builder();
+        ImmutableMultimap.Builder<String, String> resultMapBdr = ImmutableMultimap.builder();
         List<Field> headerFields = mail.getHeader().getFields();
         for (Field f : headerFields) {
             String normalizedName = normalizeHeaderName(f.getName());

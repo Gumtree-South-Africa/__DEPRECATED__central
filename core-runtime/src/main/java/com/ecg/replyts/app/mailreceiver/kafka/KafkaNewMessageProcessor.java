@@ -21,10 +21,7 @@ import org.springframework.util.Assert;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
@@ -42,6 +39,7 @@ import static com.ecg.replyts.core.api.model.conversation.command.AddMessageComm
 
 public class KafkaNewMessageProcessor extends KafkaMessageProcessor {
     private static final Logger LOG = LoggerFactory.getLogger(KafkaNewMessageProcessor.class);
+    private static final String X_MESSAGE_ID_HEADER = "X-Message-ID";
 
     private final int maxRetries;
     private final MessageProcessingCoordinator messageProcessingCoordinator;
@@ -132,18 +130,31 @@ public class KafkaNewMessageProcessor extends KafkaMessageProcessor {
         if (rawEmail != null && !rawEmail.isEmpty()) {
             // A presence of a raw email represents the deprecated way of ingesting emails
             // See https://github.corp.ebay.com/ecg-comaas/comaas-adr/blob/master/adr-004-kmail-transition-period.md
-            messageProcessingCoordinator.accept(kafkaMessage.getMessageId(), new ByteArrayInputStream(rawEmail.toByteArray()));
+            messageProcessingCoordinator.accept(getMessageId(kafkaMessage), new ByteArrayInputStream(rawEmail.toByteArray()));
         } else {
             MutableConversation conversation = getConversation(kafkaMessage.getPayload().getConversationId());
             Collection<Attachment> attachments = kafkaMessage.getAttachmentsList().stream()
                     .map(a -> new Attachment(a.getFileName(), a.getBody().toByteArray()))
-                    .collect(Collectors.toSet());MessageProcessingContext context = createContext(kafkaMessage.getPayload().getUserId(), kafkaMessage.getMessageId(),conversation, attachments);
+                    .collect(Collectors.toSet());
+            MessageProcessingContext context = createContext(kafkaMessage.getPayload().getUserId(), kafkaMessage.getMessageId(), conversation, attachments);
             context.addCommand(
                     createAddMessageCommand(kafkaMessage.getPayload().getMessage(), conversation.getId(), context,
                             kafkaMessage.getMetadataMap()));
 
             messageProcessingCoordinator.handleContext(Optional.empty(), context);
         }
+    }
+
+    private String getMessageId(Message kafkaMessage) {
+        // This is undocumented behaviour which is set to be removed in COMAAS-1226
+        // At the moment we can't ignore X-Message-Id entirely and just write/read the messageId field of the
+        // kafka payload, because the emails originating from MP (the tenant itself) rely on this header to
+        // render the chat ui correctly. So we can only get rid of the edge case when MP is fully on the post message api.
+        // (sorry).
+        Map<String, String> caseInsensitiveMetaValues = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+        caseInsensitiveMetaValues.putAll(kafkaMessage.getMetadataMap());
+        String messageIdFromHeader = caseInsensitiveMetaValues.get(X_MESSAGE_ID_HEADER);
+        return messageIdFromHeader != null ? messageIdFromHeader : kafkaMessage.getMessageId();
     }
 
     private MutableConversation getConversation(String conversationId) {
