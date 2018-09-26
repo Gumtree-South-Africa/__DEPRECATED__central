@@ -39,10 +39,12 @@ import static net.logstash.logback.argument.StructuredArguments.keyValue;
  */
 @Component
 public class DefaultMessageProcessingCoordinator implements MessageProcessingCoordinator {
-    private static final Logger LOG = LoggerFactory.getLogger(DefaultMessageProcessingCoordinator.class);
 
     public static final String TENANT_ID_EMAIL_HEADER = "X-Comaas-Tenant";
 
+    private static final Logger LOG = LoggerFactory.getLogger(DefaultMessageProcessingCoordinator.class);
+
+    private static final String X_MESSAGE_ID_HEADER = "X-Message-ID";
     private static final Timer OVERALL_TIMER = TimingReports.newTimer("processing-total");
 
     private final List<MessageProcessedListener> messageProcessedListeners = new ArrayList<>();
@@ -77,7 +79,7 @@ public class DefaultMessageProcessingCoordinator implements MessageProcessingCoo
      */
     @SuppressWarnings("UnstableApiUsage")
     @Override
-    public final boolean accept(String messageId, @WillNotClose InputStream input) throws IOException, ParsingException {
+    public final boolean accept(String messageIdFromKmail, @WillNotClose InputStream input) throws IOException, ParsingException {
         Stopwatch stopwatch = Stopwatch.createStarted();
         byte[] bytes = ByteStreams.toByteArray(input);
 
@@ -90,6 +92,7 @@ public class DefaultMessageProcessingCoordinator implements MessageProcessingCoo
                 return false;
             }
 
+            String messageId = getMessageId(messageIdFromKmail, mail.get());
             MessageProcessingContext context = processingContextFactory.newContext(mail.get(), messageId);
             setMDC(context);
             contentLengthCounter.inc(bytes.length);
@@ -97,13 +100,23 @@ public class DefaultMessageProcessingCoordinator implements MessageProcessingCoo
             handleContext(Optional.of(bytes), context);
             return true;
         } catch (ParsingException e) {
-            LOG.warn("Could not parse mail with id {}", messageId, e);
-            handleTermination(Termination.unparseable(e), messageId, Optional.empty(), Optional.empty(), Optional.of(bytes),
+            LOG.warn("Could not parse mail with id {}", messageIdFromKmail, e);
+            handleTermination(Termination.unparseable(e), messageIdFromKmail, Optional.empty(), Optional.empty(), Optional.of(bytes),
                     Collections.emptySet());
             throw e;
         } finally {
             LOG.debug("Message processed", keyValue("processingTime", stopwatch.elapsed(TimeUnit.MILLISECONDS)));
         }
+    }
+
+    private String getMessageId(String messageIdFromKmail, Mail mail) {
+        // This is undocumented behaviour which is set to be removed in COMAAS-1226
+        // At the moment we can't ignore X-Message-Id entirely and just write/read the messageId field of the
+        // kafka payload, because the emails originating from MP (the tenant itself) rely on this header to
+        // render the chat ui correctly. So we can only get rid of the edge case when MP is fully on the post message api.
+        // (sorry).
+        String messageIdFromHeader = mail.getUniqueHeader(X_MESSAGE_ID_HEADER);
+        return messageIdFromHeader != null ? messageIdFromHeader : messageIdFromKmail;
     }
 
     private Optional<Mail> parseMail(byte[] incomingMailContents) throws ParsingException {
