@@ -5,6 +5,7 @@ import com.ecg.comaas.protobuf.MessageOuterClass.Payload;
 import com.ecg.replyts.core.runtime.persistence.kafka.KafkaTopicService;
 import com.ecg.replyts.core.runtime.persistence.kafka.QueueService;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.google.protobuf.InvalidProtocolBufferException;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.MockConsumer;
 import org.apache.kafka.clients.consumer.OffsetResetStrategy;
@@ -82,8 +83,8 @@ public class KafkaRetryMessageProcessorTest {
         message(99);
         KafkaRetryMessageProcessor kafkaRetryMessageProcessor = new KafkaRetryMessageProcessor(queueService, kafkaMessageConsumerFactory, RETRY_ON_FAILED_MESSAGE_PERIOD_MINUTES, SHORT_TENANT) {
             @Override
-            protected Message deserialize(byte[] data) throws IOException {
-                throw new IOException();
+            protected Message deserialize(byte[] data) throws InvalidProtocolBufferException {
+                throw new InvalidProtocolBufferException("mocking a failure");
             }
         };
 
@@ -98,7 +99,7 @@ public class KafkaRetryMessageProcessorTest {
         Message wanted = message(4);
         KafkaRetryMessageProcessor kafkaRetryMessageProcessor = new KafkaRetryMessageProcessor(queueService, kafkaMessageConsumerFactory, RETRY_ON_FAILED_MESSAGE_PERIOD_MINUTES, SHORT_TENANT) {
             @Override
-            protected Message deserialize(byte[] data) throws IOException {
+            protected Message deserialize(byte[] data) {
                 return wanted;
             }
         };
