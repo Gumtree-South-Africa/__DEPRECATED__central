@@ -160,7 +160,7 @@ public class ProcessingFlowTest {
     }
 
     @Test
-    public void processingTerminatesIfConversationEventsCantBeSubmitted() throws MailDeliveryException {
+    public void processingTerminatesIfConversationEventsCantBeSubmitted() throws MailDeliveryException, InterruptedException {
         Conversation c = mock(Conversation.class);
         when(c.getMessages()).thenReturn(Collections.singletonList(mock(Message.class)));
         when(context.getConversation()).thenReturn(c);
@@ -175,14 +175,14 @@ public class ProcessingFlowTest {
     }
 
     @Test
-    public void conversationEventsAreNotSubmittedForTerminatedContext() {
+    public void conversationEventsAreNotSubmittedForTerminatedContext() throws InterruptedException {
         when(context.isTerminated()).thenReturn(true);
         verify(conversationEventService, never()).sendConversationCreatedEvent(any(), any(), any(), any(), any(), any());
         verify(conversationEventService, never()).sendMessageAddedEvent(any(), any(), any(), any(), any(), any());
     }
 
     @Test
-    public void sendConversationEvents() {
+    public void sendConversationEvents() throws InterruptedException {
         Map<String, String> metaData = Collections.emptyMap();
         Message message = mock(Message.class);
         when(message.getId()).thenReturn("messageId");

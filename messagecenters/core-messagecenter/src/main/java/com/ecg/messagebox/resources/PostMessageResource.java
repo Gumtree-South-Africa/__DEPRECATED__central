@@ -46,6 +46,7 @@ import java.util.*;
 import static com.ecg.messagebox.model.ParticipantRole.BUYER;
 import static com.ecg.messagebox.model.ParticipantRole.SELLER;
 import static com.ecg.replyts.core.api.model.conversation.command.NewConversationCommandBuilder.aNewConversationCommand;
+import static com.ecg.replyts.core.api.util.Constants.INTERRUPTED_WARNING;
 import static org.joda.time.DateTime.now;
 
 @RestController
@@ -96,11 +97,11 @@ public class PostMessageResource {
             @ApiParam(value = "Ad ID", required = true) @PathVariable("adId") String adId,
             @ApiParam(value = "Conversation payload", required = true) @RequestBody CreateConversationRequest createConversationRequest) {
         List<Participant> participants = createConversationRequest.participants;
-        if (participants == null || participants.isEmpty()) {
+        if (participants.isEmpty()) {
             throw new ClientException(HttpStatus.BAD_REQUEST, "Field 'participants' must not be empty");
         }
         String subject = createConversationRequest.subject;
-        if (subject == null || subject.trim().isEmpty()) {
+        if (subject.trim().isEmpty()) {
             throw new ClientException(HttpStatus.BAD_REQUEST, "Field 'subject' must not be empty");
         }
         if (participants.stream().noneMatch(participant -> participant.getUserId().equals(userId))) {
@@ -144,10 +145,21 @@ public class PostMessageResource {
         postBoxRepository.createEmptyConversation(buyer.getUserId(), conversationThread);
         postBoxRepository.createEmptyConversation(seller.getUserId(), conversationThread);
 
-        conversationEventService.sendConversationCreatedEvent(shortTenant, adId, conversationId, customValues, toConversationEventParticipants(participants), creationDate);
+        placeConversationCreatedEventOnQueue(adId, conversationId, customValues, participants, creationDate);
         conversationRepository.commit(conversationId, Collections.singletonList(conversationCreatedEvent));
 
         return new CreateConversationResponse(false, conversationId);
+    }
+
+    private void placeConversationCreatedEventOnQueue(String adId, String conversationId, Map<String, String> customValues, List<Participant> participants, DateTime creationDate) {
+        try {
+            conversationEventService.sendConversationCreatedEvent(shortTenant, adId, conversationId, customValues, toConversationEventParticipants(participants), creationDate);
+        } catch (InterruptedException e) {
+            // we are not sure whether the message is now received by kafka or not. The caller should retry.
+            LOG.warn("Aborting POST because thread is interrupted. conversation id: {}." + INTERRUPTED_WARNING, conversationId);
+            Thread.currentThread().interrupt();
+            throw new ClientException(HttpStatus.INTERNAL_SERVER_ERROR, "Thread was interrupted.");
+        }
     }
 
     private Set<Conversation.Participant> toConversationEventParticipants(List<Participant> participants) {
@@ -197,7 +209,7 @@ public class PostMessageResource {
     public PostMessageResponse postMessageWithAttachment(
             @ApiParam(value = "User ID", required = true) @PathVariable("userId") String userId,
             @ApiParam(value = "Conversation ID", required = true) @PathVariable("conversationId") String conversationId,
-            @ApiParam(value = "Message payload and metadata", required = true) @RequestPart (value = "message") PostMessageRequest postMessageRequest,
+            @ApiParam(value = "Message payload and metadata", required = true) @RequestPart(value = "message") PostMessageRequest postMessageRequest,
             @ApiParam(value = "Attachment", required = true) @RequestPart(value = "attachment") MultipartFile attachment,
             @RequestHeader(value = "X-Correlation-ID", required = false) String correlationIdHeader) throws IOException {
 
@@ -221,12 +233,12 @@ public class PostMessageResource {
     /**
      * Post message (constructed with or without attachment)
      */
-    private void placeMessageOnIncomingQueue(Message m){
+    private void placeMessageOnIncomingQueue(Message m) {
         try {
             queueService.publishSynchronously(KafkaTopicService.getTopicIncoming(shortTenant), m);
         } catch (InterruptedException e) {
             // we are not sure whether the message is now received by kafka or not. The caller should retry.
-            LOG.warn("Aborting POST because thread is interrupted. correlation id: {}", m.getCorrelationId());
+            LOG.warn("Aborting post message call because thread is interrupted. correlation id: {}. " + INTERRUPTED_WARNING, m.getCorrelationId());
             Thread.currentThread().interrupt();
             throw new ClientException(HttpStatus.INTERNAL_SERVER_ERROR, "Thread was interrupted.");
         }
@@ -253,11 +265,11 @@ public class PostMessageResource {
                         .build())
                 .setCorrelationId(correlationId)
                 .setPayload(Payload
-                    .newBuilder()
-                    .setConversationId(conversationId)
-                    .setUserId(userId)
-                    .setMessage(postMessageRequest.message)
-                    .build())
+                        .newBuilder()
+                        .setConversationId(conversationId)
+                        .setUserId(userId)
+                        .setMessage(postMessageRequest.message)
+                        .build())
                 .putAllMetadata(postMessageRequest.metadata);
     }
 }

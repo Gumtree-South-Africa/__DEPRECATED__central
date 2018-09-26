@@ -29,17 +29,16 @@ import com.ecg.replyts.core.webapi.screeningv2.converter.DomainObjectConverter;
 import com.google.common.base.Preconditions;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
 
+import static com.ecg.replyts.core.api.util.Constants.INTERRUPTED_WARNING;
 import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.PUT;
@@ -49,6 +48,8 @@ import static org.springframework.web.bind.annotation.RequestMethod.PUT;
  */
 @Controller
 class ConversationController {
+
+    private static final Logger LOG = LoggerFactory.getLogger(ConversationController.class);
 
     private final MutableConversationRepository conversationRepository;
     private final DomainObjectConverter converter;
@@ -130,9 +131,19 @@ class ConversationController {
 
         Conversation.Participant.Role role = ConversationRole.getRole(changeConversationStatePayload.getIssuerEmail(), conversation).getParticipantRole();
         Conversation.Participant participant = ConversationEventConverter.createParticipant(changeConversationStatePayload.getIssuerId(), null, changeConversationStatePayload.getIssuerEmail(), role);
-        conversationEventService.sendConversationDeletedEvent(shortTenant, conversationId, participant);
 
-        return ResponseObject.of(RequestState.OK);
+        return placeDeleteEventOnQueue(conversationId, participant);
+    }
+
+    private ResponseObject<?> placeDeleteEventOnQueue(String conversationId, Conversation.Participant participant) {
+        try {
+            conversationEventService.sendConversationDeletedEvent(shortTenant, conversationId, participant);
+            return ResponseObject.of(RequestState.OK);
+        } catch (InterruptedException e) {
+            LOG.warn("Aborting conversation deleting because thread is interrupted. conversation id: {}. " + INTERRUPTED_WARNING, conversationId);
+            Thread.currentThread().interrupt();
+            return ResponseObject.of(RequestState.INTERNAL_SERVER_ERROR, "Thread was interrupted.");
+        }
     }
 
     @RequestMapping(value = "/conversation/{conversationId}/customValue", method = PUT)

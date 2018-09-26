@@ -6,4 +6,5 @@ public enum RequestState {
     ENTITY_NOT_FOUND,
     INVALID_ARGUMENTS,
     ENTITY_OUTDATED,
+    INTERNAL_SERVER_ERROR,
 }

@@ -30,7 +30,7 @@ public class KafkaConversationEventService implements ConversationEventService {
         this.queueService = queueService;
     }
 
-    public void sendConversationCreatedEvent(String tenant, String adId, String conversationId, Map<String, String> metadata, Set<Participant> participants, DateTime createAt) {
+    public void sendConversationCreatedEvent(String tenant, String adId, String conversationId, Map<String, String> metadata, Set<Participant> participants, DateTime createAt) throws InterruptedException {
         Instant time = Instant.ofEpochMilli(createAt.getMillis());
         ConversationCreated conversationCreated = ConversationCreated.newBuilder()
                 .setAdId(adId)
@@ -49,10 +49,10 @@ public class KafkaConversationEventService implements ConversationEventService {
                 .build();
 
         LOG.trace("ConversationCreatedEvent: \n" + envelope);
-        publishUnsafe(KafkaTopicService.CONVERSATION_EVENTS_KAFKA_TOPIC, conversationId, envelope);
+        queueService.publishSynchronously(KafkaTopicService.CONVERSATION_EVENTS_KAFKA_TOPIC, conversationId, envelope);
     }
 
-    public void sendMessageAddedEvent(String tenant, String conversationId, Optional<String> senderUserId, String messageId, String message, Map<String, String> metadata) {
+    public void sendMessageAddedEvent(String tenant, String conversationId, Optional<String> senderUserId, String messageId, String message, Map<String, String> metadata) throws InterruptedException {
         MessageAdded.Builder builder = MessageAdded.newBuilder()
                 .setId(UUID.newBuilder()
                         .setUuid(messageId)
@@ -69,11 +69,11 @@ public class KafkaConversationEventService implements ConversationEventService {
                 .build();
 
         LOG.trace("MessageAddedEvent: \n" + envelope);
-        publishUnsafe(KafkaTopicService.CONVERSATION_EVENTS_KAFKA_TOPIC, conversationId, envelope);
+        queueService.publishSynchronously(KafkaTopicService.CONVERSATION_EVENTS_KAFKA_TOPIC, conversationId, envelope);
     }
 
     @Override
-    public void sendConversationDeletedEvent(String tenant, String conversationId, Participant participant) {
+    public void sendConversationDeletedEvent(String tenant, String conversationId, Participant participant) throws InterruptedException {
         ConversationDeleted conversationDeleted = ConversationDeleted.newBuilder()
                 .addParticipants(participant)
                 .build();
@@ -85,21 +85,6 @@ public class KafkaConversationEventService implements ConversationEventService {
                 .build();
 
         LOG.trace("ConversationDeleteEvent: \n" + envelope);
-        publishUnsafe(KafkaTopicService.CONVERSATION_EVENTS_KAFKA_TOPIC, conversationId, envelope);
-    }
-
-
-    /**
-     * Publish a message, synchronously, swallowing InterruptExceptions.
-     * WARNING: Using this will leave the caller in the dark on whether messages arrive or not! See COMAAS-1338
-     */
-    @Deprecated
-    public void publishUnsafe(String topicName, String key, Envelope envelope) {
-        try {
-            queueService.publishSynchronously(topicName, key, envelope);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            LOG.warn("Interrupted while trying to send a record to queue {}, and not propagating Exception to caller. Issue: COMAAS-1338!", topicName);
-        }
+        queueService.publishSynchronously(KafkaTopicService.CONVERSATION_EVENTS_KAFKA_TOPIC, conversationId, envelope);
     }
 }

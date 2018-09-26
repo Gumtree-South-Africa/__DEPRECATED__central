@@ -1,7 +1,7 @@
 package com.ecg.messagecenter.bt.webapi;
 
-import com.ecg.messagecenter.bt.persistence.ConversationThread;
 import com.ecg.comaas.events.Conversation.Participant;
+import com.ecg.messagecenter.bt.persistence.ConversationThread;
 import com.ecg.messagecenter.bt.webapi.requests.MessageCenterClosePostBoxConversationCommand;
 import com.ecg.messagecenter.bt.webapi.responses.PostBoxSingleConversationThreadResponse;
 import com.ecg.messagecenter.core.persistence.simple.PostBox;
@@ -30,13 +30,7 @@ import org.springframework.beans.propertyeditors.StringArrayPropertyEditor;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.WebDataBinder;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.InitBinder;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -47,6 +41,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import static com.ecg.replyts.core.api.util.Constants.INTERRUPTED_WARNING;
 import static org.joda.time.DateTime.now;
 
 @Controller
@@ -108,12 +103,22 @@ public class ConversationThreadController {
 
         String id = conversation.isClosedBy(ConversationRole.Buyer) ? conversation.getBuyerId() : conversation.getSellerId();
         Participant participant = ConversationEventConverter.createParticipant(id, null, email, role.getParticipantRole());
-        conversationEventService.sendConversationDeletedEvent(shortTenant, conversationId, participant);
 
-        return ResponseObject.of(RequestState.OK);
+        return placeDeleteEventOnQueue(conversationId, participant);
     }
 
-    private void updatePostBox(String email, String conversationId, ConversationRole role){
+    private ResponseObject<?> placeDeleteEventOnQueue(String conversationId, com.ecg.comaas.events.Conversation.Participant participant) {
+        try {
+            conversationEventService.sendConversationDeletedEvent(shortTenant, conversationId, participant);
+            return ResponseObject.of(RequestState.OK);
+        } catch (InterruptedException e) {
+            LOGGER.warn("Aborting conversation deleting because thread is interrupted. conversation id: {}. " + INTERRUPTED_WARNING, conversationId);
+            Thread.currentThread().interrupt();
+            return ResponseObject.of(RequestState.INTERNAL_SERVER_ERROR, "Thread was interrupted.");
+        }
+    }
+
+    private void updatePostBox(String email, String conversationId, ConversationRole role) {
         PostBox<ConversationThread> postBox = postBoxRepository.byId(PostBoxId.fromEmail(email));
 
         Optional<ConversationThread> conversationThreadRequested = postBox.lookupConversation(conversationId);
@@ -132,8 +137,8 @@ public class ConversationThreadController {
     @RequestMapping(value = MessageCenterGetPostBoxConversationCommand.MAPPING, produces = MediaType.APPLICATION_JSON_VALUE, method = {RequestMethod.GET, RequestMethod.PUT})
     @ResponseBody
     public ResponseObject<?> getPostBoxConversationByEmailAndConversationId(@PathVariable("email") String email, @PathVariable("conversationId") String conversationId,
-      @RequestParam(value = "newCounterMode", defaultValue = "true") boolean newCounterMode,
-      HttpServletRequest request, HttpServletResponse response) {
+                                                                            @RequestParam(value = "newCounterMode", defaultValue = "true") boolean newCounterMode,
+                                                                            HttpServletRequest request, HttpServletResponse response) {
         PostBox postBox = postBoxRepository.byId(PostBoxId.fromEmail(email));
 
         Optional<ConversationThread> conversationThreadRequested = postBox.lookupConversation(conversationId);
@@ -201,20 +206,20 @@ public class ConversationThreadController {
         for (ConversationThread item : postBox.getConversationThreads()) {
             if (item.getConversationId().equals(conversationId) && item.isContainsUnreadMessages()) {
                 threadsToUpdate.add(new ConversationThread(
-                  item.getAdId(),
-                  item.getConversationId(),
-                  item.getCreatedAt(),
-                  now(),
-                  item.getReceivedAt(),
-                  false, // mark as read
-                  item.getPreviewLastMessage(),
-                  item.getBuyerName(),
-                  item.getSellerName(),
-                  item.getBuyerId(),
-                  item.getMessageDirection(),
-                  item.getConversationState(),
-                  item.getCloseBy(),
-                  item.getCustomValues()));
+                        item.getAdId(),
+                        item.getConversationId(),
+                        item.getCreatedAt(),
+                        now(),
+                        item.getReceivedAt(),
+                        false, // mark as read
+                        item.getPreviewLastMessage(),
+                        item.getBuyerName(),
+                        item.getSellerName(),
+                        item.getBuyerId(),
+                        item.getMessageDirection(),
+                        item.getConversationState(),
+                        item.getCloseBy(),
+                        item.getCustomValues()));
 
                 needsUpdate = true;
             } else {

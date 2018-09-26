@@ -114,16 +114,20 @@ class ProcessingFlow {
         if (!context.isTerminated()) {
             try {
                 sendConversationEvents(context.getConversation());
-            } catch (Exception e) {
-                LOG.error("failed to submit the conversation into the messaging events queue", e);
+            } catch (InterruptedException e) {
+                LOG.warn("Aborting mail processing flow because thread is interrupted.");
+                Thread.currentThread().interrupt();
                 throw new RuntimeException(e);
+            } catch (RuntimeException e) {
+                LOG.error("failed to submit the conversation into the messaging events queue", e);
+                throw e;
             }
         }
 
         inputForSending(context);
     }
 
-    void sendConversationEvents(Conversation conversation) {
+    void sendConversationEvents(Conversation conversation) throws InterruptedException {
         if (conversation == null || conversation.getMessages() == null) {
             LOG.warn("conversation.getMessages() == null");
             return;
