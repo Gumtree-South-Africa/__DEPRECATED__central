@@ -10,12 +10,14 @@ import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 
+import static com.ecg.replyts.core.runtime.logging.MDCConstants.IS_SSL;
+
 public class CorrelationIdFilter implements Filter {
 
     static final String CORRELATION_ID_HEADER = "X-Correlation-ID";
 
     @Override
-    public void init(FilterConfig filterConfig) throws ServletException {
+    public void init(FilterConfig filterConfig) {
         // empty
     }
 
@@ -23,15 +25,18 @@ public class CorrelationIdFilter implements Filter {
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
             throws IOException, ServletException {
 
-        String correlationId = ((HttpServletRequest) request).getHeader(CORRELATION_ID_HEADER);
+        HttpServletRequest httpRequest = (HttpServletRequest) request;
+        String correlationId = httpRequest.getHeader(CORRELATION_ID_HEADER);
         if (correlationId == null) {
            correlationId = XidFactory.nextXid();
         }
+        boolean isSsl = httpRequest.getHeader("x-ebay-secure") != null;
 
         try {
             ((HttpServletResponse) response).addHeader(CORRELATION_ID_HEADER, correlationId);
 
             MDC.put(MDCConstants.CORRELATION_ID, correlationId);
+            MDC.put(MDCConstants.IS_SSL, String.valueOf(isSsl));
 
             chain.doFilter(request, response);
         }

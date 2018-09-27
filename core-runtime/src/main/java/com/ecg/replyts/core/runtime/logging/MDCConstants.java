@@ -25,6 +25,7 @@ public class MDCConstants {
     public static final String REVISION = "revision";
     public static final String TASK_NAME = "task_name";
     public static final String TENANT = "tenant";
+    public static final String IS_SSL = "is_ssl";
 
     public static void setContextFields(MessageProcessingContext context) {
         MDC.put(CONVERSATION_ID, context.getConversation().getId());
