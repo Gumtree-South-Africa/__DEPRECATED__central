@@ -126,22 +126,10 @@ void deployNomad(final String tenant, final String environment, final String ver
             ]
     ]
     wrap([$class: 'VaultBuildWrapper', vaultSecrets: secrets]) {
-        // Remove after https://jira.corp.ebay.com/browse/COMAAS-950 is fixed
-        urlprefixes = ""
-        if (tenantShort == 'au') {
-            if (environment == 'lp') {
-                urlprefixes += ",\"urlprefix-au-comaas.dro.ops.qa.au.ecg.so:8006/\""
-            }
-            if (environment == 'prod') {
-                urlprefixes += ",\"urlprefix-au-rts2-api:8080/\",\"urlprefix-au-rts2-api.intern.gumtree.com.au:8080/\""
-            }
-        }
-
         final String hazelcastGroupName = UUID.randomUUID().toString()
 
         final String vars = "-var-file=/deployment/environments/${environment}/${tenantShort}.yaml " +
                 "-var='version=${version}' " +
-                "-var='urlprefixes=${urlprefixes}' " +
                 "-var='swift_username=${SWIFT_USERNAME}' " +
                 "-var='swift_password=${SWIFT_PASSWORD}' " +
                 "-var='docker_username=${DOCKER_USERNAME}' " +

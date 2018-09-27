@@ -43,7 +43,7 @@ job "comaas-[[ .tenant_short ]]" {
           password = "[[ .docker_password ]]"
         }
       }
-      
+
       shutdown_delay = "5s"
 
       env {
@@ -152,7 +152,6 @@ job "comaas-[[ .tenant_short ]]" {
           "traefik.frontend.rule=Host:[[ .tenant_short ]].[[ .environment ]].comaas.cloud",
           "urlprefix-[[ .tenant_short ]].[[ .environment ]].comaas.cloud/",
           "urlprefix-[[ .region ]].[[ .tenant_short ]].[[ .environment ]].comaas.cloud/"
-          [[ .urlprefixes ]]
         ]
         check {
           type     = "http"
