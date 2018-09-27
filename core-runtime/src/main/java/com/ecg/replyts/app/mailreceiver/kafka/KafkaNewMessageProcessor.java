@@ -18,7 +18,6 @@ import com.google.protobuf.ByteString;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
-import scala.Int;
 
 
 import java.io.ByteArrayInputStream;
@@ -99,7 +98,7 @@ public class KafkaNewMessageProcessor extends KafkaMessageProcessor {
                 } catch (IOException e) {
                     retryOrAbandon(message, e);
                 }
-            } catch (InterruptedException e){
+            } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 interrupted.set(true);
             }
@@ -109,7 +108,8 @@ public class KafkaNewMessageProcessor extends KafkaMessageProcessor {
         try {
             task.get(messageProcessingTimeoutMs, TimeUnit.MILLISECONDS);
 
-            if (interrupted.get()){
+            // no sure this can be reached, at all
+            if (interrupted.get()) {
                 Thread.currentThread().interrupt();
                 throw new InterruptedException();
             }
@@ -119,7 +119,8 @@ public class KafkaNewMessageProcessor extends KafkaMessageProcessor {
             LOG.info("Message processing time exceeded {} seconds. Trying to stop the thread", messageProcessingTimeoutMs);
             try {
                 executor.shutdownNow();
-                if (executorRespectsInterrupt()) {
+                boolean executorRespectsInterrupt = executor.awaitTermination(messageTaskCancellationTimeoutMs, TimeUnit.MILLISECONDS);
+                if (executorRespectsInterrupt) {
                     // if the Below call is interrupted, the HangingThreadException is thrown, after which the
                     // kafka offset is committed. That's NOT good, because we wanted to retry the message.
                     retryOrAbandon(message, new RuntimeException("Message processing timed out"));
@@ -136,13 +137,6 @@ public class KafkaNewMessageProcessor extends KafkaMessageProcessor {
         } catch (ExecutionException e) {
             retryOrAbandon(message, e);
         }
-    }
-
-    /**
-     * @return true iff the executor shut down in timely manner
-     */
-    private boolean executorRespectsInterrupt() throws InterruptedException {
-        return executor.awaitTermination(messageTaskCancellationTimeoutMs, TimeUnit.MILLISECONDS);
     }
 
     private void retryOrAbandon(Message message, Exception e) throws InterruptedException {
