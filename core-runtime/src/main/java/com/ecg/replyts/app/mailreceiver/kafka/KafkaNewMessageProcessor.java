@@ -87,11 +87,12 @@ public class KafkaNewMessageProcessor extends KafkaMessageProcessor {
 
         // Because we're not sure if/how the interrupt flag can be read from outside the executor.
         AtomicBoolean interrupted = new AtomicBoolean();
+
         Future<?> task = executor.submit(MDCConstants.setTaskFields(() -> {
             try {
                 try {
                     // chooseStrategyAndProcess seems not interruptible -- or it swallows interruptedException.
-                    // But it must be doing IO somewhere down the line?
+                    // But it must be doing IO somewhere down the line? This may be the cause of things blocking.
                     chooseStrategyAndProcess(message);
                 } catch (ParsingException e) {
                     unparseableMessage(message);
@@ -102,13 +103,12 @@ public class KafkaNewMessageProcessor extends KafkaMessageProcessor {
                 Thread.currentThread().interrupt();
                 interrupted.set(true);
             }
-
         }, Thread.currentThread().getName() + "-tns"));
 
         try {
             task.get(messageProcessingTimeoutMs, TimeUnit.MILLISECONDS);
 
-            // no sure this can be reached, at all
+            // there was some discussion on whether this can be reached, at all (which shows this isn't pretty)
             if (interrupted.get()) {
                 Thread.currentThread().interrupt();
                 throw new InterruptedException();
