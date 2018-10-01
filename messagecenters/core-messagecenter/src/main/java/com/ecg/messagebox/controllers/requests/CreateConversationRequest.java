@@ -1,6 +1,7 @@
 package com.ecg.messagebox.controllers.requests;
 
 import com.ecg.messagebox.model.Participant;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import javax.validation.constraints.NotNull;
 
@@ -9,6 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class CreateConversationRequest {
 
     @NotNull(message = "Conversation subject text cannot be empty")
