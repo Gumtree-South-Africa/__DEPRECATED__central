@@ -148,6 +148,8 @@ job "comaas-[[ .tenant_short ]]" {
         tags = [
           "version-[[.version]]",
           "http",
+          "traefik.enable=true",
+          "traefik.frontend.rule=Host:[[ .tenant_short ]].[[ .environment ]].comaas.cloud",
           "urlprefix-[[ .tenant_short ]].[[ .environment ]].comaas.cloud/",
           "urlprefix-[[ .region ]].[[ .tenant_short ]].[[ .environment ]].comaas.cloud/"
           [[ .urlprefixes ]]
