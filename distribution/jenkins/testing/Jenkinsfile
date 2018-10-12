@@ -60,7 +60,7 @@ void setEnvVars() {
     env.PATH = "$env.MAVEN_HOME/bin:$env.PATH"
 }
 
-node('qa') {
+node('build') {
     checkout scm
 
     configFile = readYaml file: "distribution/jenkins/testing/configuration.yaml"

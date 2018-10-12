@@ -39,7 +39,7 @@ static String createVersionString(String buildNr) {
     return new SimpleDateFormat("yyyy.MM.").format(new Date()) + buildNr
 }
 
-node('qa') {
+node('build') {
     setEnvVars()
 
     PROVIDED_VERSION = PROVIDED_VERSION.trim()
