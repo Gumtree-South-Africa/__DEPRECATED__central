@@ -25,8 +25,12 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.Collections;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 import static java.util.Arrays.asList;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
@@ -38,6 +42,10 @@ import static org.mockito.Mockito.*;
 })
 public class ProcessingFlowTest {
 
+    private static final String BUYER_SECRET = "buyerSecret";
+    private static final String SELLER_SECRET = "sellerSecret";
+    private static final String BUYER_ID = "buyerId";
+    private static final String SELLER_ID = "sellerId";
     @MockBean
     private PreProcessorManager preProcessor;
 
@@ -198,5 +206,29 @@ public class ProcessingFlowTest {
 
         verify(conversationEventService).sendMessageAddedEvent("tenant", "conversationId",
                 null, "messageId", "text", metaData);
+    }
+
+    @Test
+    public void getParticipantSecret() {
+        Conversation conversation = mock(Conversation.class);
+        when(conversation.getBuyerSecret()).thenReturn(BUYER_SECRET);
+        when(conversation.getSellerSecret()).thenReturn(SELLER_SECRET);
+
+        when(userIdentifierService.getBuyerUserId(anyMapOf(String.class, String.class))).thenReturn(Optional.of(BUYER_ID));
+        when(userIdentifierService.getSellerUserId(anyMapOf(String.class, String.class))).thenReturn(Optional.of(SELLER_ID));
+
+        Set<com.ecg.comaas.events.Conversation.Participant> participants = flow.getParticipants(conversation);
+
+        assertEquals(2, participants.size());
+        for (com.ecg.comaas.events.Conversation.Participant participant : participants) {
+            if (BUYER_ID.equals(participant.getUserId())) {
+                assertEquals(BUYER_SECRET, participant.getEmailSecret());
+            } else if (SELLER_ID.equals(participant.getUserId())) {
+                assertEquals(SELLER_SECRET, participant.getEmailSecret());
+            } else {
+                fail("Unexpected userId: " + participant.getUserId());
+            }
+        }
+
     }
 }

@@ -130,7 +130,9 @@ class ConversationController {
         ((DefaultMutableConversation) conversation).commit(conversationRepository, conversationEventListeners);
 
         Conversation.Participant.Role role = ConversationRole.getRole(changeConversationStatePayload.getIssuerEmail(), conversation).getParticipantRole();
-        Conversation.Participant participant = ConversationEventConverter.createParticipant(changeConversationStatePayload.getIssuerId(), null, changeConversationStatePayload.getIssuerEmail(), role);
+        String emailSecret = role == Conversation.Participant.Role.BUYER ? conversation.getBuyerSecret() :
+                role == Conversation.Participant.Role.SELLER ? conversation.getSellerSecret() : null;
+        Conversation.Participant participant = ConversationEventConverter.createParticipant(changeConversationStatePayload.getIssuerId(), null, changeConversationStatePayload.getIssuerEmail(), role, emailSecret);
 
         return placeDeleteEventOnQueue(conversationId, participant);
     }

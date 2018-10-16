@@ -102,7 +102,8 @@ public class ConversationThreadController {
         updatePostBox(sellerEmail, conversationId, role);
 
         String id = conversation.isClosedBy(ConversationRole.Buyer) ? conversation.getBuyerId() : conversation.getSellerId();
-        Participant participant = ConversationEventConverter.createParticipant(id, null, email, role.getParticipantRole());
+        String secret = conversation.isClosedBy(ConversationRole.Buyer) ? conversation.getBuyerSecret() : conversation.getSellerSecret();
+        Participant participant = ConversationEventConverter.createParticipant(id, null, email, role.getParticipantRole(), secret);
 
         return placeDeleteEventOnQueue(conversationId, participant);
     }

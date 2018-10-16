@@ -156,12 +156,14 @@ class ProcessingFlow {
                 getBuyerUserId(conversation.getCustomValues(), conversation.getBuyerId()),
                 conversation.getCustomValues().get(CUST_HEADER_BUYER_NAME),
                 conversation.getBuyerId(),
-                Participant.Role.BUYER);
+                Participant.Role.BUYER,
+                conversation.getBuyerSecret());
         Participant seller = ConversationEventConverter.createParticipant(
                 getSellerUserId(conversation.getCustomValues(), conversation.getSellerId()),
                 conversation.getCustomValues().get(CUST_HEADER_SELLER_NAME),
                 conversation.getSellerId(),
-                Participant.Role.SELLER);
+                Participant.Role.SELLER,
+                conversation.getSellerSecret());
         return new HashSet<>(asList(buyer, seller));
     }
 

@@ -127,10 +127,13 @@ public class PostMessageResource {
         customValues.put(userIdentifierService.getBuyerUserIdName(), buyer.getUserId());
         customValues.put(userIdentifierService.getSellerUserIdName(), seller.getUserId());
 
+        String buyerSecret = uniqueConversationSecret.nextSecret();
+        String sellerSecret = uniqueConversationSecret.nextSecret();
+
         NewConversationCommand newConversationBuilderCommand = aNewConversationCommand(Guids.next())
                 .withAdId(adId)
-                .withBuyer(buyer.getEmail(), uniqueConversationSecret.nextSecret())
-                .withSeller(seller.getEmail(), uniqueConversationSecret.nextSecret())
+                .withBuyer(buyer.getEmail(), buyerSecret)
+                .withSeller(seller.getEmail(), sellerSecret)
                 .withCustomValues(customValues)
                 .build();
 
@@ -145,15 +148,15 @@ public class PostMessageResource {
         postBoxRepository.createEmptyConversation(buyer.getUserId(), conversationThread);
         postBoxRepository.createEmptyConversation(seller.getUserId(), conversationThread);
 
-        placeConversationCreatedEventOnQueue(adId, conversationId, customValues, participants, creationDate);
+        placeConversationCreatedEventOnQueue(adId, conversationId, customValues, participants, creationDate, buyerSecret, sellerSecret);
         conversationRepository.commit(conversationId, Collections.singletonList(conversationCreatedEvent));
 
         return new CreateConversationResponse(false, conversationId);
     }
 
-    private void placeConversationCreatedEventOnQueue(String adId, String conversationId, Map<String, String> customValues, List<Participant> participants, DateTime creationDate) {
+    private void placeConversationCreatedEventOnQueue(String adId, String conversationId, Map<String, String> customValues, List<Participant> participants, DateTime creationDate, String buyerSecret, String sellerSecret) {
         try {
-            conversationEventService.sendConversationCreatedEvent(shortTenant, adId, conversationId, customValues, toConversationEventParticipants(participants), creationDate);
+            conversationEventService.sendConversationCreatedEvent(shortTenant, adId, conversationId, customValues, toConversationEventParticipants(participants, buyerSecret, sellerSecret), creationDate);
         } catch (InterruptedException e) {
             // we are not sure whether the message is now received by kafka or not. The caller should retry.
             LOG.warn("Aborting POST because thread is interrupted. conversation id: {}." + INTERRUPTED_WARNING, conversationId);
@@ -162,11 +165,18 @@ public class PostMessageResource {
         }
     }
 
-    private Set<Conversation.Participant> toConversationEventParticipants(List<Participant> participants) {
+    private Set<Conversation.Participant> toConversationEventParticipants(List<Participant> participants, String buyerSecret, String sellerSecret) {
         Set<Conversation.Participant> participantSet = new HashSet<>();
         for (Participant participant : participants) {
+            String secret =
+                    participant.getRole() == BUYER
+                            ? buyerSecret
+                            : participant.getRole() == SELLER
+                            ? sellerSecret
+                            : null;
+
             participantSet.add(ConversationEventConverter.createParticipant(participant.getUserId(), participant.getName(),
-                    participant.getEmail(), Conversation.Participant.Role.valueOf(participant.getRole().name())));
+                    participant.getEmail(), Conversation.Participant.Role.valueOf(participant.getRole().name()), secret));
         }
 
         return participantSet;
