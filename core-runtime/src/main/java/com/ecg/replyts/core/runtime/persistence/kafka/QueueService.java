@@ -30,7 +30,7 @@ public class QueueService {
     private Map<String, Producer<String, byte[]>> producers = new ConcurrentHashMap<>();
 
     public QueueService(@Value("${kafka.core.servers}") String bootstrapServers,
-                        @Value("${kafka.core.max.request.size.bytes:16000000}")
+                        @Value("${kafka.core.max.request.size.bytes:15728640}")
                                 int maxRequestSizeBytes) {
         this.bootstrapServers = bootstrapServers;
         this.maxRequestSizeBytes = maxRequestSizeBytes;
