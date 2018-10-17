@@ -72,7 +72,10 @@ public class PlainTextMailPartUrlGatewayRewriterTest {
                         "http://gateway.marktplaats.nl/?url=ftp%3A%2F%2Fsimple.com%2Ffile\n" +
                         "http://gateway.marktplaats.nl/?url=ftp%3A%2F%2Fsimple.com%2Ffile\n" +
                         "http://gateway.marktplaats.nl/?url=ftp%3A%2F%2Fsimple.com%2Ffile\n" +
-                        "http://gateway.marktplaats.nl/?url=http%3A%2F%2FSIMPLE.COM",
+                        "http://gateway.marktplaats.nl/?url=http%3A%2F%2FSIMPLE.COM\n" +
+                        "http://gateway.marktplaats.nl/?url=http%3A%2F%2Fsimple.info%2Fpath\n" +
+                        "http://gateway.marktplaats.nl/?url=http%3A%2F%2Fsimple.info\n" +
+                        "simple.shall we meet ",
                 underTest.rewriteUrls(
                         "http://www.google.nl\n" +
                                 "https://www.google.nl\n" +
@@ -103,7 +106,10 @@ public class PlainTextMailPartUrlGatewayRewriterTest {
                                 "ftp://simple.com/file\n" +
                                 "ftp:/simple.com/file\n" +
                                 "ftp:simple.com/file\n" +
-                                "http://SIMPLE.COM",
+                                "http://SIMPLE.COM\n" +
+                                "simple.info/path\n"+
+                                "simple.info\n"+
+                                "simple.shall we meet ",
                         gatewaySwitcher));
     }
 
