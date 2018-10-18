@@ -29,6 +29,12 @@ public class PlainTextMailPartUrlGatewayRewriterTest {
         assertEquals(
                 "mail@test.ebay.com",
                 underTest.rewriteUrls("mail@test.ebay.com", gatewaySwitcher));
+
+        assertEquals(
+                "mail@test.test2.test3.test4.example.com",
+                underTest.rewriteUrls("mail@test.test2.test3.test4.example.com", gatewaySwitcher));
+
+
     }
 
     @Test
@@ -72,7 +78,11 @@ public class PlainTextMailPartUrlGatewayRewriterTest {
                         "http://gateway.marktplaats.nl/?url=ftp%3A%2F%2Fsimple.com%2Ffile\n" +
                         "http://gateway.marktplaats.nl/?url=ftp%3A%2F%2Fsimple.com%2Ffile\n" +
                         "http://gateway.marktplaats.nl/?url=ftp%3A%2F%2Fsimple.com%2Ffile\n" +
-                        "http://gateway.marktplaats.nl/?url=http%3A%2F%2FSIMPLE.COM",
+                        "http://gateway.marktplaats.nl/?url=http%3A%2F%2FSIMPLE.COM\n" +
+                        "http://gateway.marktplaats.nl/?url=http%3A%2F%2Fsimple.info%2Fpath\n" +
+                        "http://gateway.marktplaats.nl/?url=http%3A%2F%2Fsimple.info\n" +
+                        "http://gateway.marktplaats.nl/?url=http%3A%2F%2Fsubdomain1.subdomain2.subdomain3.info%2Fpath%2F%3Fq%3Dq;\n" +
+                        "simple.shall we meet ",
                 underTest.rewriteUrls(
                         "http://www.google.nl\n" +
                                 "https://www.google.nl\n" +
@@ -93,6 +103,7 @@ public class PlainTextMailPartUrlGatewayRewriterTest {
                                 "www.google.nl/path/?q=q?\n" +
                                 "www.google.nl/path/?q=q:\n" +
                                 "www.google.nl/path/?q=q;\n" +
+
                                 "www.test.भारत\n" +
                                 "http://test.xn--h2brj9c\n" +
                                 "www.simple.nl/?a=(a+b))\n" +
@@ -103,7 +114,11 @@ public class PlainTextMailPartUrlGatewayRewriterTest {
                                 "ftp://simple.com/file\n" +
                                 "ftp:/simple.com/file\n" +
                                 "ftp:simple.com/file\n" +
-                                "http://SIMPLE.COM",
+                                "http://SIMPLE.COM\n" +
+                                "simple.info/path\n"+
+                                "simple.info\n"+
+                                "subdomain1.subdomain2.subdomain3.info/path/?q=q;\n" +
+                                "simple.shall we meet ",
                         gatewaySwitcher));
     }
 

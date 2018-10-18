@@ -71,13 +71,14 @@ public class PlainTextMailPartUrlGatewayRewriter implements UrlGatewayRewriter {
     /**
      * See https://mpwiki.corp.ebay.com/display/replyts/URL+gateway+filter
      * <p>
-     * Group 1 is the schema, or ("www.").
+     * Group 1 is the optional schema, or ("www.").
      * Group 2 is the domain part, not including "www." if that is present
      */
     private static final Pattern URL_PATTERN = Pattern.compile(
-            "\\b(?:(https?:/*|ftp:/*|file:/*|www\\.))((?:[a-z0-9_][-a-z0-9+&#%=~_|$]{0,62}\\.)+" +
+            "\\b(?:(https?:/*|ftp:/*|file:/*|www\\.))?((?<![@\\w.])(?:[a-z0-9_][-a-z0-9+&#%=~_|$]{0,62}\\.)+" +
                     TOP_LEVEL_DOMAIN_PATTERN + ")" +
-                    URL_PATH_AND_QUERY_STRING,
+                    URL_PATH_AND_QUERY_STRING +
+                    "(?![\\w])",
             Pattern.CASE_INSENSITIVE);
 
     /** {@inheritDoc} */
