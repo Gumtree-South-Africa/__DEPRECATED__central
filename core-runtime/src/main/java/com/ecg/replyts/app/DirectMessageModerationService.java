@@ -1,6 +1,7 @@
 package com.ecg.replyts.app;
 
 import com.ecg.replyts.core.api.model.conversation.Message;
+import com.ecg.replyts.core.api.model.conversation.MessageTransport;
 import com.ecg.replyts.core.api.model.conversation.MutableConversation;
 import com.ecg.replyts.core.api.model.conversation.command.MessageModeratedCommand;
 import com.ecg.replyts.core.api.model.mail.Mail;
@@ -103,6 +104,9 @@ public class DirectMessageModerationService implements ModerationService {
 
         context.setConversation(conversation);
         context.setMessageDirection(conversation.getMessageById(messageId).getMessageDirection());
+
+        // only email messages can be moderated
+        context.setTransport(MessageTransport.MAIL);
 
         flow.inputForPostProcessor(context);
 

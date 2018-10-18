@@ -4,6 +4,7 @@ import com.codahale.metrics.Counter;
 import com.codahale.metrics.Timer;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;
+import com.ecg.replyts.core.api.model.conversation.MessageTransport;
 import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.processing.Attachment;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
@@ -79,7 +80,7 @@ public class DefaultMessageProcessingCoordinator implements MessageProcessingCoo
      */
     @SuppressWarnings("UnstableApiUsage")
     @Override
-    public final boolean accept(String messageIdFromKmail, @WillNotClose InputStream input) throws IOException, ParsingException {
+    public final boolean accept(String messageIdFromKmail, @WillNotClose InputStream input, MessageTransport transport) throws IOException, ParsingException {
         Stopwatch stopwatch = Stopwatch.createStarted();
         byte[] bytes = ByteStreams.toByteArray(input);
 
@@ -94,6 +95,7 @@ public class DefaultMessageProcessingCoordinator implements MessageProcessingCoo
 
             String messageId = getMessageId(messageIdFromKmail, mail.get());
             MessageProcessingContext context = processingContextFactory.newContext(mail.get(), messageId);
+            context.setTransport(transport);
             setMDC(context);
             contentLengthCounter.inc(bytes.length);
 

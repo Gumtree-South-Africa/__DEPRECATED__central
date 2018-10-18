@@ -4,6 +4,7 @@ import com.ecg.replyts.app.MessageProcessingCoordinator;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.conversation.MessageState;
+import com.ecg.replyts.core.api.model.conversation.MessageTransport;
 import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.ecg.replyts.core.runtime.listener.MessageProcessedListener;
@@ -117,8 +118,8 @@ public class MailInterceptor implements BeanPostProcessor {
     private MessageProcessingCoordinator wrapMessageProcessingCoordinator(MessageProcessingCoordinator realCoordinator) {
         return new MessageProcessingCoordinator() {
             @Override
-            public boolean accept(String messageId, InputStream input) throws IOException, ParsingException {
-                if (realCoordinator.accept(messageId, input)) {
+            public boolean accept(String messageId, InputStream input, MessageTransport transport) throws IOException, ParsingException {
+                if (realCoordinator.accept(messageId, input, transport)) {
                     markMessageAsProcessed(messageId);
                     return true;
                 }

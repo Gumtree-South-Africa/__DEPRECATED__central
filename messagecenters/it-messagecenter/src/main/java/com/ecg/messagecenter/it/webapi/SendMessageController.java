@@ -17,6 +17,7 @@ import com.ecg.replyts.app.MessageProcessingCoordinator;
 import com.ecg.replyts.core.api.model.MailCloakingService;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.ConversationRole;
+import com.ecg.replyts.core.api.model.conversation.MessageTransport;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import com.ecg.replyts.core.api.webapi.envelope.RequestState;
 import com.ecg.replyts.core.api.webapi.envelope.ResponseObject;
@@ -186,7 +187,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
                              String buyerName, String subject) throws IOException, ParsingException {
         ConversationMessage conversationMessage =
                 new ConversationMessage(adId, from, to, message, buyerName, subject);
-        coordinator.accept(UUIDs.timeBased().toString(), conversationMessage.asInputStream());
+        coordinator.accept(UUIDs.timeBased().toString(), conversationMessage.asInputStream(), MessageTransport.CHAT);
     }
 
     private class Address {

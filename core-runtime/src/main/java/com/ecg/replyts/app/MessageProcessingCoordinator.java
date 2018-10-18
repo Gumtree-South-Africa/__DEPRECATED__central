@@ -1,5 +1,6 @@
 package com.ecg.replyts.app;
 
+import com.ecg.replyts.core.api.model.conversation.MessageTransport;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.ecg.replyts.core.runtime.mailparser.ParsingException;
 
@@ -16,7 +17,7 @@ public interface MessageProcessingCoordinator {
      * to redeliver that message at a later time.
      * @return messageId of a processed message if the processing was completed
      */
-    boolean accept(String messageId, @WillNotClose InputStream input) throws IOException, ParsingException;
+    boolean accept(String messageId, @WillNotClose InputStream input, MessageTransport transport) throws IOException, ParsingException;
 
     void handleContext(Optional<byte[]> bytes, MessageProcessingContext context);
 }

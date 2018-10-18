@@ -5,12 +5,12 @@ import com.ecg.replyts.core.api.model.conversation.ConversationRole;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;
 import com.ecg.replyts.core.api.model.conversation.MessageState;
+import com.ecg.replyts.core.api.model.conversation.MessageTransport;
 import com.ecg.replyts.core.api.model.conversation.MutableConversation;
 import com.ecg.replyts.core.api.model.conversation.command.ConversationCommand;
 import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.model.mail.MailAddress;
 import com.ecg.replyts.core.api.model.mail.MutableMail;
-import com.ecg.replyts.core.api.model.mail.TypedContent;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;
 import org.apache.commons.lang3.StringUtils;
@@ -46,6 +46,7 @@ public class MessageProcessingContext {
     private Termination termination = null;
     private MessageDirection messageDirection;
     private MutableConversation conversation;
+    private MessageTransport transport;
 
     @VisibleForTesting
     public MessageProcessingContext(Mail mail, String messageId, ProcessingTimeGuard processingTimeGuard) {
@@ -238,5 +239,13 @@ public class MessageProcessingContext {
                 .add("messageId", messageId)
                 .add("conversationId", conversation.getId())
                 .toString();
+    }
+
+    public void setTransport(MessageTransport transport) {
+        this.transport = transport;
+    }
+
+    public MessageTransport getTransport() {
+        return transport;
     }
 }

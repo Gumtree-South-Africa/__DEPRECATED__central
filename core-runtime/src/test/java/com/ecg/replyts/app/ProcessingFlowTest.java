@@ -5,6 +5,7 @@ import com.ecg.replyts.app.postprocessorchain.PostProcessorChain;
 import com.ecg.replyts.app.preprocessorchain.PreProcessorManager;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;
+import com.ecg.replyts.core.api.model.conversation.MessageTransport;
 import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.model.mail.MutableMail;
 import com.ecg.replyts.core.api.processing.ConversationEventService;
@@ -186,7 +187,7 @@ public class ProcessingFlowTest {
     public void conversationEventsAreNotSubmittedForTerminatedContext() throws InterruptedException {
         when(context.isTerminated()).thenReturn(true);
         verify(conversationEventService, never()).sendConversationCreatedEvent(any(), any(), any(), any(), any(), any());
-        verify(conversationEventService, never()).sendMessageAddedEvent(any(), any(), any(), any(), any(), any());
+        verify(conversationEventService, never()).sendMessageAddedEvent(any(), any(), any(), any(), any(), any(), any());
     }
 
     @Test
@@ -202,10 +203,13 @@ public class ProcessingFlowTest {
 
         when(contentOverridingPostProcessorService.getCleanedMessage(conversation, message)).thenReturn("text");
 
-        flow.sendConversationEvents(conversation);
+        MessageProcessingContext context = mock(MessageProcessingContext.class);
+        when(context.getTransport()).thenReturn(MessageTransport.CHAT);
+        when(context.getConversation()).thenReturn(conversation);
 
-        verify(conversationEventService).sendMessageAddedEvent("tenant", "conversationId",
-                null, "messageId", "text", metaData);
+        flow.sendConversationEvents(context);
+
+        verify(conversationEventService).sendMessageAddedEvent("tenant", "conversationId", null, "messageId", "text", metaData, context.getTransport());
     }
 
     @Test

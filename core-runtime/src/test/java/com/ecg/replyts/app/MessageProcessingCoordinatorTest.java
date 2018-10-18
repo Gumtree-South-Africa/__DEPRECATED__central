@@ -2,6 +2,7 @@ package com.ecg.replyts.app;
 
 import com.datastax.driver.core.utils.UUIDs;
 import com.ecg.replyts.core.api.model.conversation.MessageState;
+import com.ecg.replyts.core.api.model.conversation.MessageTransport;
 import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.model.mail.MutableMail;
 import com.ecg.replyts.core.api.processing.Attachment;
@@ -119,7 +120,7 @@ public class MessageProcessingCoordinatorTest {
         ParsingException exception = new ParsingException("parse error");
         when(Mails.readMail(any(byte[].class))).thenThrow(exception);
 
-        assertThatExceptionOfType(ParsingException.class).isThrownBy(() -> coordinator.accept(UUIDs.timeBased().toString(), is));
+        assertThatExceptionOfType(ParsingException.class).isThrownBy(() -> coordinator.accept(UUIDs.timeBased().toString(), is, null));
 
         verify(persister).persistAndIndex(eq(deadConversation), anyString(), receivedBytesCaptor.capture(), eq(Optional.empty()), eq(Termination.unparseable(exception)), anyCollectionOf(Attachment.class));
         Optional<byte[]> value = receivedBytesCaptor.getValue();
@@ -131,21 +132,28 @@ public class MessageProcessingCoordinatorTest {
     public void doesNotOfferUnparseableMailToProcessingFlow() throws Exception {
         when(Mails.readMail(any(byte[].class))).thenThrow(new ParsingException("parse error"));
 
-        assertThatExceptionOfType(ParsingException.class).isThrownBy(() -> coordinator.accept(UUIDs.timeBased().toString(), is));
+        assertThatExceptionOfType(ParsingException.class).isThrownBy(() -> coordinator.accept(UUIDs.timeBased().toString(), is, null));
 
         verifyZeroInteractions(flow);
     }
 
     @Test
     public void passesParsableMailsToProcessingFlowPreprocessor() throws Exception {
-        coordinator.accept(UUIDs.timeBased().toString(), is);
+        coordinator.accept(UUIDs.timeBased().toString(), is, null);
         verify(flow).inputForPreProcessor(any(MessageProcessingContext.class));
+    }
+
+
+    @Test
+    public void checkMailTransportInProcessingFlowPreprocessor() throws Exception {
+        coordinator.accept(UUIDs.timeBased().toString(), is, MessageTransport.CHAT);
+        verify(context).setTransport(MessageTransport.CHAT);
     }
 
     @Test
     public void persistsUnassignableMailAsOrphaned() throws Exception {
         terminateWith(MessageState.ORPHANED, this, "orphaned", false);
-        coordinator.accept(UUIDs.timeBased().toString(), is);
+        coordinator.accept(UUIDs.timeBased().toString(), is, null);
         verify(persister).persistAndIndex(eq(deadConversation), eq("1"), receivedBytesCaptor.capture(), sentBytesCaptor.capture(), eq(new Termination(MessageState.ORPHANED, MessageProcessingCoordinatorTest.class, "orphaned")), anyCollectionOf(Attachment.class));
         assertThat(receivedBytesCaptor.getValue()).contains(RECEIVED_BYTES);
         assertThat(sentBytesCaptor.getValue()).isEmpty();
@@ -154,7 +162,7 @@ public class MessageProcessingCoordinatorTest {
     @Test
     public void persistsTerminatedMail() throws Exception {
         terminateWith(MessageState.BLOCKED, this, "blocked", true);
-        coordinator.accept(UUIDs.timeBased().toString(), is);
+        coordinator.accept(UUIDs.timeBased().toString(), is, null);
         verify(persister).persistAndIndex(eq(conversation), eq("1"), receivedBytesCaptor.capture(), sentBytesCaptor.capture(), eq(new Termination(MessageState.BLOCKED, MessageProcessingCoordinatorTest.class, "blocked")), anyCollectionOf(Attachment.class));
         assertThat(receivedBytesCaptor.getValue()).contains(RECEIVED_BYTES);
         assertThat(sentBytesCaptor.getValue()).isEmpty();
@@ -166,7 +174,7 @@ public class MessageProcessingCoordinatorTest {
         when(context.getConversation()).thenReturn(conversation);
         when(context.mutableConversation()).thenReturn(conversation);
 
-        coordinator.accept(UUIDs.timeBased().toString(), is);
+        coordinator.accept(UUIDs.timeBased().toString(), is, null);
         verify(persister).persistAndIndex(eq(conversation), eq("1"), receivedBytesCaptor.capture(), sentBytesCaptor.capture(), eq(Termination.sent()), anyCollectionOf(Attachment.class));
         assertThat(receivedBytesCaptor.getValue()).contains(RECEIVED_BYTES);
         assertThat(sentBytesCaptor.getValue()).contains(SENT_BYTES);
@@ -175,12 +183,12 @@ public class MessageProcessingCoordinatorTest {
     @Test(expected = Exception.class)
     public void doesNotSwallowExceptions() throws Exception {
         doThrow(new IllegalStateException()).when(flow).inputForPreProcessor(any(MessageProcessingContext.class));
-        coordinator.accept(UUIDs.timeBased().toString(), is);
+        coordinator.accept(UUIDs.timeBased().toString(), is, null);
     }
 
     @Test
     public void invokeListenerAfterPersisting() throws Exception {
-        coordinator.accept(UUIDs.timeBased().toString(), is);
+        coordinator.accept(UUIDs.timeBased().toString(), is, null);
         verify(individualMessageProcessedListener)
                 .messageProcessed(any(ImmutableConversation.class), any(ImmutableMessage.class));
     }
@@ -189,7 +197,7 @@ public class MessageProcessingCoordinatorTest {
     public void invokeListenerOnUnparseableMessage() throws ParsingException {
         when(Mails.readMail(any(byte[].class))).thenThrow(new ParsingException());
 
-        assertThatExceptionOfType(ParsingException.class).isThrownBy(() -> coordinator.accept(UUIDs.timeBased().toString(), is));
+        assertThatExceptionOfType(ParsingException.class).isThrownBy(() -> coordinator.accept(UUIDs.timeBased().toString(), is, null));
 
         verify(individualMessageProcessedListener)
                 .messageProcessed(any(ImmutableConversation.class), any(ImmutableMessage.class));
@@ -199,7 +207,7 @@ public class MessageProcessingCoordinatorTest {
     public void skipCrashingListener() throws Exception {
         doThrow(new NoClassDefFoundError()).when(individualMessageProcessedListener).messageProcessed(any(ImmutableConversation.class), any(ImmutableMessage.class));
 
-        coordinator.accept(UUIDs.timeBased().toString(), is);
+        coordinator.accept(UUIDs.timeBased().toString(), is, null);
 
         verify(individualMessageProcessedListener, times(1))
                 .messageProcessed(any(ImmutableConversation.class), any(ImmutableMessage.class));

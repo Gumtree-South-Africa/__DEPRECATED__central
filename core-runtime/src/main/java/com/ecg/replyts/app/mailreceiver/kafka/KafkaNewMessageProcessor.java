@@ -4,6 +4,7 @@ import com.ecg.comaas.protobuf.MessageOuterClass.Message;
 import com.ecg.replyts.app.MessageProcessingCoordinator;
 import com.ecg.replyts.app.ProcessingContextFactory;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;
+import com.ecg.replyts.core.api.model.conversation.MessageTransport;
 import com.ecg.replyts.core.api.model.conversation.MutableConversation;
 import com.ecg.replyts.core.api.model.conversation.command.AddMessageCommand;
 import com.ecg.replyts.core.api.processing.Attachment;
@@ -130,18 +131,22 @@ public class KafkaNewMessageProcessor extends KafkaMessageProcessor {
         if (rawEmail != null && !rawEmail.isEmpty()) {
             // A presence of a raw email represents the deprecated way of ingesting emails
             // See https://github.corp.ebay.com/ecg-comaas/comaas-adr/blob/master/adr-004-kmail-transition-period.md
-            messageProcessingCoordinator.accept(getMessageId(kafkaMessage), new ByteArrayInputStream(rawEmail.toByteArray()));
+            messageProcessingCoordinator.accept(getMessageId(kafkaMessage), new ByteArrayInputStream(rawEmail.toByteArray()), MessageTransport.MAIL);
+
+            // KMAIL
         } else {
             MutableConversation conversation = getConversation(kafkaMessage.getPayload().getConversationId());
             Collection<Attachment> attachments = kafkaMessage.getAttachmentsList().stream()
                     .map(a -> new Attachment(a.getFileName(), a.getBody().toByteArray()))
                     .collect(Collectors.toSet());
             MessageProcessingContext context = createContext(kafkaMessage.getPayload().getUserId(), kafkaMessage.getMessageId(), conversation, attachments);
+            context.setTransport(MessageTransport.CHAT);
             context.addCommand(
                     createAddMessageCommand(kafkaMessage.getPayload().getMessage(), conversation.getId(), context,
                             kafkaMessage.getMetadataMap()));
 
             messageProcessingCoordinator.handleContext(Optional.empty(), context);
+            // PMA
         }
     }
 

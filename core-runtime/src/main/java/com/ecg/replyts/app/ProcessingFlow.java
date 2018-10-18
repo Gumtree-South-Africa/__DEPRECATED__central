@@ -113,7 +113,7 @@ class ProcessingFlow {
     void inputForConversationEventsQueue(MessageProcessingContext context) {
         if (!context.isTerminated()) {
             try {
-                sendConversationEvents(context.getConversation());
+                sendConversationEvents(context);
             } catch (InterruptedException e) {
                 LOG.warn("Aborting mail processing flow because thread is interrupted.");
                 Thread.currentThread().interrupt();
@@ -127,7 +127,8 @@ class ProcessingFlow {
         inputForSending(context);
     }
 
-    void sendConversationEvents(Conversation conversation) throws InterruptedException {
+    void sendConversationEvents(MessageProcessingContext context) throws InterruptedException {
+        Conversation conversation = context.getConversation();
         if (conversation == null || conversation.getMessages() == null) {
             LOG.warn("conversation.getMessages() == null");
             return;
@@ -142,7 +143,7 @@ class ProcessingFlow {
         String cleanedMessage = contentOverridingPostProcessorService.getCleanedMessage(conversation, message);
         Optional<String> senderIdOpt = getSenderUserId(conversation, message);
 
-        conversationEventService.sendMessageAddedEvent(shortTenant, conversation.getId(), senderIdOpt, message.getId(), cleanedMessage, message.getHeaders());
+        conversationEventService.sendMessageAddedEvent(shortTenant, conversation.getId(), senderIdOpt, message.getId(), cleanedMessage, message.getHeaders(), context.getTransport());
     }
 
     private Optional<String> getSenderUserId(Conversation conversation, Message message) {
