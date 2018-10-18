@@ -12,9 +12,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.Optional;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -30,7 +28,7 @@ public class AnonymizedMailConverterTest {
     @Mock
     private Mail mail;
 
-    private AnonymizedMailConverter anonymizedMailConverter = new AnonymizedMailConverter("Buyer", "Seller", DOMAINS, false);
+    private AnonymizedMailConverter anonymizedMailConverter = new AnonymizedMailConverter("Buyer", "Seller", DOMAINS);
 
     @Test
     public void validCloakedEmailAddressesAreUncloakable() {
@@ -73,7 +71,7 @@ public class AnonymizedMailConverterTest {
 
     @Test
     public void cloakValidAddressWithSpecialChars() {
-        anonymizedMailConverter = new AnonymizedMailConverter("Buyer", "Seller", DOMAINS, false);
+        anonymizedMailConverter = new AnonymizedMailConverter("Buyer", "Seller", DOMAINS);
         when(context.getConversation()).thenReturn(conversation);
         when(conversation.getSecretFor(ConversationRole.Buyer)).thenReturn("1234");
         when(context.getMail()).thenReturn(Optional.of(mail));
@@ -87,21 +85,6 @@ public class AnonymizedMailConverterTest {
         when(conversation.getSecretFor(ConversationRole.Buyer)).thenReturn("1234");
         MailAddress expected = new MailAddress("Buyer-1234@ebay.com");
         when(context.getMail()).thenReturn(Optional.of(mail));
-        assertEquals(expected, anonymizedMailConverter.fromSecretToMail(conversation, ConversationRole.Buyer));
-    }
-
-    @Test
-    public void testBoltOnboardingPatch() {
-        when(context.getConversation()).thenReturn(conversation);
-        when(conversation.getSecretFor(ConversationRole.Buyer)).thenReturn("1234");
-
-        // not using the patch
-        MailAddress expected = new MailAddress("Buyer-1234@ebay.com");
-        assertEquals(expected, anonymizedMailConverter.fromSecretToMail(conversation, ConversationRole.Buyer));
-
-        // using the patch
-        AnonymizedMailConverter anonymizedMailConverter = new AnonymizedMailConverter("Buyer", "Seller", DOMAINS, true);
-        expected = new MailAddress("Buyer.1234@ebay.com");
         assertEquals(expected, anonymizedMailConverter.fromSecretToMail(conversation, ConversationRole.Buyer));
     }
 }

@@ -34,6 +34,7 @@
         <dependency>
             <groupId>com.gumtree.shared-commons</groupId>
             <artifactId>healthchecks</artifactId>
+            <type>pom</type>
         </dependency>
         <dependency>
             <groupId>ecg.comaas</groupId>

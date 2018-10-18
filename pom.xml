@@ -692,6 +692,7 @@
         <gt.google.analytics.version>${gt.version}</gt.google.analytics.version>
         <gt.category.api.client.version>${gt.version}</gt.category.api.client.version>
         <gumtree.dependencies.version>4.37437</gumtree.dependencies.version>
+        <gumtree.healthchecks.version>5.1</gumtree.healthchecks.version>
         <gt.replies.models.version>${gumtree.dependencies.version}</gt.replies.models.version>
         <gt.gumshield.api.version>4.37375</gt.gumshield.api.version>
         <gt.gumtree.common.version>${gumtree.dependencies.version}</gt.gumtree.common.version>
@@ -947,7 +948,8 @@
             <dependency>
                 <groupId>com.gumtree.shared-commons</groupId>
                 <artifactId>healthchecks</artifactId>
-                <version>5.1</version>
+                <version>${gumtree.healthchecks.version}</version>
+                <type>pom</type>
             </dependency>
             <dependency>
                 <groupId>org.jboss.resteasy</groupId>
