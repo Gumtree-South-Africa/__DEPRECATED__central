@@ -132,8 +132,6 @@ public class KafkaNewMessageProcessor extends KafkaMessageProcessor {
             // A presence of a raw email represents the deprecated way of ingesting emails
             // See https://github.corp.ebay.com/ecg-comaas/comaas-adr/blob/master/adr-004-kmail-transition-period.md
             messageProcessingCoordinator.accept(getMessageId(kafkaMessage), new ByteArrayInputStream(rawEmail.toByteArray()), MessageTransport.MAIL);
-
-            // KMAIL
         } else {
             MutableConversation conversation = getConversation(kafkaMessage.getPayload().getConversationId());
             Collection<Attachment> attachments = kafkaMessage.getAttachmentsList().stream()
@@ -141,12 +139,12 @@ public class KafkaNewMessageProcessor extends KafkaMessageProcessor {
                     .collect(Collectors.toSet());
             MessageProcessingContext context = createContext(kafkaMessage.getPayload().getUserId(), kafkaMessage.getMessageId(), conversation, attachments);
             context.setTransport(MessageTransport.CHAT);
+            context.setOwner(kafkaMessage.getOwner());
             context.addCommand(
                     createAddMessageCommand(kafkaMessage.getPayload().getMessage(), conversation.getId(), context,
                             kafkaMessage.getMetadataMap()));
 
             messageProcessingCoordinator.handleContext(Optional.empty(), context);
-            // PMA
         }
     }
 

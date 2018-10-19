@@ -47,6 +47,7 @@ public class MessageProcessingContext {
     private MessageDirection messageDirection;
     private MutableConversation conversation;
     private MessageTransport transport;
+    private String owner;
 
     @VisibleForTesting
     public MessageProcessingContext(Mail mail, String messageId, ProcessingTimeGuard processingTimeGuard) {
@@ -247,5 +248,13 @@ public class MessageProcessingContext {
 
     public MessageTransport getTransport() {
         return transport;
+    }
+
+    public String getOwner() {
+        return owner;
+    }
+
+    public void setOwner(String owner) {
+        this.owner = owner;
     }
 }
