@@ -5,8 +5,10 @@ set -o nounset
 # tenant env
 get_region () {
     local ip=$(dig +short ${1}.${2}.comaas.cloud)
-    echo ${ip} | egrep -q '^10\.32\.24\.' && echo -n ams1
-    echo ${ip} | egrep -q '^10\.32\.56\.' && echo -n dus1
+    echo ${ip} | egrep -q '^10\.32\.24\.' && echo -n ams1 # fabio ams1
+    echo ${ip} | egrep -q '^10\.32\.25\.' && echo -n ams1 # traefik ams1
+    echo ${ip} | egrep -q '^10\.32\.56\.' && echo -n dus1 # fabio dus1
+    echo ${ip} | egrep -q '^10\.32\.57\.' && echo -n dus1 # traefik dus1
 }
 
 # tenant env dc

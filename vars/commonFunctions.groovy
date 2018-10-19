@@ -82,10 +82,16 @@ String getActiveDC(String tenantLongName, String env) {
     echo "getActiveDC: ip = $ip"
 
     String dc = "???"
-    if (ip.startsWith("10.32.24.")) {
+    if (ip.startsWith("10.32.24.")) { // fabio ams1
         dc = "ams1"
     }
-    if (ip.startsWith("10.32.56.")) {
+    if (ip.startsWith("10.32.56.")) { // fabio dus1
+        dc = "dus1"
+    }
+    if (ip.startsWith("10.32.25.")) { // traefik ams1
+        dc = "ams1"
+    }
+    if (ip.startsWith("10.32.57.")) { // traefik dus1
         dc = "dus1"
     }
 
