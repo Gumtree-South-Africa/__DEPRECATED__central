@@ -47,6 +47,7 @@ public class MessageProcessingContext {
     private MessageDirection messageDirection;
     private MutableConversation conversation;
     private MessageTransport transport;
+    private String originTenant;
 
     @VisibleForTesting
     public MessageProcessingContext(Mail mail, String messageId, ProcessingTimeGuard processingTimeGuard) {
@@ -247,5 +248,13 @@ public class MessageProcessingContext {
 
     public MessageTransport getTransport() {
         return transport;
+    }
+
+    public String getOriginTenant() {
+        return originTenant;
+    }
+
+    public void setOriginTenant(String originTenant) {
+        this.originTenant = originTenant;
     }
 }

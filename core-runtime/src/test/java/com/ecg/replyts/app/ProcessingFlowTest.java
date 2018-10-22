@@ -209,7 +209,7 @@ public class ProcessingFlowTest {
 
         flow.sendConversationEvents(context);
 
-        verify(conversationEventService).sendMessageAddedEvent("tenant", "conversationId", null, "messageId", "text", metaData, context.getTransport());
+        verify(conversationEventService).sendMessageAddedEvent("tenant", "conversationId", null, "messageId", "text", metaData, context);
     }
 
     @Test
