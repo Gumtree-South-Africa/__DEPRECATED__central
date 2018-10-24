@@ -9,12 +9,10 @@ import com.ecg.messagebox.service.CassandraPostBoxService;
 import com.ecg.messagecenter.core.persistence.simple.PostBoxId;
 import com.ecg.messagecenter.core.persistence.simple.SimplePostBoxRepository;
 import com.ecg.messagecenter.kjca.persistence.block.ConversationBlockRepository;
-import com.ecg.messagecenter.kjca.webapi.responses.PostBoxResponse;
 import com.ecg.messagecenter.kjca.webapi.responses.PostBoxResponseBuilder;
 import com.ecg.messagecenter.kjca.webapi.responses.PostBoxSingleConversationThreadResponse;
 import com.ecg.replyts.core.api.model.conversation.MutableConversation;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
-import com.ecg.replyts.core.api.webapi.envelope.ResponseObject;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.identifier.UserIdentifierService;
 import com.ecg.replyts.core.runtime.persistence.BlockUserRepository;
@@ -31,6 +29,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Collections;
 import java.util.Optional;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.function.BiConsumer;
@@ -120,7 +119,13 @@ public class WebApiSyncService {
         CompletableFuture<Optional<ConversationThread>> newModelFuture = CompletableFuture
                 .supplyAsync(() -> postBoxSyncService.conversationExists(email, conversationId), newExecutor)
                 .thenApply(conversationIds -> postBoxSyncService.getUserId(email, conversationIds))
-                .thenApply(userId -> postBoxService.markConversationAsRead(userId, conversationId, null, messagesLimit))
+                .thenApply(userId -> {
+                    try {
+                        return postBoxService.markConversationAsRead(userId, conversationId, null, messagesLimit);
+                    } catch (InterruptedException e) {
+                        throw new CancellationException(e.getMessage());
+                    }
+                })
                 .exceptionally(postBoxSyncService.handleOpt(newModelFailureCounter, "New ReadConversation Failed - email: " + email));
 
         CompletableFuture<Optional<PostBoxSingleConversationThreadResponse>> oldModelFuture = CompletableFuture
@@ -134,7 +139,13 @@ public class WebApiSyncService {
     public void deleteConversation(String email, String conversationId) {
         CompletableFuture<Optional<PostBox>> newModelFuture = CompletableFuture
                 .supplyAsync(() -> postBoxSyncService.getUserId(email, Collections.singletonList(conversationId)), newExecutor)
-                .thenApply(userId -> Optional.of(postBoxService.archiveConversations(userId, Collections.singletonList(conversationId), 0, messagesLimit)))
+                .thenApply(userId -> {
+                    try {
+                        return Optional.of(postBoxService.archiveConversations(userId, Collections.singletonList(conversationId), 0, messagesLimit));
+                    } catch (InterruptedException e) {
+                        throw new CancellationException(e.getMessage());
+                    }
+                })
                 .exceptionally(postBoxSyncService.handleOpt(newModelFailureCounter, "New DeleteConversation Failed - email: " + email));
 
         CompletableFuture<Void> oldModelFuture = CompletableFuture

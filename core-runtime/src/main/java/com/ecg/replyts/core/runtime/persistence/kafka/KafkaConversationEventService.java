@@ -99,4 +99,52 @@ public class KafkaConversationEventService implements ConversationEventService {
         LOG.trace("ConversationDeleteEvent: \n" + envelope);
         queueService.publishSynchronously(KafkaTopicService.CONVERSATION_EVENTS_KAFKA_TOPIC, conversationId, envelope);
     }
+
+    @Override
+    public void sendConversationReadEvent(String tenant, String conversationId, String userId) throws InterruptedException {
+        ConversationRead conversationRead = ConversationRead.newBuilder()
+                .setUserId(userId)
+                .build();
+
+        Envelope envelope = Envelope.newBuilder()
+                .setTenant(tenant)
+                .setConversationId(conversationId)
+                .setConversationRead(conversationRead)
+                .build();
+
+        LOG.trace("ConversationReadEvent: \n" + envelope);
+        queueService.publishSynchronously(KafkaTopicService.CONVERSATION_EVENTS_KAFKA_TOPIC, conversationId, envelope);
+    }
+
+    @Override
+    public void sendConversationActivated(String tenant, String conversationId, String userId) throws InterruptedException {
+        ConversationActivated conversationActivated = ConversationActivated.newBuilder()
+                .setUserId(userId)
+                .build();
+
+        Envelope envelope = Envelope.newBuilder()
+                .setTenant(tenant)
+                .setConversationId(conversationId)
+                .setConversationActivated(conversationActivated)
+                .build();
+
+        LOG.trace("ConversationActivatedEvent: \n" + envelope);
+        queueService.publishSynchronously(KafkaTopicService.CONVERSATION_EVENTS_KAFKA_TOPIC, conversationId, envelope);
+    }
+
+    @Override
+    public void sendConversationArchived(String tenant, String conversationId, String userId) throws InterruptedException {
+        ConversationArchived conversationArchived = ConversationArchived.newBuilder()
+                .setUserId(userId)
+                .build();
+
+        Envelope envelope = Envelope.newBuilder()
+                .setTenant(tenant)
+                .setConversationId(conversationId)
+                .setConversationArchived(conversationArchived)
+                .build();
+
+        LOG.trace("ConversationArchivedEvent: \n" + envelope);
+        queueService.publishSynchronously(KafkaTopicService.CONVERSATION_EVENTS_KAFKA_TOPIC, conversationId, envelope);
+    }
 }

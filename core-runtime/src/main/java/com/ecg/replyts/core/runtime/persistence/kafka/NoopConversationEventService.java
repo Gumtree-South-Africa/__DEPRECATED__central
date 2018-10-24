@@ -28,4 +28,19 @@ public class NoopConversationEventService implements ConversationEventService {
     public void sendConversationDeletedEvent(String tenant, String conversationId, Conversation.Participant participant) {
         // noop
     }
+
+    @Override
+    public void sendConversationReadEvent(String tenant, String conversationId, String userId) throws InterruptedException {
+        // noop
+    }
+
+    @Override
+    public void sendConversationActivated(String tenant, String conversationId, String userId) throws InterruptedException {
+        // noop
+    }
+
+    @Override
+    public void sendConversationArchived(String tenant, String conversationId, String userId) throws InterruptedException {
+        // noop
+    }
 }

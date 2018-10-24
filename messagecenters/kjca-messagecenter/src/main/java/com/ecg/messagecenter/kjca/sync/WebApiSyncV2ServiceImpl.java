@@ -33,7 +33,7 @@ public class WebApiSyncV2ServiceImpl implements WebApiSyncV2Service {
     }
 
     @Override
-    public Optional<ConversationThread> markConversationAsRead(String userId, String conversationId, String messageIdCursorOpt, int messagesLimit) {
+    public Optional<ConversationThread> markConversationAsRead(String userId, String conversationId, String messageIdCursorOpt, int messagesLimit) throws InterruptedException {
         Optional<ConversationThread> result = postBoxService.markConversationAsRead(userId, conversationId, messageIdCursorOpt, messagesLimit);
 
         if (result.isPresent()) {
@@ -55,7 +55,7 @@ public class WebApiSyncV2ServiceImpl implements WebApiSyncV2Service {
     }
 
     @Override
-    public PostBox archiveConversations(String userId, List<String> conversationIds, int offset, int limit) {
+    public PostBox archiveConversations(String userId, List<String> conversationIds, int offset, int limit) throws InterruptedException {
         if (!conversationIds.isEmpty()) {
             Optional<ConversationThread> conversation = postBoxService.getConversation(userId, conversationIds.get(0), null, 0);
 

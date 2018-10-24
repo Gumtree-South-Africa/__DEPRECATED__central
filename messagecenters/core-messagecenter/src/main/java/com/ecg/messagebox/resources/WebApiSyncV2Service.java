@@ -8,8 +8,8 @@ import java.util.Optional;
 
 public interface WebApiSyncV2Service {
 
-    Optional<ConversationThread> markConversationAsRead(String userId, String conversationId, String messageIdCursorOpt, int messagesLimit);
+    Optional<ConversationThread> markConversationAsRead(String userId, String conversationId, String messageIdCursorOpt, int messagesLimit) throws InterruptedException;
 
-    PostBox archiveConversations(String userId, List<String> conversationIds, int offset, int limit) ;
+    PostBox archiveConversations(String userId, List<String> conversationIds, int offset, int limit) throws InterruptedException;
 
 }

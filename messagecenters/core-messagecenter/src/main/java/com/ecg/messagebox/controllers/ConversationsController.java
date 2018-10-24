@@ -10,13 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.propertyeditors.StringArrayPropertyEditor;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.WebDataBinder;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.InitBinder;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Arrays;
 import java.util.List;
@@ -57,7 +51,7 @@ public class ConversationsController {
             @RequestParam(name = "visibility", defaultValue = "ACTIVE") String visibility,
             @RequestParam(name = "ids") String[] conversationIds,
             @RequestParam(name = "offset", defaultValue = "0") int offset,
-            @RequestParam(name = "limit", defaultValue = "50") int limit) {
+            @RequestParam(name = "limit", defaultValue = "50") int limit) throws InterruptedException {
 
         PostBox postBox;
         Visibility newVisibility = Visibility.valueOf(visibility.toUpperCase());

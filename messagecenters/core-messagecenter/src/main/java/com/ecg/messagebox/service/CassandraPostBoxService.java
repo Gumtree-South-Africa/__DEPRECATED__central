@@ -1,5 +1,6 @@
 package com.ecg.messagebox.service;
 
+import com.codahale.metrics.Counter;
 import com.datastax.driver.core.utils.UUIDs;
 import com.ecg.messagebox.controllers.requests.PartnerMessagePayload;
 import com.ecg.messagebox.events.MessageAddedEventProcessor;
@@ -9,11 +10,14 @@ import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;
 import com.ecg.replyts.core.api.model.conversation.UserUnreadCounts;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
+import com.ecg.replyts.core.api.processing.ConversationEventService;
+import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.cluster.Guids;
 import com.ecg.replyts.core.runtime.identifier.UserIdentifierService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Nullable;
@@ -32,6 +36,8 @@ import static org.joda.time.DateTime.now;
  */
 @Component
 public class CassandraPostBoxService implements PostBoxService {
+    private static final Counter COUNTER_MARK_AS_READ = TimingReports.newCounter("message-box.mark-as-read");
+    private static final Counter COUNTER_MARK_AS_READ_EVENTS_EMITTED = TimingReports.newCounter("message-box.mark-as-read-events");
 
     private static final Logger LOG = LoggerFactory.getLogger(CassandraPostBoxService.class);
 
@@ -42,6 +48,10 @@ public class CassandraPostBoxService implements PostBoxService {
     private final ResponseDataCalculator responseDataCalculator;
     private final MessageAddedEventProcessor messageAddedEventProcessor;
     private final ConversationRepository conversationRepository;
+    private final ConversationEventService conversationEventService;
+
+    @Value("${replyts.tenant.short}")
+    private String shortTenant;
 
     static final String SYSTEM_MESSAGE_USER_ID = "-1";
 
@@ -51,13 +61,15 @@ public class CassandraPostBoxService implements PostBoxService {
             UserIdentifierService userIdentifierService,
             ResponseDataCalculator responseDataCalculator,
             MessageAddedEventProcessor messageAddedEventProcessor,
-            ConversationRepository conversationRepository) {
+            ConversationRepository conversationRepository,
+            ConversationEventService conversationEventService) {
 
         this.postBoxRepository = postBoxRepository;
         this.userIdentifierService = userIdentifierService;
         this.responseDataCalculator = responseDataCalculator;
         this.messageAddedEventProcessor = messageAddedEventProcessor;
         this.conversationRepository = conversationRepository;
+        this.conversationEventService = conversationEventService;
     }
 
     @SuppressWarnings("Duplicates")
@@ -125,13 +137,24 @@ public class CassandraPostBoxService implements PostBoxService {
     }
 
     @Override
-    public Optional<ConversationThread> markConversationAsRead(String userId, String conversationId, String messageIdCursor, int messagesLimit) {
-        return postBoxRepository.getConversationWithMessages(userId, conversationId, messageIdCursor, messagesLimit).map(conversation -> {
-            List<Participant> participants = conversation.getParticipants();
-            String otherParticipantUserId = participants.get(0).getUserId().equals(userId) ? participants.get(1).getUserId() : participants.get(0).getUserId();
-            postBoxRepository.resetConversationUnreadCount(userId, otherParticipantUserId, conversationId, conversation.getAdId());
-            return new ConversationThread(conversation).addNumUnreadMessages(userId, 0);
-        });
+    public Optional<ConversationThread> markConversationAsRead(String userId, String conversationId,
+                                                                        String messageIdCursor, int messagesLimit) throws InterruptedException {
+        COUNTER_MARK_AS_READ.inc();
+        Optional<ConversationThread> maybeConversation =
+                postBoxRepository.getConversationWithMessages(userId, conversationId, messageIdCursor, messagesLimit);
+        if (!maybeConversation.isPresent()) {
+            return Optional.empty();
+        }
+        ConversationThread conversation = maybeConversation.get();
+        List<Participant> participants = conversation.getParticipants();
+        String otherParticipantUserId = participants.get(0).getUserId().equals(userId) ? participants.get(1).getUserId()
+                : participants.get(0).getUserId();
+        if (conversation.getNumUnreadMessages(userId) > 0) {
+            conversationEventService.sendConversationReadEvent(shortTenant, conversationId, userId);
+            COUNTER_MARK_AS_READ_EVENTS_EMITTED.inc();
+        }
+        postBoxRepository.resetConversationUnreadCount(userId, otherParticipantUserId, conversationId, conversation.getAdId());
+        return Optional.of(new ConversationThread(conversation).addNumUnreadMessages(userId, 0));
     }
 
     @Override
@@ -152,15 +175,21 @@ public class CassandraPostBoxService implements PostBoxService {
     }
 
     @Override
-    public PostBox archiveConversations(String userId, List<String> conversationIds, int conversationsOffset, int conversationsLimit) {
+    public PostBox archiveConversations(String userId, List<String> conversationIds, int conversationsOffset, int conversationsLimit) throws InterruptedException {
         Map<String, String> conversationAdIdsMap = postBoxRepository.getConversationAdIdsMap(userId, conversationIds);
+        for (String conversationId : conversationAdIdsMap.keySet()) {
+            conversationEventService.sendConversationArchived(shortTenant, userId, conversationId);
+        }
         postBoxRepository.archiveConversations(userId, conversationAdIdsMap);
         return postBoxRepository.getPostBox(userId, Visibility.ACTIVE, conversationsOffset, conversationsLimit).removeConversations(conversationIds);
     }
 
     @Override
-    public PostBox activateConversations(String userId, List<String> conversationIds, int conversationsOffset, int conversationsLimit) {
+    public PostBox activateConversations(String userId, List<String> conversationIds, int conversationsOffset, int conversationsLimit) throws InterruptedException {
         Map<String, String> conversationAdIdsMap = postBoxRepository.getConversationAdIdsMap(userId, conversationIds);
+        for (String conversationId : conversationAdIdsMap.keySet()) {
+            conversationEventService.sendConversationActivated(shortTenant, userId, conversationId);
+        }
         postBoxRepository.activateConversations(userId, conversationAdIdsMap);
         return postBoxRepository.getPostBox(userId, Visibility.ARCHIVED, conversationsOffset, conversationsLimit).removeConversations(conversationIds);
     }

@@ -15,4 +15,10 @@ public interface ConversationEventService {
     void sendMessageAddedEvent(String tenant, String conversationId, Optional<String> senderUserId, String messageId, String message, Map<String, String> metaData, MessageTransport transport, String origin) throws InterruptedException;
 
     void sendConversationDeletedEvent(String tenant, String conversationId, Participant participant) throws InterruptedException;
+
+    void sendConversationReadEvent(String tenant, String conversationId, String userId) throws InterruptedException;
+
+    void sendConversationActivated(String tenant, String conversationId, String userId) throws InterruptedException;
+
+    void sendConversationArchived(String tenant, String conversationId, String userId) throws InterruptedException;
 }

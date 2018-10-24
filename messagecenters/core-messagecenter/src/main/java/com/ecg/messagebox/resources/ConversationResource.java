@@ -21,7 +21,6 @@ import javax.validation.Valid;
 @Api(tags = "Conversations")
 @RequestMapping(produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
 public class ConversationResource {
-
     private static final Logger LOG = LoggerFactory.getLogger(ConversationResource.class);
 
     private final PostBoxService postBoxService;
@@ -75,7 +74,7 @@ public class ConversationResource {
             @ApiParam(value = "User ID", required = true) @PathVariable("userId") String userId,
             @ApiParam(value = "Conversation ID", required = true) @PathVariable("conversationId") String conversationId,
             @ApiParam(value = "ID of the first message returned in a response") @RequestParam(name = "cursor", required = false) String messageIdCursor,
-            @ApiParam(value = "Number of messages returned in a response") @RequestParam(name = "limit", defaultValue = "500") int limit) {
+            @ApiParam(value = "Number of messages returned in a response") @RequestParam(name = "limit", defaultValue = "500") int limit) throws InterruptedException {
 
         if (webApiSyncV2Service == null) {
             return postBoxService

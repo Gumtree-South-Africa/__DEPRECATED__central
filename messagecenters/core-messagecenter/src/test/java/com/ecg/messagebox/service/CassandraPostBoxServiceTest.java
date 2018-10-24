@@ -9,6 +9,7 @@ import com.ecg.messagebox.util.messages.DefaultMessagesResponseFactory;
 import com.ecg.replyts.core.api.model.conversation.*;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
+import com.ecg.replyts.core.api.processing.ConversationEventService;
 import com.ecg.replyts.core.runtime.identifier.UserIdentifierService;
 import com.ecg.replyts.core.runtime.model.conversation.ImmutableConversation;
 import com.ecg.replyts.core.runtime.persistence.BlockUserRepository;
@@ -107,6 +108,8 @@ public class CassandraPostBoxServiceTest {
     private ConversationRepository conversationRepo;
     @Mock
     private MutableConversation conversation;
+    @Mock
+    ConversationEventService conversationEventService;
 
     private CassandraPostBoxService service;
 
@@ -115,7 +118,7 @@ public class CassandraPostBoxServiceTest {
         MockitoAnnotations.initMocks(this);
         DateTimeUtils.setCurrentMillisFixed(now().getMillis());
         service = new CassandraPostBoxService(postBoxRepo, userIdentifierService,
-                responseDataCalculator, messageAddedEventProcessor, conversationRepo);
+                responseDataCalculator, messageAddedEventProcessor, conversationRepo, conversationEventService);
         when(userIdentifierService.getBuyerUserIdName()).thenReturn(BUYER_USER_ID_NAME);
         when(userIdentifierService.getSellerUserIdName()).thenReturn(SELLER_USER_ID_NAME);
         when(blockUserRepo.areUsersBlocked(any(), any())).thenReturn(false);
@@ -286,7 +289,7 @@ public class CassandraPostBoxServiceTest {
 
 
     @Test
-    public void markConversationAsRead() {
+    public void markConversationAsRead() throws InterruptedException {
         ConversationThread repoConversationThread = newConversationThread(CONVERSATION_ID_1).addNumUnreadMessages(USER_ID_1, 5);
         when(postBoxRepo.getConversationWithMessages(USER_ID_1, CONVERSATION_ID_1, CURSOR, MESSAGE_LIMIT)).thenReturn(Optional.of(repoConversationThread));
 
@@ -309,7 +312,7 @@ public class CassandraPostBoxServiceTest {
     }
 
     @Test
-    public void archiveConversation() {
+    public void archiveConversation() throws InterruptedException {
         List<String> conversationIds = Arrays.asList(CONVERSATION_ID_1, CONVERSATION_ID_2);
         Map<String, String> conversationAdIdsMap = new HashMap<>();
         conversationAdIdsMap.put(CONVERSATION_ID_1, AD_ID_1);
@@ -328,7 +331,7 @@ public class CassandraPostBoxServiceTest {
     }
 
     @Test
-    public void activateConversation() {
+    public void activateConversation() throws InterruptedException {
         List<String> conversationIds = Arrays.asList(CONVERSATION_ID_1, CONVERSATION_ID_2);
         Map<String, String> conversationAdIdsMap = new HashMap<>();
         conversationAdIdsMap.put(CONVERSATION_ID_1, AD_ID_1);

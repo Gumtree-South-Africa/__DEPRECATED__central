@@ -27,6 +27,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Collections;
 import java.util.Optional;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 
@@ -175,7 +176,13 @@ public class WebApiSyncService {
             CompletableFuture<Optional<ConversationThread>> newModelFuture = CompletableFuture
                     .supplyAsync(() -> postBoxSyncService.conversationExists(email, conversationId), newExecutor)
                     .thenApply(conversationIds -> postBoxSyncService.getUserId(email, conversationIds))
-                    .thenApply(userId -> postBoxService.markConversationAsRead(userId, conversationId, null, messagesLimit))
+                    .thenApply(userId -> {
+                        try {
+                            return postBoxService.markConversationAsRead(userId, conversationId, null, messagesLimit);
+                        } catch (InterruptedException e) {
+                            throw new CancellationException(e.getMessage());
+                        }
+                    })
                     .exceptionally(postBoxSyncService.handleOpt(newModelFailureCounter, "New ReadConversation Failed - email: " + email));
 
             CompletableFuture<Optional<PostBoxSingleConversationThreadResponse>> oldModelFuture = CompletableFuture
@@ -204,7 +211,13 @@ public class WebApiSyncService {
 
             CompletableFuture<Optional<PostBox>> newModelFuture = CompletableFuture
                     .supplyAsync(() -> postBoxSyncService.getUserId(email, Collections.singletonList(conversationId)), newExecutor)
-                    .thenApply(userId -> Optional.of(postBoxService.archiveConversations(userId, Collections.singletonList(conversationId), 0, messagesLimit)))
+                    .thenApply(userId -> {
+                        try {
+                            return Optional.of(postBoxService.archiveConversations(userId, Collections.singletonList(conversationId), 0, messagesLimit));
+                        } catch (InterruptedException e) {
+                            throw new CancellationException(e.getMessage());
+                        }
+                    })
                     .exceptionally(postBoxSyncService.handleOpt(newModelFailureCounter, "New DeleteConversation Failed - email: " + email));
 
             CompletableFuture<Optional<ConversationRts>> oldModelFuture = CompletableFuture

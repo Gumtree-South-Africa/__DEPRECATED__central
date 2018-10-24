@@ -17,15 +17,15 @@ public interface PostBoxService {
 
     Optional<ConversationThread> getConversation(String userId, String conversationId, String messageIdCursor, int messagesLimit);
 
-    Optional<ConversationThread> markConversationAsRead(String userId, String conversationId, String messageIdCursorOpt, int messagesLimit);
+    Optional<ConversationThread> markConversationAsRead(String userId, String conversationId, String messageIdCursorOpt, int messagesLimit) throws InterruptedException;
 
     PostBox markConversationsAsRead(String userId, Visibility visibility, int conversationsOffset, int conversationsLimit);
 
     PostBox getConversations(String userId, Visibility visibility, int conversationsOffset, int conversationsLimit);
 
-    PostBox archiveConversations(String userId, List<String> conversationIds, int conversationsOffset, int conversationsLimit);
+    PostBox archiveConversations(String userId, List<String> conversationIds, int conversationsOffset, int conversationsLimit) throws InterruptedException;
 
-    PostBox activateConversations(String userId, List<String> conversationIds, int conversationsOffset, int conversationsLimit);
+    PostBox activateConversations(String userId, List<String> conversationIds, int conversationsOffset, int conversationsLimit) throws InterruptedException;
 
     UserUnreadCounts getUnreadCounts(String userId);
 

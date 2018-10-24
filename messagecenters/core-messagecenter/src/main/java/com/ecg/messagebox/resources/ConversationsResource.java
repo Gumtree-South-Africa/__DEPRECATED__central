@@ -5,6 +5,7 @@ import com.ecg.messagebox.model.Visibility;
 import com.ecg.messagebox.resources.responses.ConversationsResponse;
 import com.ecg.messagebox.resources.responses.ErrorResponse;
 import com.ecg.messagebox.service.PostBoxService;
+import com.ecg.replyts.core.api.processing.ConversationEventService;
 import io.swagger.annotations.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,7 +30,7 @@ public class ConversationsResource {
     private WebApiSyncV2Service webApiSyncV2Service;
 
     @Autowired
-    public ConversationsResource(PostBoxService postBoxService) {
+    public ConversationsResource(PostBoxService postBoxService, ConversationEventService conversationEventService) {
         this.postBoxService = postBoxService;
     }
 
@@ -74,8 +75,7 @@ public class ConversationsResource {
             @ApiParam(value = "User ID", required = true) @PathVariable("userId") String userId,
             @ApiParam("Index of the first conversation in user's postbox") @RequestParam(name = "offset", defaultValue = "0") int offset,
             @ApiParam("Type of the conversations returned in the response") @RequestParam(name = "limit", defaultValue = "50") int limit,
-            @ApiParam(value = "List of configuration ids", required = true) @RequestBody List<String> conversationIds) {
-
+            @ApiParam(value = "List of configuration ids", required = true) @RequestBody List<String> conversationIds) throws InterruptedException {
         if (webApiSyncV2Service == null) {
             PostBox postBox = postBoxService.archiveConversations(userId, conversationIds, offset, limit);
             return toConversationsResponse(postBox, offset, limit);
@@ -105,8 +105,7 @@ public class ConversationsResource {
             @ApiParam(value = "User ID", required = true) @PathVariable("userId") String userId,
             @ApiParam("Index of the first conversation in user's postbox") @RequestParam(name = "offset", defaultValue = "0") int offset,
             @ApiParam("Type of the conversations returned in the response") @RequestParam(name = "limit", defaultValue = "50") int limit,
-            @ApiParam(value = "List of configuration ids", required = true) @RequestBody List<String> conversationIds) {
-
+            @ApiParam(value = "List of configuration ids", required = true) @RequestBody List<String> conversationIds) throws InterruptedException {
         PostBox postBox = postBoxService.activateConversations(userId, conversationIds, offset, limit);
         return toConversationsResponse(postBox, offset, limit);
     }
