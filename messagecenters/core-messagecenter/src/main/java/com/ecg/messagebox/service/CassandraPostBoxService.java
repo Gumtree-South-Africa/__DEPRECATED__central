@@ -178,7 +178,7 @@ public class CassandraPostBoxService implements PostBoxService {
     public PostBox archiveConversations(String userId, List<String> conversationIds, int conversationsOffset, int conversationsLimit) throws InterruptedException {
         Map<String, String> conversationAdIdsMap = postBoxRepository.getConversationAdIdsMap(userId, conversationIds);
         for (String conversationId : conversationAdIdsMap.keySet()) {
-            conversationEventService.sendConversationArchived(shortTenant, userId, conversationId);
+            conversationEventService.sendConversationArchived(shortTenant, conversationId, userId);
         }
         postBoxRepository.archiveConversations(userId, conversationAdIdsMap);
         return postBoxRepository.getPostBox(userId, Visibility.ACTIVE, conversationsOffset, conversationsLimit).removeConversations(conversationIds);
@@ -188,7 +188,7 @@ public class CassandraPostBoxService implements PostBoxService {
     public PostBox activateConversations(String userId, List<String> conversationIds, int conversationsOffset, int conversationsLimit) throws InterruptedException {
         Map<String, String> conversationAdIdsMap = postBoxRepository.getConversationAdIdsMap(userId, conversationIds);
         for (String conversationId : conversationAdIdsMap.keySet()) {
-            conversationEventService.sendConversationActivated(shortTenant, userId, conversationId);
+            conversationEventService.sendConversationActivated(shortTenant, conversationId, userId);
         }
         postBoxRepository.activateConversations(userId, conversationAdIdsMap);
         return postBoxRepository.getPostBox(userId, Visibility.ARCHIVED, conversationsOffset, conversationsLimit).removeConversations(conversationIds);
