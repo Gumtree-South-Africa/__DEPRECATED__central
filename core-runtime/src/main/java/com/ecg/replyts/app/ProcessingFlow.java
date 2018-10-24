@@ -143,7 +143,7 @@ class ProcessingFlow {
         String cleanedMessage = contentOverridingPostProcessorService.getCleanedMessage(conversation, message);
         Optional<String> senderIdOpt = getSenderUserId(conversation, message);
 
-        conversationEventService.sendMessageAddedEvent(shortTenant, conversation.getId(), senderIdOpt, message.getId(), cleanedMessage, message.getHeaders(), context);
+        conversationEventService.sendMessageAddedEvent(shortTenant, conversation.getId(), senderIdOpt, message.getId(), cleanedMessage, message.getHeaders(), context.getTransport(), context.getOriginTenant());
     }
 
     private Optional<String> getSenderUserId(Conversation conversation, Message message) {

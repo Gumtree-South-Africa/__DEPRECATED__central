@@ -1,8 +1,8 @@
 package com.ecg.replyts.core.runtime.persistence.kafka;
 
 import com.ecg.comaas.events.Conversation;
+import com.ecg.replyts.core.api.model.conversation.MessageTransport;
 import com.ecg.replyts.core.api.processing.ConversationEventService;
-import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import org.joda.time.DateTime;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
@@ -20,7 +20,7 @@ public class NoopConversationEventService implements ConversationEventService {
     }
 
     @Override
-    public void sendMessageAddedEvent(String tenant, String conversationId, Optional<String> senderUserId, String messageId, String message, Map<String, String> metaData, MessageProcessingContext context) {
+    public void sendMessageAddedEvent(String tenant, String conversationId, Optional<String> senderUserId, String messageId, String message, Map<String, String> metaData, MessageTransport transport, String origin) {
         // noop
     }
 

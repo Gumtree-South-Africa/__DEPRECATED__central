@@ -1,9 +1,9 @@
 package com.ecg.replyts.core.runtime.persistence.kafka;
 
 import com.ecg.comaas.events.Conversation.*;
+import com.ecg.replyts.core.api.model.conversation.MessageTransport;
 import com.ecg.replyts.core.api.model.conversation.ProtoMapper;
 import com.ecg.replyts.core.api.processing.ConversationEventService;
-import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.google.common.base.Charsets;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Timestamp;
@@ -60,21 +60,22 @@ public class KafkaConversationEventService implements ConversationEventService {
                                       String messageId,
                                       String message,
                                       Map<String, String> metadata,
-                                      MessageProcessingContext context) throws InterruptedException {
+                                      MessageTransport transport,
+                                      String originTenant) throws InterruptedException {
 
         MessageAdded.Builder builder = MessageAdded.newBuilder()
                 .setId(UUID.newBuilder()
                         .setUuid(messageId)
                         .build())
                 .setText(ByteString.copyFrom(message, Charsets.UTF_8))
-                .setTransport(ProtoMapper.messageTransportToProto(context.getTransport()))
+                .setTransport(ProtoMapper.messageTransportToProto(transport))
                 .putAllMetadata(metadata);
 
         senderUserId.ifPresent(builder::setSenderUserId);
 
         Envelope envelope = Envelope.newBuilder()
                 .setTenant(tenant)
-                .setOrigin(context.getOriginTenant() == null ? tenant : context.getOriginTenant())
+                .setOrigin(originTenant == null ? tenant : originTenant)
                 .setConversationId(conversationId)
                 .setMessageAdded(builder.build())
                 .build();
