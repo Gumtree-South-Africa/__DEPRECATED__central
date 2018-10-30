@@ -53,6 +53,9 @@ public class CassandraPostBoxService implements PostBoxService {
     @Value("${replyts.tenant.short}")
     private String shortTenant;
 
+    @Value("${messagebox.emit.markasread.unconditionally:true}")
+    private boolean emitMarkAsReadUnconditionally = true;
+
     static final String SYSTEM_MESSAGE_USER_ID = "-1";
 
     @Autowired
@@ -138,7 +141,7 @@ public class CassandraPostBoxService implements PostBoxService {
 
     @Override
     public Optional<ConversationThread> markConversationAsRead(String userId, String conversationId,
-                                                                        String messageIdCursor, int messagesLimit) throws InterruptedException {
+                                                               String messageIdCursor, int messagesLimit) throws InterruptedException {
         COUNTER_MARK_AS_READ.inc();
         Optional<ConversationThread> maybeConversation =
                 postBoxRepository.getConversationWithMessages(userId, conversationId, messageIdCursor, messagesLimit);
@@ -149,7 +152,7 @@ public class CassandraPostBoxService implements PostBoxService {
         List<Participant> participants = conversation.getParticipants();
         String otherParticipantUserId = participants.get(0).getUserId().equals(userId) ? participants.get(1).getUserId()
                 : participants.get(0).getUserId();
-        if (conversation.getNumUnreadMessages(userId) > 0) {
+        if (emitMarkAsReadUnconditionally || conversation.getNumUnreadMessages(userId) > 0) {
             conversationEventService.sendConversationReadEvent(shortTenant, conversationId, userId);
             COUNTER_MARK_AS_READ_EVENTS_EMITTED.inc();
         }
