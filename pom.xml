@@ -189,7 +189,6 @@
 
                 <module>eventpublishers/core-eventpublisher-kafka-mail</module>
                 <module>eventpublishers/mp-eventpublisher-kafka</module>
-                <module>eventpublishers/mp-eventpublisher-rabbitmq</module>
 
                 <module>resultinspectors/core-resultinspector-threshold</module>
 
