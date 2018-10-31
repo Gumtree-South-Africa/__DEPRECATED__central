@@ -1,4 +1,4 @@
-package com.ecg.messagebox.controllers.responses;
+package com.ecg.messagebox.resources.responses;
 
 import io.swagger.annotations.ApiModelProperty;
 

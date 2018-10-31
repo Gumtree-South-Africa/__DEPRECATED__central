@@ -1,6 +1,6 @@
 package com.ecg.messagebox.persistence;
 
-import com.ecg.messagebox.controllers.requests.PartnerMessagePayload;
+import com.ecg.messagebox.resources.requests.PartnerMessagePayload;
 import com.ecg.messagebox.model.ConversationModification;
 import com.ecg.messagebox.model.ConversationThread;
 import com.ecg.messagebox.model.Message;

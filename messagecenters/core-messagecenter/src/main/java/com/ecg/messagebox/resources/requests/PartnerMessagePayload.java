@@ -1,4 +1,4 @@
-package com.ecg.messagebox.controllers.requests;
+package com.ecg.messagebox.resources.requests;
 
 import com.ecg.messagebox.model.MessageType;
 import com.ecg.messagebox.model.Participant;

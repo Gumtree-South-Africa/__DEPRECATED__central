@@ -1,6 +1,6 @@
 package com.ecg.messagebox.service;
 
-import com.ecg.messagebox.controllers.requests.PartnerMessagePayload;
+import com.ecg.messagebox.resources.requests.PartnerMessagePayload;
 import com.ecg.messagebox.model.ConversationThread;
 import com.ecg.messagebox.model.PostBox;
 import com.ecg.messagebox.model.Visibility;

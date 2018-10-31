@@ -1,6 +1,6 @@
-package com.ecg.messagebox.controllers;
+package com.ecg.messagebox.resources;
 
-import com.ecg.messagebox.controllers.requests.PartnerMessagePayload;
+import com.ecg.messagebox.resources.requests.PartnerMessagePayload;
 import com.ecg.messagebox.service.PostBoxService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpStatus;
@@ -11,11 +11,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @ConditionalOnProperty(name = "message.synchronizer.enabled", havingValue = "true")
-public class PartnerController {
+public class PartnerResource {
 
     private final PostBoxService postBoxService;
 
-    public PartnerController(PostBoxService postBoxService) {
+    public PartnerResource(PostBoxService postBoxService) {
         this.postBoxService = postBoxService;
     }
 

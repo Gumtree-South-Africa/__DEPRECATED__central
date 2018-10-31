@@ -16,7 +16,7 @@ public class EbaykMessageBoxConfiguration {
     @Configuration
     @ConditionalOnProperty(name = "webapi.sync.ek.enabled", havingValue = "true")
     @ComponentScan(value = {"com.ecg.messagebox", "com.ecg.sync"}, excludeFilters =
-    @ComponentScan.Filter(type = FilterType.REGEX, pattern = {"com.ecg.messagebox.resources.*", "com.ecg.messagebox.controllers.*"}))
+    @ComponentScan.Filter(type = FilterType.REGEX, pattern = "com.ecg.messagebox.resources.*"))
     public static class MessageBoxConfiguration {
         @Bean
         public SpringContextProvider v2ContextProvider(ApplicationContext context) {

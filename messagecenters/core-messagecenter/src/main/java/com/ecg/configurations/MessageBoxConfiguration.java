@@ -11,14 +11,9 @@ import org.springframework.context.annotation.*;
 @Configuration
 @Profile({Tenants.TENANT_MDE, Tenants.TENANT_MP, Tenants.TENANT_MVCA})
 @ComponentScan(value = "com.ecg.messagebox", excludeFilters =
-@ComponentScan.Filter(type = FilterType.REGEX, pattern = {"com.ecg.messagebox.resources.*", "com.ecg.messagebox.controllers.*"}))
+@ComponentScan.Filter(type = FilterType.REGEX, pattern = "com.ecg.messagebox.resources.*"))
 @Import(ConsumerConfiguration.class)
 public class MessageBoxConfiguration {
-
-    @Bean
-    public SpringContextProvider v2ContextProvider(ApplicationContext context) {
-        return new SpringContextProvider("/msgcenter", WebConfiguration.class, context, "com.ecg.messagebox.controllers");
-    }
 
     @Bean
     public SpringContextProvider newV2ContextProvider(ApplicationContext context) {

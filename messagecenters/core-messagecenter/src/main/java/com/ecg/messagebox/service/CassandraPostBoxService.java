@@ -2,7 +2,7 @@ package com.ecg.messagebox.service;
 
 import com.codahale.metrics.Counter;
 import com.datastax.driver.core.utils.UUIDs;
-import com.ecg.messagebox.controllers.requests.PartnerMessagePayload;
+import com.ecg.messagebox.resources.requests.PartnerMessagePayload;
 import com.ecg.messagebox.events.MessageAddedEventProcessor;
 import com.ecg.messagebox.model.*;
 import com.ecg.messagebox.persistence.CassandraPostBoxRepository;

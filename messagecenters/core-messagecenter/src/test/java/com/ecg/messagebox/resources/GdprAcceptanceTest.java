@@ -1,5 +1,6 @@
-package com.ecg.messagebox.controllers;
+package com.ecg.messagebox.resources;
 
+import com.ecg.messagebox.resources.ReplyTsIntegrationTestRuleHelper;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.path.json.JsonPath;
 import org.junit.Test;

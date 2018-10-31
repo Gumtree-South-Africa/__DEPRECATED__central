@@ -1,4 +1,4 @@
-package com.ecg.messagebox.controllers;
+package com.ecg.messagebox.resources;
 
 import com.ecg.replyts.core.runtime.identifier.UserIdentifierType;
 import com.ecg.replyts.integration.test.ReplyTsIntegrationTestRule;

@@ -3,7 +3,7 @@ package com.ecg.messagebox.persistence;
 import com.datastax.driver.core.BatchStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
-import com.ecg.messagebox.controllers.requests.PartnerMessagePayload;
+import com.ecg.messagebox.resources.requests.PartnerMessagePayload;
 import com.ecg.messagebox.model.ConversationMetadata;
 import com.ecg.messagebox.model.ConversationModification;
 import com.ecg.messagebox.model.ConversationThread;

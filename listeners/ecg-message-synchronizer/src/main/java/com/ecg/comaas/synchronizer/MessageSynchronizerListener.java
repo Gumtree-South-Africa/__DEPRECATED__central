@@ -47,7 +47,7 @@ public class MessageSynchronizerListener implements MessageProcessedListener {
     private static final String PARTNER_TENANT = "partner-tenant";
     private static final String PARTNER_TITLE = "partner-title";
 
-    private static final String MSGBOX_PARTNER_SYNC_PATH = "msgcenter/partner-sync";
+    private static final String MSGBOX_PARTNER_SYNC_PATH = "msgbox/partner-sync";
 
     private final EbaykMessagesResponseFactory messagesResponseFactory;
     private final PartnerConfiguration partnerConfiguration;

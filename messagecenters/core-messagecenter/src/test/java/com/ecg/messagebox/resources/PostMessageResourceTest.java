@@ -1,6 +1,6 @@
 package com.ecg.messagebox.resources;
 
-import com.ecg.messagebox.controllers.requests.PostMessageRequest;
+import com.ecg.messagebox.resources.requests.PostMessageRequest;
 import com.ecg.replyts.core.runtime.persistence.kafka.QueueService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
