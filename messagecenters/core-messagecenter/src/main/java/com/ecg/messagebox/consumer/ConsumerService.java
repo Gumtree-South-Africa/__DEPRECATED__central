@@ -3,7 +3,8 @@ package com.ecg.messagebox.consumer;
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Timer;
 import com.ecg.comaas.events.Conversation;
-import com.ecg.messagebox.service.PostBoxService;
+import com.ecg.messagebox.model.Participant;
+import com.ecg.messagebox.persistence.CassandraPostBoxRepository;
 import com.ecg.replyts.core.runtime.MetricsService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,11 +32,11 @@ class ConsumerService {
     private static final Counter CONVERSATION_VISIBILITY_CHANGED_TOTAL_COUNTER = METRICS.counter("conversation_visibility_changed_total");
     private static final Counter CONVERSATION_VISIBILITY_CHANGED_FAILED_COUNTER = METRICS.counter("conversation_visibility_changed_failed");
 
-    private final PostBoxService postBoxService;
+    private final CassandraPostBoxRepository postBoxRepository;
     private final String tenantShort;
 
-    public ConsumerService(PostBoxService postBoxService, String tenantShort) {
-        this.postBoxService = postBoxService;
+    ConsumerService(CassandraPostBoxRepository postBoxRepository, String tenantShort) {
+        this.postBoxRepository = postBoxRepository;
         this.tenantShort = tenantShort;
     }
 
@@ -54,21 +55,23 @@ class ConsumerService {
                 CONVERSATION_READ_TOTAL_COUNTER.inc();
                 String userId = envelope.getConversationRead().getUserId();
                 LOG.debug("Event '{}'", Conversation.ConversationRead.class.getSimpleName(), kv("user_id", userId));
-                postBoxService.markConversationAsRead(userId, envelope.getConversationId(), null, 1);
+                markConversationAsRead(envelope, userId);
                 successfullyProcessed = true;
             } else if (envelope.hasConversationActivated()) {
                 CONVERSATION_VISIBILITY_CHANGED_TOTAL_COUNTER.inc();
                 Conversation.ConversationActivated conversationActivated = envelope.getConversationActivated();
                 String userId = conversationActivated.getUserId();
                 LOG.debug("Change visibility event: 'ACTIVATED'", kv("user_id", userId));
-                postBoxService.activateConversations(userId, Collections.singletonList(envelope.getConversationId()), 0, 50);
+                postBoxRepository.activateConversations(userId,
+                        postBoxRepository.getConversationAdIdsMap(userId, Collections.singletonList(envelope.getConversationId())));
                 successfullyProcessed = true;
             } else if (envelope.hasConversationArchived()) {
                 CONVERSATION_VISIBILITY_CHANGED_TOTAL_COUNTER.inc();
                 Conversation.ConversationArchived conversationArchived = envelope.getConversationArchived();
                 String userId = conversationArchived.getUserId();
                 LOG.debug("Change visibility event: 'ACTIVATED'", kv("user_id", userId));
-                postBoxService.archiveConversations(userId, Collections.singletonList(envelope.getConversationId()), 0, 50);
+                postBoxRepository.archiveConversations(userId,
+                        postBoxRepository.getConversationAdIdsMap(userId, Collections.singletonList(envelope.getConversationId())));
                 successfullyProcessed = true;
             } else {
                 UNKNOWN_EVENT_COUNTER.inc();
@@ -78,9 +81,6 @@ class ConsumerService {
             if (successfullyProcessed) {
                 SUCCESSFUL_EVENTS_TOTAL.inc();
             }
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            LOG.warn("Processing has been interrupted");
         } catch (Exception ex) {
             LOG.error("Event processing failed.", ex);
             FAILED_EVENTS_TOTAL.inc();
@@ -93,5 +93,15 @@ class ConsumerService {
         } finally {
             MDC.clear();
         }
+    }
+
+    private void markConversationAsRead(Conversation.Envelope envelope, String userId) {
+        postBoxRepository.getConversationWithMessages(userId, envelope.getConversationId(), null, 1).ifPresent(c ->
+                c.getParticipants().stream()
+                        .map(Participant::getUserId)
+                        .filter(id -> !userId.equals(id))
+                        .forEach(otherUserId -> {
+                            postBoxRepository.resetConversationUnreadCount(userId, otherUserId, c.getId(), c.getAdId());
+                        }));
     }
 }

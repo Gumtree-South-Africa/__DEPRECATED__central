@@ -1,6 +1,6 @@
 package com.ecg.messagebox.consumer;
 
-import com.ecg.messagebox.service.PostBoxService;
+import com.ecg.messagebox.persistence.CassandraPostBoxRepository;
 import com.ecg.replyts.core.runtime.persistence.kafka.KafkaTopicService;
 import org.apache.kafka.streams.KafkaStreams;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,11 +21,11 @@ public class ConsumerConfiguration {
     String kafkaServers;
 
     @Autowired
-    private PostBoxService postBoxService;
+    private CassandraPostBoxRepository postBoxRepository;
 
     @Bean(initMethod = "start", destroyMethod = "close")
     public KafkaStreams conversationEventsStream() {
-        ConsumerService consumerService = new ConsumerService(postBoxService, shortTenantName);
+        ConsumerService consumerService = new ConsumerService(postBoxRepository, shortTenantName);
         KafkaStreamProvider streamProvider = new KafkaStreamProvider(consumerService, kafkaServers,
                 KafkaTopicService.CONVERSATION_EVENTS_KAFKA_TOPIC, shortTenantName);
         return streamProvider.provide();
