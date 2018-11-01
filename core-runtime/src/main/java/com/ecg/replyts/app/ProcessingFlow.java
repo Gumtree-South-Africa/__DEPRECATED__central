@@ -68,6 +68,9 @@ class ProcessingFlow {
     @Value("${replyts.tenant.short}")
     private String shortTenant;
 
+    @Value("${mail.delivery.channel.enabled:true}")
+    private boolean mailDeliveryChannelEnabled;
+
     private final Timer preProcessorTimer = TimingReports.newTimer("preProcessor");
     private final Timer filterChainTimer = TimingReports.newTimer("filterChain");
     private final Timer postProcessorTimer = TimingReports.newTimer("postProcessor");
@@ -177,6 +180,11 @@ class ProcessingFlow {
     }
 
     void inputForSending(MessageProcessingContext context) {
+        if (!mailDeliveryChannelEnabled) {
+            LOG.warn("E-mail delivery switched off for tenant {}", shortTenant);
+            return;
+        }
+
         if (context.isSkipDeliveryChannel(MessageProcessingContext.DELIVERY_CHANNEL_MAIL)) {
             emailDeliverySkippedTimer.inc();
             LOG.debug("E-mail delivery switched off for Message {}", context.getMessageId());
