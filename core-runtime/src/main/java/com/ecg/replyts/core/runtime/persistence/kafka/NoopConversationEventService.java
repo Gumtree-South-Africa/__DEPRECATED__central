@@ -20,7 +20,7 @@ public class NoopConversationEventService implements ConversationEventService {
     }
 
     @Override
-    public void sendMessageAddedEvent(String tenant, String conversationId, Optional<String> senderUserId, String messageId, String message, Map<String, String> metaData, MessageTransport transport, String origin) {
+    public void sendMessageAddedEvent(String tenant, String conversationId, Optional<String> senderUserId, String messageId, String message, Map<String, String> metaData, MessageTransport transport, String origin, DateTime receivedAt) {
         // noop
     }
 

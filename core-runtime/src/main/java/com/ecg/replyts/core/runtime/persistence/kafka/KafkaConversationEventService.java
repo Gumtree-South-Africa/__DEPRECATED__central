@@ -61,7 +61,11 @@ public class KafkaConversationEventService implements ConversationEventService {
                                       String message,
                                       Map<String, String> metadata,
                                       MessageTransport transport,
-                                      String originTenant) throws InterruptedException {
+                                      String originTenant,
+                                      DateTime receivedAt) throws InterruptedException {
+
+        Instant receivedAtInstant = Instant.ofEpochMilli(receivedAt.getMillis());
+
 
         MessageAdded.Builder builder = MessageAdded.newBuilder()
                 .setId(UUID.newBuilder()
@@ -69,7 +73,13 @@ public class KafkaConversationEventService implements ConversationEventService {
                         .build())
                 .setText(ByteString.copyFrom(message, Charsets.UTF_8))
                 .setTransport(ProtoMapper.messageTransportToProto(transport))
-                .putAllMetadata(metadata);
+                .putAllMetadata(metadata)
+                .setReceivedDate(
+                        Timestamp.newBuilder()
+                                .setSeconds(receivedAtInstant.getEpochSecond())
+                                .setNanos(receivedAtInstant.getNano())
+                                .build()
+                );
 
         senderUserId.ifPresent(builder::setSenderUserId);
 

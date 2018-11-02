@@ -187,7 +187,7 @@ public class ProcessingFlowTest {
     public void conversationEventsAreNotSubmittedForTerminatedContext() throws InterruptedException {
         when(context.isTerminated()).thenReturn(true);
         verify(conversationEventService, never()).sendConversationCreatedEvent(any(), any(), any(), any(), any(), any());
-        verify(conversationEventService, never()).sendMessageAddedEvent(any(), any(), any(), any(), any(), any(), any(), any());
+        verify(conversationEventService, never()).sendMessageAddedEvent(any(), any(), any(), any(), any(), any(), any(), any(), any());
     }
 
     @Test
@@ -210,7 +210,7 @@ public class ProcessingFlowTest {
 
         flow.sendConversationEvents(context);
 
-        verify(conversationEventService).sendMessageAddedEvent("tenant", "conversationId", null, "messageId", "text", metaData, context.getTransport(), context.getOriginTenant());
+        verify(conversationEventService).sendMessageAddedEvent("tenant", "conversationId", null, "messageId", "text", metaData, context.getTransport(), context.getOriginTenant(), message.getReceivedAt());
     }
 
     @Test
