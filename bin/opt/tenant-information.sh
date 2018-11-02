@@ -4,4 +4,4 @@
 set -o nounset
 set -o errexit
 
-ssh shellserver001.comaas-lp.ams1 "bash -s" -- < $(dirname $0)/_tenant-information.sh $@
+ssh shellserver001.comaas-lp.ams1.cloud "bash -s" -- < $(dirname $0)/_tenant-information.sh $@
