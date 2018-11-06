@@ -53,8 +53,8 @@ public class CassandraPostBoxService implements PostBoxService {
     @Value("${replyts.tenant.short}")
     private String shortTenant;
 
-    @Value("${messagebox.emit.markasread.unconditionally:true}")
-    private boolean emitMarkAsReadUnconditionally = true;
+    @Value("${messagebox.emit.markasread.unconditionally:false}")
+    private boolean emitMarkAsReadUnconditionally = false;
 
     static final String SYSTEM_MESSAGE_USER_ID = "-1";
 
