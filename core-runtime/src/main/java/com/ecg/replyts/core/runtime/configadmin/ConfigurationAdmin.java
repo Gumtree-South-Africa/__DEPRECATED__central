@@ -6,6 +6,7 @@ import com.ecg.replyts.core.api.pluginconfiguration.BasePluginFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -32,6 +33,9 @@ public class ConfigurationAdmin<T> {
 
     @Autowired
     private ClusterRefreshPublisher clusterRefreshPublisher;
+
+    @Value("${kafka.configurations.enabled:false}")
+    private boolean kafkaConfigEnabled;
 
     private Map<ConfigurationId, PluginInstanceReference<T>> knownServices = new HashMap<>();
 
@@ -106,9 +110,9 @@ public class ConfigurationAdmin<T> {
         ConfigurationId configId = configuration.getId();
 
         BasePluginFactory<?> pluginFactory = getPluginFactory(configId)
-            .orElseThrow(() -> new IllegalStateException(String.format(
-                "ServiceFactory %s not found. Cannot create a new service from it",
-                configId.getPluginFactory())));
+                .orElseThrow(() -> new IllegalStateException(String.format(
+                        "ServiceFactory %s not found. Cannot create a new service from it",
+                        configId.getPluginFactory())));
 
         return (T) pluginFactory.createPlugin(configId.getInstanceId(), configuration.getConfiguration());
     }
@@ -130,7 +134,10 @@ public class ConfigurationAdmin<T> {
                 updateConfiguration();
             }
         }
-        clusterRefreshPublisher.publish();
+
+        if (!kafkaConfigEnabled) {
+            clusterRefreshPublisher.publish();
+        }
     }
 
     // SYNCHRONIZED!

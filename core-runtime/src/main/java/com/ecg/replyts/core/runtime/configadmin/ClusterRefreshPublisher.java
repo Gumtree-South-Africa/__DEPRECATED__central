@@ -18,7 +18,7 @@ public class ClusterRefreshPublisher {
         configChangeTopic = h.getTopic("config-change");
     }
 
-    void publish() {
+    public void publish() {
         configChangeTopic.publish(System.currentTimeMillis());
     }
 }

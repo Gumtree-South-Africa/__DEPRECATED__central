@@ -1,21 +1,18 @@
 package com.ecg.replyts.core.runtime.configadmin;
 
-import com.ecg.replyts.core.api.configadmin.ConfigurationUpdateNotifier;
 import com.ecg.replyts.core.api.configadmin.PluginConfiguration;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-@Component
-public class ConfigurationValidatorImp implements ConfigurationUpdateNotifier {
-    @Autowired
+public class ConfigurationValidator {
+
     private List<ConfigurationAdmin<?>> configAdmins;
 
-    @Autowired
-    private ClusterRefreshPublisher publisher;
+    public ConfigurationValidator(List<ConfigurationAdmin<?>> configAdmins) {
+        this.configAdmins = configAdmins;
+    }
 
-    @Override
     public boolean validateConfiguration(PluginConfiguration configuration) {
         for (ConfigurationAdmin<?> a : configAdmins) {
             if (a.handlesConfiguration(configuration.getId())) {
@@ -25,10 +22,5 @@ public class ConfigurationValidatorImp implements ConfigurationUpdateNotifier {
             }
         }
         return false;
-    }
-
-    @Override
-    public void confirmConfigurationUpdate() {
-        publisher.publish();
     }
 }

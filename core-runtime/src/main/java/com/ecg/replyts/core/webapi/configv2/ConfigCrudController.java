@@ -1,32 +1,29 @@
 package com.ecg.replyts.core.webapi.configv2;
 
-import com.ecg.replyts.core.api.configadmin.ConfigurationId;
-import com.ecg.replyts.core.api.configadmin.ConfigurationUpdateNotifier;
 import com.ecg.replyts.core.api.configadmin.PluginConfiguration;
 import com.ecg.replyts.core.api.persistence.ConfigurationRepository;
 import com.ecg.replyts.core.api.pluginconfiguration.PluginState;
 import com.ecg.replyts.core.api.util.JsonObjects;
+import com.ecg.replyts.core.runtime.configadmin.ClusterRefreshPublisher;
+import com.ecg.replyts.core.runtime.configadmin.ConfigurationPublisher;
+import com.ecg.replyts.core.runtime.configadmin.ConfigurationUtils;
+import com.ecg.replyts.core.runtime.configadmin.ConfigurationValidator;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.node.TextNode;
+import com.google.common.base.Charsets;
+import com.google.protobuf.ByteString;
+import ecg.unicom.events.configuration.Configuration;
+import org.apache.logging.log4j.util.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
-
-import java.util.ArrayList;
 import java.util.List;
-
-import static java.lang.String.format;
+import java.util.stream.Collectors;
 
 /**
  * Handles reading and manipulating configuration of plugins. Configurations are read from database. <b>If you are not
@@ -77,42 +74,81 @@ import static java.lang.String.format;
  *
  * @author mhuttar
  */
-@Controller
+@RestController
 public class ConfigCrudController {
     private static final Logger LOG = LoggerFactory.getLogger(ConfigCrudController.class);
 
-    private ConfigurationRepository configRepository;
-
-    private ConfigurationUpdateNotifier configUpdateNotifier;
+    private final boolean kafkaConfigEnabled;
+    private final ConfigurationPublisher configKafkaPublisher;
+    private final ClusterRefreshPublisher configHazelcastPublisher;
+    private final ConfigurationValidator configValidator;
+    private final ConfigurationRepository configRepository;
 
     @Autowired
-    ConfigCrudController(ConfigurationRepository repository, ConfigurationUpdateNotifier updateNotifier) {
-        configRepository = repository;
-        configUpdateNotifier = updateNotifier;
+    public ConfigCrudController(
+            @Value("${kafka.configurations.enabled:false}") boolean kafkaConfigEnabled,
+            ConfigurationPublisher configKafkaPublisher,
+            ClusterRefreshPublisher configHazelcastPublisher,
+            ConfigurationValidator configValidator,
+            ConfigurationRepository configRepository) {
+
+        this.kafkaConfigEnabled = kafkaConfigEnabled;
+        this.configKafkaPublisher = configKafkaPublisher;
+        this.configHazelcastPublisher = configHazelcastPublisher;
+        this.configValidator = configValidator;
+        this.configRepository = configRepository;
     }
 
-    @ResponseBody
-    @RequestMapping(value = "/", method = RequestMethod.GET)
+    @GetMapping
     public ObjectNode listConfigurations() {
         return configRepository.getConfigurationsAsJson();
     }
 
-    @ResponseBody
-    @RequestMapping(value = "/{pluginFactory}/{instanceId}", method = RequestMethod.PUT, consumes = "*/*")
-    public ObjectNode addConfiguration(HttpServletRequest request, @PathVariable String pluginFactory,
-                                       @PathVariable String instanceId, @RequestBody JsonNode body) throws Exception {
-        if (instanceId == null || instanceId.isEmpty()) {
-            throw new RuntimeException("InstanceId is required");
-        }
+    @PutMapping("/{pluginFactory}/{instanceId}")
+    public ObjectNode addConfiguration(
+            HttpServletRequest request,
+            @PathVariable String pluginFactory,
+            @PathVariable String instanceId,
+            @RequestBody JsonNode body) throws Exception {
 
-        PluginConfiguration config = extract(pluginFactory, instanceId, body, body.get("configuration"));
+        validateConfigurationId(instanceId, pluginFactory);
 
-        if (!configUpdateNotifier.validateConfiguration(config)) {
+        PluginConfiguration config = ConfigurationUtils.extract(
+                pluginFactory, instanceId, body, body.get("configuration"));
+
+        // Test if the configuration is guaranteed to work
+        if (!configValidator.validateConfiguration(config)) {
             throw new RuntimeException("Plugin validation has failed: " + pluginFactory);
         }
-        LOG.info("Saving Config update {}", config.getId());
-        configRepository.persistConfiguration(config, request.getRemoteAddr());
-        configUpdateNotifier.confirmConfigurationUpdate();
+
+        if (kafkaConfigEnabled) {
+            LOG.info("Publish an event for saving Configuration. Instance-ID: '{}', Config-ID: '{}', Plugin-Factory: '{}'",
+                    instanceId, config.getId(), pluginFactory);
+
+            Configuration.ConfigurationId configurationId =
+                    Configuration.ConfigurationId.newBuilder()
+                            .setInstanceId(instanceId)
+                            .setType(pluginFactory)
+                            .build();
+
+            Configuration.ConfigurationCreated configurationCreated =
+                    Configuration.ConfigurationCreated.newBuilder()
+                            .setConfigurationId(configurationId)
+                            .setContent(ByteString.copyFrom(body.toString(), Charsets.UTF_8))
+                            .build();
+
+            Configuration.Envelope configurationEnvelope =
+                    Configuration.Envelope.newBuilder()
+                            .setConfigurationCreated(configurationCreated)
+                            .setRemoteAddress(request.getRemoteAddr())
+                            .build();
+
+            configKafkaPublisher.publish(configurationEnvelope);
+        } else {
+            LOG.info("Saving Config update {}", config.getId());
+            configRepository.persistConfiguration(config, request.getRemoteAddr());
+            configHazelcastPublisher.publish();
+        }
 
         return JsonObjects.builder()
                 .attr("pluginFactory", pluginFactory)
@@ -120,75 +156,87 @@ public class ConfigCrudController {
                 .success().build();
     }
 
-    @ResponseBody
-    @RequestMapping(value = "/", method = RequestMethod.PUT, consumes = "*/*")
-    public ObjectNode replaceConfigurations(HttpServletRequest request, @RequestBody ArrayNode body) throws Exception {
-        List<PluginConfiguration> newConfigurations = verifyConfigurations(body);
-        configRepository.replaceConfigurations(newConfigurations, request.getRemoteAddr());
+    @PutMapping
+    public ObjectNode replaceConfigurations(
+            HttpServletRequest request,
+            @RequestBody ArrayNode body) {
 
-        configUpdateNotifier.confirmConfigurationUpdate();
+        List<PluginConfiguration> newConfigurations = ConfigurationUtils.verify(configValidator, body);
 
-        return JsonObjects.builder().attr("count", body.size()).success().build();
-    }
+        String configs = newConfigurations.stream()
+                .map(PluginConfiguration::getId)
+                .map(pluginId -> pluginId.getPluginFactory() + ":" + pluginId.getInstanceId())
+                .collect(Collectors.joining(",", "[", "]"));
 
-    @ResponseBody
-    @RequestMapping(value = "/{pluginFactory}/{instanceId}", method = RequestMethod.DELETE, consumes = "*/*")
-    public ObjectNode deleteConfiguration(HttpServletRequest request, @PathVariable String pluginFactory, @PathVariable String instanceId) throws Exception {
-        configRepository.deleteConfiguration(pluginFactory, instanceId, request.getRemoteAddr());
-        configUpdateNotifier.confirmConfigurationUpdate();
-        return JsonObjects.builder().success().build();
+        LOG.info("Publish an event for replacing Configuration. Count: '{}', Config-IDs: '{}'", body.size(), configs);
 
-    }
+        if (kafkaConfigEnabled) {
+            Configuration.ConfigurationUpdated configurationUpdated =
+                    Configuration.ConfigurationUpdated.newBuilder()
+                            .setContent(ByteString.copyFrom(body.toString(), Charsets.UTF_8))
+                            .build();
 
-    private List<PluginConfiguration> verifyConfigurations(ArrayNode body) throws Exception {
-        List<PluginConfiguration> pluginConfigurations = new ArrayList<>();
+            Configuration.Envelope configurationEnvelope =
+                    Configuration.Envelope.newBuilder()
+                            .setConfigurationUpdated(configurationUpdated)
+                            .setRemoteAddress(request.getRemoteAddr())
+                            .build();
 
-        for (JsonNode node : body) {
-            assertArrayElement(node, "pluginFactory", TextNode.class);
-            assertArrayElement(node, "instanceId", TextNode.class);
-
-            String pluginFactory = node.get("pluginFactory").textValue();
-            String instanceId = node.get("instanceId").textValue();
-            JsonNode configuration = node.get("configuration");
-
-            PluginConfiguration config = extract(pluginFactory, instanceId, configuration, configuration);
-            if (!configUpdateNotifier.validateConfiguration(config)) {
-                throw new IllegalArgumentException(format("PluginFactory %s not found", pluginFactory));
-            }
-            pluginConfigurations.add(config);
-        }
-        return pluginConfigurations;
-    }
-
-    private void assertArrayElement(JsonNode element, String fieldName, Class<? extends JsonNode> clazz) {
-        if (!(element instanceof ObjectNode)) {
-            throw new IllegalArgumentException("Array element is not an Object");
+            configKafkaPublisher.publish(configurationEnvelope);
+        } else {
+            configRepository.replaceConfigurations(newConfigurations, request.getRemoteAddr());
+            configHazelcastPublisher.publish();
         }
 
-        JsonNode field = element.get(fieldName);
-
-        if (!field.getClass().equals(clazz)) {
-            throw new IllegalArgumentException(format("Array element's contents does not contain %s as a %s class", fieldName, clazz));
-        }
-
-        if (field instanceof TextNode && !StringUtils.hasText(field.textValue())) {
-            throw new IllegalArgumentException(format("Array element's contents contains field %s but it contains an empty value", fieldName));
-        }
+        return JsonObjects.builder()
+                .attr("count", body.size())
+                .success().build();
     }
 
-    private PluginConfiguration extract(String pluginFactory, String instanceId, JsonNode body, JsonNode configuration) throws IllegalArgumentException, ClassNotFoundException {
-        if (configuration == null) {
-            throw new IllegalArgumentException("payload needs a configuration node where the filter configuration is in");
+    @DeleteMapping("/{pluginFactory}/{instanceId}")
+    public ObjectNode deleteConfiguration(
+            HttpServletRequest request,
+            @PathVariable String pluginFactory,
+            @PathVariable String instanceId) {
+
+        LOG.info("Publish an event for deleting a Configuration, Instance-ID '{}', Plugin-Factory: '{}'",
+                instanceId, pluginFactory);
+
+        validateConfigurationId(instanceId, pluginFactory);
+
+        if (kafkaConfigEnabled) {
+            Configuration.ConfigurationId configurationId =
+                    Configuration.ConfigurationId.newBuilder()
+                            .setInstanceId(instanceId)
+                            .setType(pluginFactory)
+                            .build();
+
+            Configuration.ConfigurationDeleted configurationDeleted =
+                    Configuration.ConfigurationDeleted.newBuilder()
+                            .setConfigurationId(configurationId)
+                            .build();
+
+            Configuration.Envelope configurationEnvelope =
+                    Configuration.Envelope.newBuilder()
+                            .setRemoteAddress(request.getRemoteAddr())
+                            .setConfigurationDeleted(configurationDeleted)
+                            .build();
+
+            configKafkaPublisher.publish(configurationEnvelope);
+        } else {
+            configRepository.deleteConfiguration(pluginFactory, instanceId, request.getRemoteAddr());
+            configHazelcastPublisher.publish();
         }
 
-        Long priority = Long.valueOf(getContent(body, "priority", "0"));
-        PluginState state = PluginState.valueOf(getContent(body, "state", PluginState.ENABLED.name()));
-
-        return new PluginConfiguration(new ConfigurationId(pluginFactory, instanceId), priority, state, 1L, configuration);
+        return JsonObjects.builder()
+                .success().build();
     }
 
-    private static String getContent(JsonNode body, String fieldname, String alternative) {
-        JsonNode fn = body.get(fieldname);
-        return fn == null ? alternative : fn.asText();
+    private static void validateConfigurationId(String instanceId, String pluginFactory) {
+        if (Strings.isBlank(instanceId) || Strings.isBlank(pluginFactory)) {
+            String message = String.format("InstanceId and PluginFactory are mandatory fields: InstanceId: '%s', PluginFactory: '%s'",
+                    instanceId, pluginFactory);
+            throw new RuntimeException(message);
+        }
     }
 }
