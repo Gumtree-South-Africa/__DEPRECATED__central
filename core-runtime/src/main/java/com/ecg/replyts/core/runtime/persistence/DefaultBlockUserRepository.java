@@ -63,8 +63,8 @@ public class DefaultBlockUserRepository implements BlockUserRepository, Cassandr
     }
 
     @Override
-    public boolean isBlocked(String userId1, String userId2) {
-        return session.execute(Statements.SELECT_BLOCKED_USER.bind(this, userId1, userId2)).getAvailableWithoutFetching() > 0;
+    public boolean hasBlocked(String blocker, String blockee) {
+        return session.execute(Statements.SELECT_BLOCKED_USER.bind(this, blocker, blockee)).getAvailableWithoutFetching() > 0;
     }
 
     @Override

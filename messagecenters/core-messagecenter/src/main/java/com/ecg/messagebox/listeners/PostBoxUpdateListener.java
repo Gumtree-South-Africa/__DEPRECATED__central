@@ -9,7 +9,6 @@ import com.ecg.replyts.app.ContentOverridingPostProcessorService;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.ConversationState;
 import com.ecg.replyts.core.api.model.conversation.Message;
-import com.ecg.replyts.core.api.model.conversation.MessageDirection;
 import com.ecg.replyts.core.runtime.identifier.UserIdentifierService;
 import com.ecg.replyts.core.runtime.listener.MessageProcessedListener;
 import com.ecg.replyts.core.runtime.persistence.BlockUserRepository;
@@ -22,7 +21,6 @@ import org.springframework.stereotype.Component;
 import java.util.Optional;
 
 import static com.ecg.replyts.core.api.model.conversation.MessageDirection.BUYER_TO_SELLER;
-import static com.ecg.replyts.core.api.model.conversation.MessageDirection.SELLER_TO_BUYER;
 import static com.ecg.replyts.core.api.model.conversation.MessageState.IGNORED;
 import static com.ecg.replyts.core.api.model.conversation.MessageState.SENT;
 import static com.ecg.replyts.core.runtime.TimingReports.newCounter;
@@ -34,10 +32,8 @@ import static java.lang.String.format;
 @Order(value = 500)
 public class PostBoxUpdateListener implements MessageProcessedListener {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(PostBoxUpdateListener.class);
-
     static final String SKIP_MESSAGE_CENTER = "skip-message-center";
-
+    private static final Logger LOGGER = LoggerFactory.getLogger(PostBoxUpdateListener.class);
     private final Timer processingTimer = newTimer("message-box.postBoxUpdateListener.core.timer");
     private final Counter processingSuccessCounter = newCounter("message-box.postBoxUpdateListener.core.success");
     private final Counter processingFailedCounter = newCounter("message-box.postBoxUpdateListener.core.failed");
@@ -95,29 +91,21 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
         }
 
         try (Timer.Context ignored = processingTimer.time()) {
-            final String buyerUserId = buyerUserIdOpt.get();
-            final String sellerUserId = sellerUserIdOpt.get();
-            final String msgReceiverUserId = msg.getMessageDirection() == BUYER_TO_SELLER ? sellerUserId : buyerUserId;
-
             String cleanMsg = contentOverridingPostProcessorService.getCleanedMessage(conv, msg);
 
-            // BUYER's PROJECTION
+            String senderId = msg.getMessageDirection() == BUYER_TO_SELLER ? buyerUserIdOpt.get() : sellerUserIdOpt.get();
+            String receiverId = msg.getMessageDirection() == BUYER_TO_SELLER ? sellerUserIdOpt.get() : buyerUserIdOpt.get();
 
-            if ((isConversationActive(conv, msg) && isNotDirectionBlocked(buyerUserId, sellerUserId)) || isMessageOwner(msg, BUYER_TO_SELLER)) {
-                postBoxService.processNewMessage(buyerUserId, conv, msg, userNotificationRules.buyerShouldBeNotified(msg.getState(), msg.getMessageDirection()), cleanMsg);
+            if (messageShouldBeVisibleToReceiver(conv, msg, senderId, receiverId)) {
+                postBoxService.processNewMessage(receiverId, conv, msg, true, cleanMsg);
             } else {
-                LOGGER.debug("Direction from the {} to {} is blocked for the message {}", buyerUserId, sellerUserId, msg.getId());
+                LOGGER.debug("Direction from the {} to {} is blocked for the message {}", senderId, receiverId, msg.getId());
             }
 
-            // SELLER's PROJECTION
+            // sender always sees his own message
+            postBoxService.processNewMessage(senderId, conv, msg, false, cleanMsg);
 
-            if ((isConversationActive(conv, msg) && isNotDirectionBlocked(sellerUserId, buyerUserId)) || isMessageOwner(msg, SELLER_TO_BUYER)) {
-                postBoxService.processNewMessage(sellerUserId, conv, msg, userNotificationRules.sellerShouldBeNotified(msg.getState(), msg.getMessageDirection()), cleanMsg);
-            } else {
-                LOGGER.debug("Direction from the {} to {} is blocked for the message {}", sellerUserId, buyerUserId, msg.getId());
-            }
-
-            messageAddedEventProcessor.publishMessageAddedEvent(conv, msg, cleanMsg, postBoxService.getUnreadCounts(msgReceiverUserId));
+            messageAddedEventProcessor.publishMessageAddedEvent(conv, msg, cleanMsg, postBoxService.getUnreadCounts(receiverId));
 
             processingSuccessCounter.inc();
         } catch (Exception e) {
@@ -127,15 +115,14 @@ public class PostBoxUpdateListener implements MessageProcessedListener {
         }
     }
 
-    private boolean isMessageOwner(Message msg, MessageDirection direction) {
-        return msg.getMessageDirection() == direction;
+    public boolean messageShouldBeVisibleToReceiver(Conversation conv, Message msg, String senderId, String receiverId) {
+        return isConversationActive(conv, msg) &&
+                !blockUserRepository.hasBlocked(receiverId, senderId);
     }
 
+    // note: it is arguably unintuitive that the classification if this message (SENT) determines the 'activeness' of conversation, but note that
+    // this is terminology that's apparently used more broadly in our domain.
     private boolean isConversationActive(Conversation conv, Message msg) {
         return msg.getState() == SENT && conv.getState() != ConversationState.CLOSED;
-    }
-
-    private boolean isNotDirectionBlocked(String from, String to) {
-        return !blockUserRepository.isBlocked(from, to);
     }
 }

@@ -14,5 +14,5 @@ public interface BlockUserRepository {
 
     List<String> listBlockedUsers(String userId1);
 
-    boolean isBlocked(String userId1, String userId2);
+    boolean hasBlocked(String blocker, String blockee);
 }
