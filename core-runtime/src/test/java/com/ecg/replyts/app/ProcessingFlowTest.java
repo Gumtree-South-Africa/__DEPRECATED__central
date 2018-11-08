@@ -5,12 +5,10 @@ import com.ecg.replyts.app.postprocessorchain.PostProcessorChain;
 import com.ecg.replyts.app.preprocessorchain.PreProcessorManager;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;
-import com.ecg.replyts.core.api.model.conversation.MessageTransport;
 import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.model.mail.MutableMail;
 import com.ecg.replyts.core.api.processing.ConversationEventService;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
-import com.ecg.replyts.core.runtime.identifier.UserIdentifierService;
 import com.ecg.replyts.core.runtime.maildelivery.MailDeliveryException;
 import com.ecg.replyts.core.runtime.maildelivery.MailDeliveryService;
 import com.google.common.collect.ImmutableList;
@@ -25,13 +23,7 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.Collections;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
 
-import static java.util.Arrays.asList;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
@@ -43,10 +35,6 @@ import static org.mockito.Mockito.*;
 })
 public class ProcessingFlowTest {
 
-    private static final String BUYER_SECRET = "buyerSecret";
-    private static final String SELLER_SECRET = "sellerSecret";
-    private static final String BUYER_ID = "buyerId";
-    private static final String SELLER_ID = "sellerId";
     @MockBean
     private PreProcessorManager preProcessor;
 
@@ -67,12 +55,6 @@ public class ProcessingFlowTest {
 
     @MockBean
     private ConversationEventService conversationEventService;
-
-    @MockBean
-    private UserIdentifierService userIdentifierService;
-
-    @MockBean
-    private ContentOverridingPostProcessorService contentOverridingPostProcessorService;
 
     @Autowired
     private ProcessingFlow flow;
@@ -175,65 +157,6 @@ public class ProcessingFlowTest {
         when(context.getConversation()).thenReturn(c);
         doThrow(new RuntimeException("kaboom"))
                 .when(conversationEventService).sendConversationCreatedEvent(any(), any(), any(), any(), any(), any());
-        try {
-            flow.inputForConversationEventsQueue(context);
-        } catch (Exception e) {
-            // PASS
-        }
         verify(mailDeliveryService, never()).deliverMail(any(Mail.class));
-    }
-
-    @Test
-    public void conversationEventsAreNotSubmittedForTerminatedContext() throws InterruptedException {
-        when(context.isTerminated()).thenReturn(true);
-        verify(conversationEventService, never()).sendConversationCreatedEvent(any(), any(), any(), any(), any(), any());
-        verify(conversationEventService, never()).sendMessageAddedEvent(any(), any(), any(), any(), any(), any(), any(), any(), any());
-    }
-
-    @Test
-    public void sendConversationEvents() throws InterruptedException {
-        Map<String, String> metaData = Collections.emptyMap();
-        Message message = mock(Message.class);
-        when(message.getId()).thenReturn("messageId");
-        when(message.getHeaders()).thenReturn(metaData);
-
-        Conversation conversation = mock(Conversation.class);
-        when(conversation.getId()).thenReturn("conversationId");
-        when(conversation.getMessages()).thenReturn(asList(mock(Message.class), message));
-
-        when(contentOverridingPostProcessorService.getCleanedMessage(conversation, message)).thenReturn("text");
-
-        MessageProcessingContext context = mock(MessageProcessingContext.class);
-        when(context.getTransport()).thenReturn(MessageTransport.CHAT);
-        when(context.getOriginTenant()).thenReturn("move.ca");
-        when(context.getConversation()).thenReturn(conversation);
-
-        flow.sendConversationEvents(context);
-
-        verify(conversationEventService).sendMessageAddedEvent("tenant", "conversationId", null, "messageId", "text", metaData, context.getTransport(), context.getOriginTenant(), message.getReceivedAt());
-    }
-
-    @Test
-    public void getParticipantSecret() {
-        Conversation conversation = mock(Conversation.class);
-        when(conversation.getBuyerSecret()).thenReturn(BUYER_SECRET);
-        when(conversation.getSellerSecret()).thenReturn(SELLER_SECRET);
-
-        when(userIdentifierService.getBuyerUserId(anyMapOf(String.class, String.class))).thenReturn(Optional.of(BUYER_ID));
-        when(userIdentifierService.getSellerUserId(anyMapOf(String.class, String.class))).thenReturn(Optional.of(SELLER_ID));
-
-        Set<com.ecg.comaas.events.Conversation.Participant> participants = flow.getParticipants(conversation);
-
-        assertEquals(2, participants.size());
-        for (com.ecg.comaas.events.Conversation.Participant participant : participants) {
-            if (BUYER_ID.equals(participant.getUserId())) {
-                assertEquals(BUYER_SECRET, participant.getEmailSecret());
-            } else if (SELLER_ID.equals(participant.getUserId())) {
-                assertEquals(SELLER_SECRET, participant.getEmailSecret());
-            } else {
-                fail("Unexpected userId: " + participant.getUserId());
-            }
-        }
-
     }
 }
