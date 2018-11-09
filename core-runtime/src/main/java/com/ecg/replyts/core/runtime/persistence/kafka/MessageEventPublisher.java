@@ -1,10 +1,7 @@
 package com.ecg.replyts.core.runtime.persistence.kafka;
 
 import com.ecg.replyts.app.ContentOverridingPostProcessorService;
-import com.ecg.replyts.core.api.model.conversation.Conversation;
-import com.ecg.replyts.core.api.model.conversation.Message;
-import com.ecg.replyts.core.api.model.conversation.MessageDirection;
-import com.ecg.replyts.core.api.model.conversation.MessageTransport;
+import com.ecg.replyts.core.api.model.conversation.*;
 import com.ecg.replyts.core.api.processing.ConversationEventService;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.ecg.replyts.core.api.util.ConversationEventConverter;
@@ -17,6 +14,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.*;
 
+import static com.ecg.replyts.core.api.model.conversation.MessageState.IGNORED;
 import static java.util.Arrays.asList;
 
 @Component
@@ -50,7 +48,15 @@ public class MessageEventPublisher {
             return;
         }
 
-        if (context.isTerminated()) {
+        if (conversation.getState() == ConversationState.DEAD_ON_ARRIVAL) {
+            LOG.debug("Conversation is DEAD_ON_ARRIVAL and publishing events is ignored: MessageId {}, ConversationId {}",
+                    message.getId(), conversation.getId());
+            return;
+        }
+
+        if (message.getState() == IGNORED) {
+            LOG.debug("Message is IGNORED and publishing events is ignored: MessageId {}, ConversationId {}",
+                    message.getId(), conversation.getId());
             return;
         }
 
