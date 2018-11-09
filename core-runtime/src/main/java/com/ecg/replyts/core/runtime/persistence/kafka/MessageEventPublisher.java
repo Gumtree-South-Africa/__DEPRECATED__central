@@ -50,6 +50,10 @@ public class MessageEventPublisher {
             return;
         }
 
+        if (context.isTerminated()) {
+            return;
+        }
+
         try {
             internalPublish(conversation, message, context.getTransport(), context.getOriginTenant());
         } catch (InterruptedException e) {
