@@ -51,6 +51,7 @@ public class MessageEventPublisher {
     public void publish(MessageProcessingContext context, Conversation conversation, Message message) {
         if (Objects.isNull(context) || Objects.isNull(conversation)
                 || Objects.isNull(conversation.getMessages()) || Objects.isNull(message)) {
+
             LOG.warn("Cannot send a conversation event, one of the mandatory fields is null: Context {}, Conversation {}, Messages {}, Message {} ",
                     Objects.isNull(context), Objects.isNull(conversation), Objects.isNull(conversation.getMessages()), Objects.isNull(message));
             return;

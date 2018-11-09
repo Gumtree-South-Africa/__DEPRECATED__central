@@ -1,6 +1,5 @@
 package com.ecg.replyts.app;
 
-import com.ecg.comaas.events.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;
 import com.ecg.replyts.core.api.model.conversation.ModerationResultState;
@@ -16,6 +15,7 @@ import com.ecg.replyts.core.runtime.mailparser.ParsingException;
 import com.ecg.replyts.core.runtime.persistence.conversation.DefaultMutableConversation;
 import com.ecg.replyts.core.runtime.persistence.conversation.MutableConversationRepository;
 import com.ecg.replyts.core.runtime.persistence.kafka.MessageEventPublisher;
+import com.ecg.replyts.core.runtime.persistence.kafka.MessageEventPublisherTest;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -27,7 +27,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.Optional;
 
-import static com.ecg.replyts.core.api.model.conversation.MessageTransport.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 
