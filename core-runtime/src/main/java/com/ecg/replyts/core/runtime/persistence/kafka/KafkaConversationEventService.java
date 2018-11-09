@@ -15,6 +15,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -56,13 +57,14 @@ public class KafkaConversationEventService implements ConversationEventService {
 
     public void sendMessageAddedEvent(String tenant,
                                       String conversationId,
-                                      Optional<String> senderUserId,
+                                      String senderUserId,
                                       String messageId,
                                       String message,
                                       Map<String, String> metadata,
                                       MessageTransport transport,
                                       String originTenant,
-                                      DateTime receivedAt) throws InterruptedException {
+                                      DateTime receivedAt,
+                                      List<String> receivingUsers) throws InterruptedException {
 
         Instant receivedAtInstant = Instant.ofEpochMilli(receivedAt.getMillis());
 
@@ -74,14 +76,14 @@ public class KafkaConversationEventService implements ConversationEventService {
                 .setText(ByteString.copyFrom(message, Charsets.UTF_8))
                 .setTransport(ProtoMapper.messageTransportToProto(transport))
                 .putAllMetadata(metadata)
+                .addAllReceivingUserIds(receivingUsers)
+                .setSenderUserId(senderUserId)
                 .setReceivedDate(
                         Timestamp.newBuilder()
                                 .setSeconds(receivedAtInstant.getEpochSecond())
                                 .setNanos(receivedAtInstant.getNano())
                                 .build()
                 );
-
-        senderUserId.ifPresent(builder::setSenderUserId);
 
         Envelope envelope = Envelope.newBuilder()
                 .setTenant(tenant)
