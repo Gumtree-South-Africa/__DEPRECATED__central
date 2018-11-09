@@ -104,11 +104,7 @@ public class DirectMessageModerationService implements ModerationService {
 
         Message message = conversation.getMessageById(messageId);
 
-        if (processingContext != null) {
-            messageEventPublisher.publish(conversation, message, processingContext.getTransport(), processingContext.getOriginTenant());
-        } else {
-            messageEventPublisher.publish(conversation, message, MessageTransport.MAIL, shortTenantName);
-        }
+        messageEventPublisher.publish(processingContext, conversation, message);
 
         for (MessageProcessedListener l : listeners) {
             l.messageProcessed(conversation, message);

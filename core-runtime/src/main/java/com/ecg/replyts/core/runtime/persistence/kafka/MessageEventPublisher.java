@@ -6,6 +6,7 @@ import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;
 import com.ecg.replyts.core.api.model.conversation.MessageTransport;
 import com.ecg.replyts.core.api.processing.ConversationEventService;
+import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.ecg.replyts.core.api.util.ConversationEventConverter;
 import com.ecg.replyts.core.runtime.identifier.UserIdentifierService;
 import org.slf4j.Logger;
@@ -14,10 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 import static java.util.Arrays.asList;
 
@@ -47,9 +45,13 @@ public class MessageEventPublisher {
         this.shortTenant = shortTenant;
     }
 
-    public void publish(Conversation conversation, Message message, MessageTransport transport, String originTenant) {
+    public void publish(MessageProcessingContext context, Conversation conversation, Message message) {
+        if (Objects.isNull(context) || Objects.isNull(conversation) || Objects.isNull(message)) {
+            return;
+        }
+
         try {
-            internalPublish(conversation, message, transport, originTenant);
+            internalPublish(conversation, message, context.getTransport(), context.getOriginTenant());
         } catch (InterruptedException e) {
             LOG.warn("Aborting mail processing flow because thread is interrupted.");
             Thread.currentThread().interrupt();

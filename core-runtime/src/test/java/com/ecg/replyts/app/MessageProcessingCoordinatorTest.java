@@ -13,6 +13,7 @@ import com.ecg.replyts.core.runtime.mailparser.ParsingException;
 import com.ecg.replyts.core.runtime.model.conversation.ImmutableConversation;
 import com.ecg.replyts.core.runtime.model.conversation.ImmutableMessage;
 import com.ecg.replyts.core.runtime.persistence.conversation.DefaultMutableConversation;
+import com.ecg.replyts.core.runtime.persistence.kafka.MessageEventPublisher;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -72,6 +73,9 @@ public class MessageProcessingCoordinatorTest {
 
     @MockBean
     private MessageProcessingContext context;
+
+    @MockBean
+    private MessageEventPublisher messageEventPublisher;
 
     @Captor
     private ArgumentCaptor<Optional<byte[]>> receivedBytesCaptor;
