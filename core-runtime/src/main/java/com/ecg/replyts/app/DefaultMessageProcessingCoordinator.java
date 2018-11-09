@@ -199,7 +199,7 @@ public class DefaultMessageProcessingCoordinator implements MessageProcessingCoo
     }
 
     private void onMessageProcessed(MessageProcessingContext context, Conversation c, Message m) {
-        messageEventPublisher.publish(context, c, m);
+        messageEventPublisher.publish(c, m, context.getTransport(), context.getOriginTenant());
 
         for (MessageProcessedListener listener : messageProcessedListeners) {
             LOG.trace("Informing Message Processed listener {} about completed message", listener.getClass());

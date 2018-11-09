@@ -4,8 +4,8 @@ import com.ecg.replyts.app.ContentOverridingPostProcessorService;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;
+import com.ecg.replyts.core.api.model.conversation.MessageTransport;
 import com.ecg.replyts.core.api.processing.ConversationEventService;
-import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.ecg.replyts.core.api.util.ConversationEventConverter;
 import com.ecg.replyts.core.runtime.identifier.UserIdentifierService;
 import org.slf4j.Logger;
@@ -47,9 +47,9 @@ public class MessageEventPublisher {
         this.shortTenant = shortTenant;
     }
 
-    public void publish(MessageProcessingContext context, Conversation conversation, Message message) {
+    public void publish(Conversation conversation, Message message, MessageTransport transport, String originTenant) {
         try {
-            internalPublish(context, conversation, message);
+            internalPublish(conversation, message, transport, originTenant);
         } catch (InterruptedException e) {
             LOG.warn("Aborting mail processing flow because thread is interrupted.");
             Thread.currentThread().interrupt();
@@ -60,7 +60,9 @@ public class MessageEventPublisher {
         }
     }
 
-    private void internalPublish(MessageProcessingContext context, Conversation conversation, Message message) throws InterruptedException {
+    private void internalPublish(Conversation conversation, Message message, MessageTransport transport, String originTenant)
+            throws InterruptedException {
+
         if (conversation == null || conversation.getMessages() == null) {
             LOG.warn("conversation.getMessages() == null");
             return;
@@ -75,7 +77,7 @@ public class MessageEventPublisher {
         Optional<String> senderIdOpt = getSenderUserId(conversation, message);
 
         conversationEventService.sendMessageAddedEvent(shortTenant, conversation.getId(), senderIdOpt, message.getId(),
-                cleanedMessage, message.getHeaders(), context.getTransport(), context.getOriginTenant(), message.getReceivedAt());
+                cleanedMessage, message.getHeaders(), transport, originTenant, message.getReceivedAt());
     }
 
     private Optional<String> getSenderUserId(Conversation conversation, Message message) {
