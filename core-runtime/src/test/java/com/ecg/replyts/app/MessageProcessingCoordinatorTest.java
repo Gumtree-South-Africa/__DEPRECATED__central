@@ -13,7 +13,7 @@ import com.ecg.replyts.core.runtime.mailparser.ParsingException;
 import com.ecg.replyts.core.runtime.model.conversation.ImmutableConversation;
 import com.ecg.replyts.core.runtime.model.conversation.ImmutableMessage;
 import com.ecg.replyts.core.runtime.persistence.conversation.DefaultMutableConversation;
-import com.ecg.replyts.core.runtime.persistence.kafka.MessageEventPublisherTest;
+import com.ecg.replyts.core.runtime.persistence.kafka.MessageEventPublisher;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -41,9 +41,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.codehaus.groovy.runtime.InvokerHelper.asList;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
+import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.anyCollectionOf;
 import static org.mockito.Mockito.*;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
@@ -75,7 +73,7 @@ public class MessageProcessingCoordinatorTest {
     private MessageProcessingContext context;
 
     @MockBean
-    private MessageEventPublisherTest messageEventPublisher;
+    private MessageEventPublisher messageEventPublisher;
 
     @Captor
     private ArgumentCaptor<Optional<byte[]>> receivedBytesCaptor;
