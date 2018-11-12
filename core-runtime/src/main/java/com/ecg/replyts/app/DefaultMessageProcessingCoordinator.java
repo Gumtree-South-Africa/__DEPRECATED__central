@@ -14,6 +14,7 @@ import com.ecg.replyts.core.runtime.cluster.Guids;
 import com.ecg.replyts.core.runtime.listener.MessageProcessedListener;
 import com.ecg.replyts.core.runtime.mailparser.ParsingException;
 import com.ecg.replyts.core.runtime.persistence.conversation.DefaultMutableConversation;
+import com.ecg.replyts.core.runtime.persistence.kafka.MessageEventPublisher;
 import com.google.common.base.Stopwatch;
 import com.google.common.io.ByteStreams;
 import org.slf4j.Logger;
@@ -49,6 +50,7 @@ public class DefaultMessageProcessingCoordinator implements MessageProcessingCoo
     private static final Timer OVERALL_TIMER = TimingReports.newTimer("processing-total");
 
     private final List<MessageProcessedListener> messageProcessedListeners = new ArrayList<>();
+    private final MessageEventPublisher messageEventPublisher;
     private final ProcessingFlow processingFlow;
     private final ProcessingFinalizer persister;
     private final ProcessingContextFactory processingContextFactory;
@@ -62,10 +64,13 @@ public class DefaultMessageProcessingCoordinator implements MessageProcessingCoo
             @Autowired(required = false) Collection<MessageProcessedListener> messageProcessedListeners,
             ProcessingFlow processingFlow,
             ProcessingFinalizer persister,
-            ProcessingContextFactory processingContextFactory) {
+            ProcessingContextFactory processingContextFactory,
+            MessageEventPublisher messageEventPublisher) {
+
         if (messageProcessedListeners != null) {
             this.messageProcessedListeners.addAll(messageProcessedListeners);
         }
+        this.messageEventPublisher = messageEventPublisher;
         this.processingFlow = checkNotNull(processingFlow, "processingFlow");
         this.persister = checkNotNull(persister, "presister");
         this.processingContextFactory = checkNotNull(processingContextFactory, "processingContextFactory");
@@ -84,6 +89,7 @@ public class DefaultMessageProcessingCoordinator implements MessageProcessingCoo
         Stopwatch stopwatch = Stopwatch.createStarted();
         byte[] bytes = ByteStreams.toByteArray(input);
 
+        MessageProcessingContext context = null;
         try (Timer.Context ignored = OVERALL_TIMER.time()) {
             LOG.debug("Message received", keyValue("contentLength", bytes.length));
 
@@ -94,7 +100,7 @@ public class DefaultMessageProcessingCoordinator implements MessageProcessingCoo
             }
 
             String messageId = getMessageId(messageIdFromKmail, mail.get());
-            MessageProcessingContext context = processingContextFactory.newContext(mail.get(), messageId);
+            context = processingContextFactory.newContext(mail.get(), messageId);
             context.setTransport(transport);
             setMDC(context);
             contentLengthCounter.inc(bytes.length);
@@ -103,7 +109,7 @@ public class DefaultMessageProcessingCoordinator implements MessageProcessingCoo
             return true;
         } catch (ParsingException e) {
             LOG.warn("Could not parse mail with id {}", messageIdFromKmail, e);
-            handleTermination(Termination.unparseable(e), messageIdFromKmail, Optional.empty(), Optional.empty(), Optional.of(bytes),
+            handleTermination(context, Termination.unparseable(e), messageIdFromKmail, Optional.empty(), Optional.empty(), Optional.of(bytes),
                     Collections.emptySet());
             throw e;
         } finally {
@@ -140,6 +146,7 @@ public class DefaultMessageProcessingCoordinator implements MessageProcessingCoo
 
         if (context.isTerminated()) {
             handleTermination(
+                    context,
                     context.getTermination(),
                     context.getMessageId(),
                     context.getMail(),
@@ -172,12 +179,13 @@ public class DefaultMessageProcessingCoordinator implements MessageProcessingCoo
                 Termination.sent(),
                 context.getAttachments());
 
-        onMessageProcessed(context.getConversation(), context.getMessage());
+        onMessageProcessed(context, context.getConversation(), context.getMessage());
     }
 
-    private void handleTermination(Termination termination, String messageId, Optional<Mail> mail,
-                                   Optional<DefaultMutableConversation> conversation, Optional<byte[]> messageBytes,
-                                   @Nonnull Collection<Attachment> attachments) {
+    private void handleTermination(MessageProcessingContext context, Termination termination, String messageId,
+                                   Optional<Mail> mail, Optional<DefaultMutableConversation> conversation,
+                                   Optional<byte[]> messageBytes, @Nonnull Collection<Attachment> attachments) {
+
         checkNotNull(termination);
         checkNotNull(messageId);
         checkNotNull(messageBytes);
@@ -187,10 +195,12 @@ public class DefaultMessageProcessingCoordinator implements MessageProcessingCoo
 
         persister.persistAndIndex(c, messageId, messageBytes, Optional.empty(), termination, attachments);
 
-        onMessageProcessed(c, c.getMessageById(messageId));
+        onMessageProcessed(context, c, c.getMessageById(messageId));
     }
 
-    private void onMessageProcessed(Conversation c, Message m) {
+    private void onMessageProcessed(MessageProcessingContext context, Conversation c, Message m) {
+        messageEventPublisher.publish(context, c, m);
+
         for (MessageProcessedListener listener : messageProcessedListeners) {
             LOG.trace("Informing Message Processed listener {} about completed message", listener.getClass());
 

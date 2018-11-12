@@ -17,10 +17,12 @@ import com.ecg.replyts.core.runtime.mailparser.ParsingException;
 import com.ecg.replyts.core.runtime.persistence.attachment.AttachmentRepository;
 import com.ecg.replyts.core.runtime.persistence.conversation.DefaultMutableConversation;
 import com.ecg.replyts.core.runtime.persistence.conversation.MutableConversationRepository;
+import com.ecg.replyts.core.runtime.persistence.kafka.MessageEventPublisher;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -63,12 +65,19 @@ public class DirectMessageModerationService implements ModerationService {
     @Autowired(required = false)
     private AttachmentRepository attachmentRepository;
 
+    @Autowired
+    private MessageEventPublisher messageEventPublisher;
+
+    @Value("${replyts.tenant.short}")
+    private String shortTenantName;
+
     @Override
     public void changeMessageState(MutableConversation conversation, String messageId, ModerationAction moderationAction) throws MessageNotFoundException {
         Preconditions.checkArgument(moderationAction.getModerationResultState().isAcceptableOutcome(), "Moderation State " + moderationAction.getModerationResultState() + " is not an acceptable moderation outcome");
         LOG.debug("Attempting to changing state {} for conversation {}  message {} ", moderationAction, conversation.getId(), messageId);
         conversation.applyCommand(new MessageModeratedCommand(conversation.getId(), messageId, now(), moderationAction));
 
+        MessageProcessingContext processingContext = null;
         if (moderationAction.getModerationResultState().allowsSending()) {
             byte[] inboundMailData = heldMailRepository.read(messageId);
             Mail mail;
@@ -79,7 +88,8 @@ public class DirectMessageModerationService implements ModerationService {
                 // the mail is unparseable now, this is a weird case, that we cannot handle correctly.
                 throw new RuntimeException(e);
             }
-            MessageProcessingContext processingContext = putIntoFlow(conversation, mail, messageId);
+            processingContext = createMessageProcessingContext(conversation, mail, messageId);
+            flow.inputForPostProcessor(processingContext);
 
             if (attachmentRepository != null && processingContext.getAttachments().size() > 0) {
                 attachmentRepository.storeAttachments(messageId, processingContext.getAttachments());
@@ -94,12 +104,14 @@ public class DirectMessageModerationService implements ModerationService {
 
         Message message = conversation.getMessageById(messageId);
 
+        messageEventPublisher.publish(processingContext, conversation, message);
+
         for (MessageProcessedListener l : listeners) {
             l.messageProcessed(conversation, message);
         }
     }
 
-    private MessageProcessingContext putIntoFlow(MutableConversation conversation, Mail mail, String messageId) {
+    private MessageProcessingContext createMessageProcessingContext(MutableConversation conversation, Mail mail, String messageId) {
         MessageProcessingContext context = processingContextFactory.newContext(mail, messageId, new ProcessingTimeGuard(MAX_MESSAGE_PROCESSING_TIME_SECONDS));
 
         context.setConversation(conversation);
@@ -107,9 +119,7 @@ public class DirectMessageModerationService implements ModerationService {
 
         // only email messages can be moderated
         context.setTransport(MessageTransport.MAIL);
-
-        flow.inputForPostProcessor(context);
-
+        context.setOriginTenant(shortTenantName);
         return context;
     }
 }

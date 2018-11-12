@@ -38,9 +38,6 @@ import static java.util.Collections.emptyList;
 class ProcessingFlow {
     private static final Logger LOG = LoggerFactory.getLogger(ProcessingFlow.class);
 
-    private static final String CUST_HEADER_BUYER_NAME = "buyer-name";
-    private static final String CUST_HEADER_SELLER_NAME = "seller-name";
-
     @Autowired
     private PreProcessorManager preProcessor;
 
@@ -55,15 +52,6 @@ class ProcessingFlow {
 
     @Autowired
     private MailDeliveryService mailDeliveryService;
-
-    @Autowired
-    private ConversationEventService conversationEventService;
-
-    @Autowired
-    private UserIdentifierService userIdentifierService;
-
-    @Autowired
-    private ContentOverridingPostProcessorService contentOverridingPostProcessorService;
 
     @Value("${replyts.tenant.short}")
     private String shortTenant;
@@ -110,73 +98,7 @@ class ProcessingFlow {
             throw new IllegalStateException("PostProcessors may not Terminate messages");
         }
 
-        inputForConversationEventsQueue(context);
-    }
-
-    void inputForConversationEventsQueue(MessageProcessingContext context) {
-        if (!context.isTerminated()) {
-            try {
-                sendConversationEvents(context);
-            } catch (InterruptedException e) {
-                LOG.warn("Aborting mail processing flow because thread is interrupted.");
-                Thread.currentThread().interrupt();
-                throw new RuntimeException(e);
-            } catch (RuntimeException e) {
-                LOG.error("failed to submit the conversation into the messaging events queue", e);
-                throw e;
-            }
-        }
-
         inputForSending(context);
-    }
-
-    void sendConversationEvents(MessageProcessingContext context) throws InterruptedException {
-        Conversation conversation = context.getConversation();
-        if (conversation == null || conversation.getMessages() == null) {
-            LOG.warn("conversation.getMessages() == null");
-            return;
-        }
-
-        if (conversation.getMessages().size() == 1) {
-            conversationEventService.sendConversationCreatedEvent(shortTenant, conversation.getAdId(),
-                    conversation.getId(), conversation.getCustomValues(), getParticipants(conversation), conversation.getCreatedAt());
-        }
-
-        Message message = Iterables.getLast(conversation.getMessages());
-        String cleanedMessage = contentOverridingPostProcessorService.getCleanedMessage(conversation, message);
-        Optional<String> senderIdOpt = getSenderUserId(conversation, message);
-
-        conversationEventService.sendMessageAddedEvent(shortTenant, conversation.getId(), senderIdOpt, message.getId(), cleanedMessage, message.getHeaders(), context.getTransport(), context.getOriginTenant(), message.getReceivedAt());
-    }
-
-    private Optional<String> getSenderUserId(Conversation conversation, Message message) {
-        return message.getMessageDirection() == MessageDirection.BUYER_TO_SELLER
-                ? userIdentifierService.getBuyerUserId(conversation.getCustomValues())
-                : userIdentifierService.getSellerUserId(conversation.getCustomValues());
-    }
-
-    public Set<Participant> getParticipants(Conversation conversation) {
-        Participant buyer = ConversationEventConverter.createParticipant(
-                getBuyerUserId(conversation.getCustomValues(), conversation.getBuyerId()),
-                conversation.getCustomValues().get(CUST_HEADER_BUYER_NAME),
-                conversation.getBuyerId(),
-                Participant.Role.BUYER,
-                conversation.getBuyerSecret());
-        Participant seller = ConversationEventConverter.createParticipant(
-                getSellerUserId(conversation.getCustomValues(), conversation.getSellerId()),
-                conversation.getCustomValues().get(CUST_HEADER_SELLER_NAME),
-                conversation.getSellerId(),
-                Participant.Role.SELLER,
-                conversation.getSellerSecret());
-        return new HashSet<>(asList(buyer, seller));
-    }
-
-    private String getBuyerUserId(Map<String, String> customValues, String buyerId) {
-        return userIdentifierService.getBuyerUserId(customValues).orElse(buyerId);
-    }
-
-    private String getSellerUserId(Map<String, String> customValues, String sellerId) {
-        return userIdentifierService.getSellerUserId(customValues).orElse(sellerId);
     }
 
     void inputForSending(MessageProcessingContext context) {
