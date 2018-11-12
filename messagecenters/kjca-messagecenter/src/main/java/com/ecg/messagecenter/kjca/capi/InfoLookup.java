@@ -7,12 +7,14 @@ import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.AuthCache;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.impl.auth.BasicScheme;
+import org.apache.http.impl.client.BasicAuthCache;
 import org.apache.http.impl.client.BasicCredentialsProvider;
-import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
@@ -32,21 +34,27 @@ public abstract class InfoLookup<T> {
     protected final HttpHost commonApiHost;
     private final Logger LOG = LoggerFactory.getLogger(this.getClass());
     private final CredentialsProvider credentialsProvider;
+    private final AuthCache authCache;
 
     public InfoLookup(HttpClientConfig httpClientConfig, CommonApiConfig commonApiConfig) {
         this.commonApiHost = commonApiConfig.getCapiEndpoint();
+
         this.credentialsProvider = new BasicCredentialsProvider();
         this.credentialsProvider.setCredentials(
                 new AuthScope(commonApiHost),
                 new UsernamePasswordCredentials(commonApiConfig.getUsername(), commonApiConfig.getPassword())
         );
 
+        this.authCache = new BasicAuthCache();
+        authCache.put(commonApiHost, new BasicScheme());
+
         this.httpClient = buildHttpClient(httpClientConfig);
     }
 
     private HttpContext getHttpContext() {
-        HttpContext context = new BasicHttpContext();
-        context.setAttribute(HttpClientContext.CREDS_PROVIDER, credentialsProvider);
+        HttpClientContext context = HttpClientContext.create();
+        context.setCredentialsProvider(credentialsProvider);
+        context.setAuthCache(authCache);
         return context;
     }
 

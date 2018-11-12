@@ -9,16 +9,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 import static com.ecg.replyts.core.api.model.user.event.BlockAction.BLOCK_USER;
 import static com.ecg.replyts.core.api.model.user.event.BlockAction.UNBLOCK_USER;
-import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE;
-import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
-import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 @RestController
 @RequestMapping(value = "/block-users", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -59,7 +55,7 @@ public class BlockUserController {
 
     @GetMapping("/{blockerId}/{blockeeId}")
     boolean isblocked(@PathVariable String blockerId, @PathVariable String blockeeId) {
-        return blockUserRepository.isBlocked(blockerId, blockeeId);
+        return blockUserRepository.hasBlocked(blockerId, blockeeId);
     }
 
     @GetMapping("/{blockerId}")

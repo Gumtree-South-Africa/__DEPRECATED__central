@@ -100,15 +100,13 @@ public class PostBoxUpdateListenerTest {
                 .thenReturn("clean message");
         when(contentOverridingPostProcessorService.getCleanedMessage(conversation, message))
                 .thenReturn("clean message");
-        when(blockUserRepository.isBlocked(BUYER_USER_ID, SELLER_USER_ID))
+        when(blockUserRepository.hasBlocked(BUYER_USER_ID, SELLER_USER_ID))
                 .thenReturn(false);
-        when(blockUserRepository.isBlocked(SELLER_USER_ID, BUYER_USER_ID))
+        when(blockUserRepository.hasBlocked(SELLER_USER_ID, BUYER_USER_ID))
                 .thenReturn(false);
 
         listener.messageProcessed(conversation, message);
 
-        verify(blockUserRepository).isBlocked(BUYER_USER_ID, SELLER_USER_ID);
-        verify(blockUserRepository).isBlocked(SELLER_USER_ID, BUYER_USER_ID);
         verify(messageAddedEventProcessor).publishMessageAddedEvent(conversation, message, "clean message", null);
         verify(userIdentifierServiceMock).getBuyerUserId(conversation);
         verify(userIdentifierServiceMock).getSellerUserId(conversation);
@@ -127,9 +125,9 @@ public class PostBoxUpdateListenerTest {
                 .thenReturn(of(SELLER_USER_ID));
 
         // Owner of the messsage
-        when(blockUserRepository.isBlocked(BUYER_USER_ID, SELLER_USER_ID))
+        when(blockUserRepository.hasBlocked(BUYER_USER_ID, SELLER_USER_ID))
                 .thenReturn(true);
-        when(blockUserRepository.isBlocked(SELLER_USER_ID, BUYER_USER_ID))
+        when(blockUserRepository.hasBlocked(SELLER_USER_ID, BUYER_USER_ID))
                 .thenReturn(true);
 
         UserUnreadCounts userUnreadCounts = new UserUnreadCounts(SELLER_USER_ID, 1, 1);
@@ -157,9 +155,9 @@ public class PostBoxUpdateListenerTest {
                 .thenReturn(of(SELLER_USER_ID));
 
         // Owner of the messsage
-        when(blockUserRepository.isBlocked(BUYER_USER_ID, SELLER_USER_ID))
+        when(blockUserRepository.hasBlocked(BUYER_USER_ID, SELLER_USER_ID))
                 .thenReturn(false);
-        when(blockUserRepository.isBlocked(SELLER_USER_ID, BUYER_USER_ID))
+        when(blockUserRepository.hasBlocked(SELLER_USER_ID, BUYER_USER_ID))
                 .thenReturn(true);
 
         UserUnreadCounts userUnreadCounts = new UserUnreadCounts(SELLER_USER_ID, 1, 1);
