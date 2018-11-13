@@ -5,7 +5,7 @@
         <mirror>
             <id>mdenexus</id>
             <mirrorOf>!gtauNexus,!gtukNexus,*</mirrorOf>
-            <url>https://nexus.corp.mobile.de/nexus/content/groups/mobile-releases</url>
+            <url>https://nexus.es.ecg.tools/nexus/repository/mobile-releases/</url>
             <name>MdeNexus</name>
         </mirror>
     </mirrors>
