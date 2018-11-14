@@ -24,7 +24,7 @@ Remove all containers using `cd docker; make down`
 Note that you will have to install Docker on your local machines, the automated tests rely on it.
 
 ### Run COMaaS for a specific tenant
- 
+
 #### Option 1. IDE
 
 Before running from IDE you have to import properties into consul manually to do that execute:  
@@ -72,21 +72,12 @@ This will call exec:java through the 'verify' phase in the distribution module. 
   ./bin/build.sh -T gtuk -P docker -E -D
   ```
   see bin/README.md for more details
-  
+
 ### Testing that your setup works
 
-1. Place a raw email in the `/tmp/mailreceiver` (file should start with `pre_`) on your local machine. Example email:
-```
-From:acharton@ebay-kleinanzeigen.de
-Delivered-To: receiver@host.com
-X-ADID:12345
-X-CUST-FROM-USERID: 20000368
-X-CUST-TO-USERID: 20000553
-Subject:This is a subject
- 
-THIS is a test.
-```
-2. Go to mailhog `http://localhost:8090` and check that your email was sent.
+In the docker repo, run `make send`. This puts a message in the `mp_messages`  kafka topic (assuming tenant is mp). 
+
+After being succesfully processed in the Trust & Safety pipeline, the approved message should show up in the `conversation_events`  topic , which you can check at [http://localhost:8073/#/cluster/default/topic/n/conversation_events/data](http://localhost:8073/#/cluster/default/topic/n/conversation_events/data) . 
 
 ### Native Cassandra
 
