@@ -100,10 +100,6 @@ public class PostMessageResource {
         if (participants.isEmpty()) {
             throw new ClientException(HttpStatus.BAD_REQUEST, "Field 'participants' must not be empty");
         }
-        String subject = createConversationRequest.subject;
-        if (subject.trim().isEmpty()) {
-            throw new ClientException(HttpStatus.BAD_REQUEST, "Field 'subject' must not be empty");
-        }
         if (participants.stream().noneMatch(participant -> participant.getUserId().equals(userId))) {
             throw new ClientException(HttpStatus.BAD_REQUEST, "User ID should be one of the participants");
         }
@@ -116,9 +112,6 @@ public class PostMessageResource {
         if (existingConversation.isPresent()) {
             return new CreateConversationResponse(true, existingConversation.get().getId());
         }
-
-        String title = createConversationRequest.title;
-        String imageUrl = createConversationRequest.imageUrl;
 
         Map<String, String> customValues = new HashMap<>();
         if (createConversationRequest.metadata != null) {
@@ -141,7 +134,12 @@ public class PostMessageResource {
 
         String conversationId = newConversationBuilderCommand.getConversationId();
         DateTime creationDate = now();
-        ConversationMetadata conversationMetadata = new ConversationMetadata(creationDate, subject, title, imageUrl);
+        ConversationMetadata conversationMetadata = new ConversationMetadata(
+                creationDate,
+                createConversationRequest.subject,
+                createConversationRequest.title,
+                createConversationRequest.imageUrl
+        );
         ConversationThread conversationThread = new ConversationThread(conversationId, adId, userId, Visibility.ACTIVE,
                 MessageNotification.RECEIVE, participants, null, conversationMetadata);
 
