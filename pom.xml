@@ -13,6 +13,13 @@
         <profile>
             <id>default</id>
 
+            <!-- Always enable this profile (can't use activeByDefault in combination with -P) -->
+            <activation>
+                <property>
+                    <name>!always.enable</name>
+                </property>
+            </activation>
+
             <modules>
                 <module>core-api</module>
                 <module>core-runtime</module>
@@ -20,37 +27,9 @@
 
                 <module>messagecenters/core-messagecenter</module>
                 <module>eventpublishers/core-eventpublisher-kafka-mail</module>
-
                 <module>integration-tests/core-integration-test-api</module>
                 <module>integration-tests/core-integration-test</module>
-            </modules>
 
-            <!-- Always enable this profile (can't use activeByDefault in combination with -P) -->
-
-            <activation>
-                <property>
-                    <name>!always.enable</name>
-                </property>
-            </activation>
-        </profile>
-
-        <profile>
-            <id>core</id>
-
-            <repositories>
-                <repository>
-                    <id>gtauNexus</id>
-                    <url>https://nexus.au.ecg.so/repository/Releases/</url>
-                    <releases>
-                        <enabled>true</enabled>
-                    </releases>
-                    <snapshots>
-                        <enabled>false</enabled>
-                    </snapshots>
-                </repository>
-            </repositories>
-
-            <modules>
                 <module>filters/core-filter-bankaccount</module>
                 <module>filters/core-filter-belenblockedad</module>
                 <module>filters/core-filter-belenblockeduser</module>
@@ -59,94 +38,21 @@
                 <module>filters/core-filter-word</module>
                 <module>filters/core-filter-user</module>
                 <module>filters/core-filter-activable</module>
-
                 <module>resultinspectors/core-resultinspector-threshold</module>
-            </modules>
-        </profile>
 
-        <profile>
-            <id>distribution</id>
-
-            <modules>
-                <module>distribution</module>
-            </modules>
-
-            <!-- Always enable this profile as well; but it can still be disabled with '-P !distribution' -->
-
-            <activation>
-                <property>
-                    <name>!always.enable</name>
-                </property>
-            </activation>
-        </profile>
-
-        <!-- Tenant profiles -->
-
-        <profile>
-            <id>gtau</id>
-
-            <repositories>
-                <repository>
-                    <id>gtauNexus</id>
-                    <url>https://nexus.au.ecg.so/repository/Releases/</url>
-                    <releases>
-                        <enabled>true</enabled>
-                    </releases>
-                    <snapshots>
-                        <enabled>false</enabled>
-                    </snapshots>
-                </repository>
-            </repositories>
-
-            <modules>
                 <module>coremods/gtau-coremod-autogatemaildelivery</module>
-
-                <module>filters/core-filter-bankaccount</module>
-                <module>filters/core-filter-belenblockedad</module>
-                <module>filters/core-filter-user</module>
-                <module>filters/core-filter-word</module>
-                <module>filters/core-filter-belenblockeduser</module>
-                <module>filters/core-filter-ebayservices</module>
                 <module>filters/gtau-filter-volume</module>
                 <module>filters/gtau-filter-blockedip</module>
                 <module>filters/gtau-filter-echelon</module>
-
                 <module>listeners/gtau-listener-message-logger</module>
                 <module>listeners/gtau-listener-message-event</module>
-
                 <module>messagecenters/gtau-messagecenter</module>
                 <module>messagecenters/gtau-robot</module>
-
                 <module>postprocessors/gtau-postprocessor-fromnamepreparator</module>
                 <module>postprocessors/gtau-postprocessor-headerinjector</module>
                 <module>postprocessors/gtau-postprocessor-idreplacer</module>
                 <module>postprocessors/gtau-postprocessor-sentrepliesnotifier</module>
-
-                <module>eventpublishers/core-eventpublisher-kafka-mail</module>
-
-                <module>resultinspectors/core-resultinspector-threshold</module>
-            </modules>
-        </profile>
-
-        <profile>
-            <id>gtuk</id>
-
-            <repositories>
-                <repository>
-                    <id>gtukNexus</id>
-                    <url>https://gtuk-nexus.es.dus1.cloud/nexus/repository/public/</url>
-                    <releases>
-                        <enabled>true</enabled>
-                    </releases>
-                    <snapshots>
-                        <enabled>true</enabled>
-                    </snapshots>
-                </repository>
-            </repositories>
-
-            <modules>
                 <module>coremods/gtuk-coremod-shared</module>
-
                 <module>filters/gtuk-filter-word</module>
                 <module>filters/gtuk-filter-blacklist</module>
                 <module>filters/gtuk-filter-flagged</module>
@@ -158,57 +64,77 @@
                 <module>filters/gtuk-filter-watchlist</module>
                 <module>filters/gtuk-filter-volume</module>
                 <module>filters/gtuk-filter-test</module>
-
                 <module>listeners/gtuk-listener-eventpublisher</module>
                 <module>listeners/gtuk-listener-statsnotifier</module>
                 <module>listeners/gtuk-listener-reporting</module>
 
                 <module>postprocessors/core-postprocessor-buyeralias</module>
-                <module>postprocessors/gtuk-postprocessor-bodyanonymizer</module>
 
+                <module>postprocessors/gtuk-postprocessor-bodyanonymizer</module>
                 <module>messagecenters/gtuk-messagecenter</module>
 
-                <module>resultinspectors/core-resultinspector-threshold</module>
-            </modules>
-        </profile>
-
-        <profile>
-            <id>mp</id>
-
-            <modules>
                 <module>filters/mp-filter-bankaccount</module>
                 <module>filters/mp-filter-volume</module>
-                <module>filters/core-filter-word</module>
-
                 <module>preprocessors/mp-preprocessor-emailoptout</module>
-
                 <module>postprocessors/mp-postprocessor-anonymizebody</module>
                 <module>postprocessors/mp-postprocessor-sendername</module>
                 <module>postprocessors/mp-postprocessor-urlgateway</module>
                 <module>postprocessors/mp-postprocessor-messagingurl</module>
-
-                <module>eventpublishers/core-eventpublisher-kafka-mail</module>
                 <module>eventpublishers/mp-eventpublisher-kafka</module>
-
-                <module>resultinspectors/core-resultinspector-threshold</module>
-
                 <module>integration-tests/mp-integration-test</module>
+                <module>filters/ebayk-filter-emailaddress</module>
+                <module>filters/ebayk-filter-phonenumber</module>
+                <module>listeners/ecg-message-synchronizer</module>
+                <module>listeners/ebayk-listener-dailyreport</module>
+                <module>listeners/ebayk-listener-jsonlogging</module>
+                <module>postprocessors/ebayk-postprocessor-linkproxy</module>
+                <module>postprocessors/ebayk-postprocessor-openimmodeanonymizer</module>
+                <module>messagecenters/ebayk-messagecenter</module>
+
+                <module>filters/mde-filter-comaservice</module>
+                <module>filters/mde-filter-fsbofraud</module>
+                <module>filters/mde-filter-badword</module>
+                <module>postprocessors/mde-postprocessor-addmetadata</module>
+                <module>postprocessors/mde-postprocessor-demandreporting</module>
+                <module>postprocessors/mde-postprocessor-rememberlastselleraddress</module>
+                <module>postprocessors/mde-postprocessor-sms</module>
+                <module>postprocessors/mde-postprocessor-uniqueid</module>
+                <module>postprocessors/mde-postprocessor-donotanonymize</module>
+                <module>postprocessors/mde-postprocessor-mailalias</module>
+                <module>listeners/mde-listener-pushnotification</module>
+                <module>listeners/mde-listener-dealerratinginvite</module>
+
+                <module>coremods/kjca-coremod-shared</module>
+                <module>coremods/kjca-coremod-overrides</module>
+                <module>filters/kjca-filter-volume</module>
+                <module>filters/kjca-filter-word</module>
+                <module>filters/kjca-filter-countryblocked</module>
+                <module>filters/kjca-filter-countrydelayed</module>
+                <module>filters/kjca-filter-emailblocked</module>
+                <module>filters/kjca-filter-ipblocked</module>
+                <module>filters/kjca-filter-newreplier</module>
+                <module>listeners/kjca-listener-dw</module>
+                <module>listeners/kjca-listener-user-behaviour</module>
+                <module>listeners/kjca-listener-adcounters</module>
+                <module>messagecenters/kjca-messagecenter</module>
+                <module>filters/it-filter-blockedusers</module>
+                <module>filters/it-filter-conversationmonitor</module>
+                <module>filters/it-filter-quickreply</module>
+                <module>messagecenters/it-messagecenter</module>
+                <module>postprocessors/it-postprocessor-conversationmonitor</module>
+                <module>postprocessors/it-postprocessor-quickreply</module>
+                <module>resultinspectors/it-resultinspector-reporting</module>
+                <module>coremods/bt-coremod-pushservice</module>
+                <module>coremods/bt-coremod-overrides</module>
+                <module>filters/bt-filter-user</module>
+                <module>filters/bt-filter-word</module>
+                <module>filters/bt-filter-ip</module>
+                <module>filters/bt-filter-volume</module>
+                <module>filters/bt-filter-identicalcap</module>
+                <module>filters/bt-filter-dedupe</module>
+                <module>messagecenters/bt-messagecenter</module>
+
             </modules>
-
-            <distributionManagement>
-                <repository>
-                    <id>mp.releases</id>
-                    <url>http://mpnexus.corp.ebay.com/content/repositories/libs-releases-local</url>
-                </repository>
-                <snapshotRepository>
-                    <id>mp.snapshots</id>
-                    <url>http://mpnexus.corp.ebay.com/content/repositories/libs-snapshots-local</url>
-                </snapshotRepository>
-            </distributionManagement>
-        </profile>
-
-        <profile>
-            <id>ebayk</id>
 
             <repositories>
                 <repository>
@@ -221,173 +147,33 @@
                         <enabled>false</enabled>
                     </snapshots>
                 </repository>
-            </repositories>
 
-            <modules>
-                <module>filters/ebayk-filter-emailaddress</module>
-                <module>filters/ebayk-filter-phonenumber</module>
-                <module>filters/core-filter-bankaccount</module>
-                <module>filters/core-filter-belenblockedad</module>
-                <module>filters/core-filter-belenblockeduser</module>
-                <module>filters/core-filter-ebayservices</module>
-                <module>filters/core-filter-volume</module>
-                <module>filters/core-filter-word</module>
-                <module>filters/core-filter-user</module>
-                <module>filters/core-filter-activable</module>
-
-                <module>listeners/ecg-message-synchronizer</module>
-                <module>listeners/ebayk-listener-dailyreport</module>
-                <module>listeners/ebayk-listener-jsonlogging</module>
-
-                <module>postprocessors/core-postprocessor-buyeralias</module>
-                <module>postprocessors/ebayk-postprocessor-linkproxy</module>
-                <module>postprocessors/ebayk-postprocessor-openimmodeanonymizer</module>
-
-                <module>messagecenters/ebayk-messagecenter</module>
-
-                <module>resultinspectors/core-resultinspector-threshold</module>
-            </modules>
-
-            <distributionManagement>
                 <repository>
-                    <id>k-auto-deploy-releases</id>
-                    <url>https://kautodeploy.corp.mobile.de/storage/belen-productive-deployment-releases/</url>
+                    <id>gtukNexus</id>
+                    <url>https://gtuk-nexus.es.dus1.cloud/nexus/content/repositories/public/</url>
+                    <releases>
+                        <enabled>true</enabled>
+                    </releases>
+                    <snapshots>
+                        <enabled>true</enabled>
+                    </snapshots>
                 </repository>
-                <snapshotRepository>
-                    <uniqueVersion>false</uniqueVersion>
-                    <id>k-auto-deploy-snapshots</id>
-                    <name>Auto Deploy Snapshot Repository</name>
-                    <url>https://kautodeploy.corp.mobile.de/storage/belen-productive-deployment-snapshots/</url>
-                    <layout>default</layout>
-                </snapshotRepository>
-            </distributionManagement>
-        </profile>
 
-        <profile>
-            <id>mde</id>
-
-            <modules>
-                <module>filters/mde-filter-comaservice</module>
-                <module>filters/mde-filter-fsbofraud</module>
-                <module>filters/mde-filter-badword</module>
-
-                <module>postprocessors/mde-postprocessor-addmetadata</module>
-                <module>postprocessors/mde-postprocessor-demandreporting</module>
-                <module>postprocessors/mde-postprocessor-rememberlastselleraddress</module>
-                <module>postprocessors/mde-postprocessor-sms</module>
-                <module>postprocessors/mde-postprocessor-uniqueid</module>
-                <module>postprocessors/mde-postprocessor-donotanonymize</module>
-                <module>postprocessors/mde-postprocessor-mailalias</module>
-
-                <module>listeners/ecg-message-synchronizer</module>
-                <module>listeners/mde-listener-pushnotification</module>
-                <module>listeners/mde-listener-dealerratinginvite</module>
-            </modules>
-
-            <repositories>
                 <repository>
                     <id>mde</id>
                     <url>https://nexus.corp.mobile.de/nexus/content/groups/mobile-releases/</url>
                 </repository>
-            </repositories>
 
-            <distributionManagement>
                 <repository>
-                    <id>auto-deploy-releases</id>
-                    <url>https://autodeploy.corp.mobile.de/storage/belen-productive-deployment-releases/</url>
+                    <id>kjca-nexus</id>
+                    <url>http://nexus.kjdev.ca/content/repositories/public/</url>
                 </repository>
-                <snapshotRepository>
-                    <uniqueVersion>false</uniqueVersion>
-                    <id>auto-deploy-snapshots</id>
-                    <name>Auto Deploy Snapshot Repository</name>
-                    <url>https://autodeploy.corp.mobile.de/storage/belen-productive-deployment-snapshots/</url>
-                    <layout>default</layout>
-                </snapshotRepository>
-            </distributionManagement>
-        </profile>
 
-        <profile>
-            <id>kjca</id>
-
-            <modules>
-                <module>coremods/kjca-coremod-shared</module>
-                <module>coremods/kjca-coremod-overrides</module>
-
-                <module>filters/core-filter-user</module>
-                <module>filters/core-filter-activable</module>
-                <module>filters/kjca-filter-volume</module>
-                <module>filters/kjca-filter-word</module>
-                <module>filters/kjca-filter-countryblocked</module>
-                <module>filters/kjca-filter-countrydelayed</module>
-                <module>filters/kjca-filter-emailblocked</module>
-                <module>filters/kjca-filter-ipblocked</module>
-                <module>filters/kjca-filter-newreplier</module>
-
-                <module>listeners/kjca-listener-dw</module>
-                <module>listeners/kjca-listener-user-behaviour</module>
-                <module>listeners/kjca-listener-adcounters</module>
-
-                <module>messagecenters/kjca-messagecenter</module>
-
-                <module>resultinspectors/core-resultinspector-threshold</module>
-
-                <module>eventpublishers/core-eventpublisher-kafka-mail</module>
-            </modules>
-        </profile>
-
-        <profile>
-            <!-- Kijiji Motors aka MoVe Canada -->
-            <id>mvca</id>
-
-            <modules>
-                <module>coremods/kjca-coremod-shared</module>
-                <module>coremods/kjca-coremod-overrides</module>
-
-                <module>filters/core-filter-user</module>
-                <module>filters/core-filter-activable</module>
-                <module>filters/kjca-filter-volume</module>
-                <module>filters/kjca-filter-word</module>
-                <module>filters/kjca-filter-countryblocked</module>
-                <module>filters/kjca-filter-countrydelayed</module>
-                <module>filters/kjca-filter-emailblocked</module>
-                <module>filters/kjca-filter-ipblocked</module>
-                <module>filters/kjca-filter-newreplier</module>
-
-                <module>resultinspectors/core-resultinspector-threshold</module>
-            </modules>
-        </profile>
-
-        <profile>
-            <id>it</id>
-            <repositories>
                 <repository>
                     <id>kjit-nexus</id>
                     <url>https://nexus.corp.mobile.de/nexus/content/repositories/hosted-kijiji-italia-releases/</url>
                 </repository>
-            </repositories>
 
-            <modules>
-                <module>filters/core-filter-word</module>
-                <module>filters/it-filter-blockedusers</module>
-                <module>filters/it-filter-conversationmonitor</module>
-                <module>filters/it-filter-quickreply</module>
-
-                <module>messagecenters/it-messagecenter</module>
-
-                <module>resultinspectors/core-resultinspector-threshold</module>
-
-                <module>postprocessors/core-postprocessor-buyeralias</module>
-                <module>postprocessors/it-postprocessor-conversationmonitor</module>
-                <module>postprocessors/it-postprocessor-quickreply</module>
-
-                <module>resultinspectors/it-resultinspector-reporting</module>
-            </modules>
-        </profile>
-
-        <profile>
-            <id>mx</id>
-
-            <repositories>
                 <repository>
                     <releases>
                         <enabled>true</enabled>
@@ -403,193 +189,23 @@
                     <layout>default</layout>
                 </repository>
             </repositories>
-
-            <distributionManagement>
-                <repository>
-                    <id>bolt-nexus</id>
-                    <name>Bolt-Nexus</name>
-                    <url>
-                        http://bolt-ci-nexus-v2-11-9025.phx01.dev.ebayc3.com:8081/nexus/content/repositories/bolt-hosted-ecg-releases
-                    </url>
-                    <layout>default</layout>
-                </repository>
-            </distributionManagement>
-
-            <modules>
-                <module>coremods/bt-coremod-pushservice</module>
-                <module>coremods/bt-coremod-overrides</module>
-
-                <module>filters/bt-filter-user</module>
-                <module>filters/bt-filter-word</module>
-                <module>filters/bt-filter-ip</module>
-                <module>filters/bt-filter-volume</module>
-                <module>filters/bt-filter-identicalcap</module>
-                <module>filters/bt-filter-dedupe</module>
-
-                <module>messagecenters/bt-messagecenter</module>
-
-                <module>resultinspectors/core-resultinspector-threshold</module>
-            </modules>
         </profile>
 
         <profile>
-            <id>ar</id>
+            <id>distribution</id>
 
-            <repositories>
-                <repository>
-                    <releases>
-                        <enabled>true</enabled>
-                        <updatePolicy>always</updatePolicy>
-                        <checksumPolicy>warn</checksumPolicy>
-                    </releases>
-                    <snapshots>
-                        <enabled>false</enabled>
-                    </snapshots>
-                    <id>bolt-nexus</id>
-                    <name>Bolt-Nexus</name>
-                    <url>http://bolt-ci-nexus-v2-11-9025.phx01.dev.ebayc3.com:8081/nexus/content/groups/public</url>
-                    <layout>default</layout>
-                </repository>
-            </repositories>
-
-            <distributionManagement>
-                <repository>
-                    <id>bolt-nexus</id>
-                    <name>Bolt-Nexus</name>
-                    <url>
-                        http://bolt-ci-nexus-v2-11-9025.phx01.dev.ebayc3.com:8081/nexus/content/repositories/bolt-hosted-ecg-releases
-                    </url>
-                    <layout>default</layout>
-                </repository>
-            </distributionManagement>
+            <properties>
+                <maven.test.skip>true</maven.test.skip>
+            </properties>
 
             <modules>
-                <module>coremods/bt-coremod-pushservice</module>
-                <module>coremods/bt-coremod-overrides</module>
-
-                <module>filters/bt-filter-user</module>
-                <module>filters/bt-filter-word</module>
-                <module>filters/bt-filter-ip</module>
-                <module>filters/bt-filter-volume</module>
-                <module>filters/bt-filter-identicalcap</module>
-                <module>filters/bt-filter-dedupe</module>
-
-                <module>messagecenters/bt-messagecenter</module>
-
-                <module>resultinspectors/core-resultinspector-threshold</module>
-            </modules>
-        </profile>
-
-        <profile>
-            <id>za</id>
-
-            <repositories>
-                <repository>
-                    <releases>
-                        <enabled>true</enabled>
-                        <updatePolicy>always</updatePolicy>
-                        <checksumPolicy>warn</checksumPolicy>
-                    </releases>
-                    <snapshots>
-                        <enabled>false</enabled>
-                    </snapshots>
-                    <id>bolt-nexus</id>
-                    <name>Bolt-Nexus</name>
-                    <url>http://bolt-ci-nexus-v2-11-9025.phx01.dev.ebayc3.com:8081/nexus/content/groups/public</url>
-                    <layout>default</layout>
-                </repository>
-            </repositories>
-
-            <distributionManagement>
-                <repository>
-                    <id>bolt-nexus</id>
-                    <name>Bolt-Nexus</name>
-                    <url>
-                        http://bolt-ci-nexus-v2-11-9025.phx01.dev.ebayc3.com:8081/nexus/content/repositories/bolt-hosted-ecg-releases
-                    </url>
-                    <layout>default</layout>
-                </repository>
-            </distributionManagement>
-
-            <modules>
-                <module>coremods/bt-coremod-pushservice</module>
-                <module>coremods/bt-coremod-overrides</module>
-
-                <module>filters/bt-filter-user</module>
-                <module>filters/bt-filter-word</module>
-                <module>filters/bt-filter-ip</module>
-                <module>filters/bt-filter-volume</module>
-                <module>filters/bt-filter-identicalcap</module>
-                <module>filters/bt-filter-dedupe</module>
-
-                <module>messagecenters/bt-messagecenter</module>
-
-                <module>resultinspectors/core-resultinspector-threshold</module>
-            </modules>
-        </profile>
-
-        <profile>
-            <id>sg</id>
-
-            <repositories>
-                <repository>
-                    <releases>
-                        <enabled>true</enabled>
-                        <updatePolicy>always</updatePolicy>
-                        <checksumPolicy>warn</checksumPolicy>
-                    </releases>
-                    <snapshots>
-                        <enabled>false</enabled>
-                    </snapshots>
-                    <id>bolt-nexus</id>
-                    <name>Bolt-Nexus</name>
-                    <url>http://bolt-ci-nexus-v2-11-9025.phx01.dev.ebayc3.com:8081/nexus/content/groups/public</url>
-                    <layout>default</layout>
-                </repository>
-            </repositories>
-
-            <distributionManagement>
-                <repository>
-                    <id>bolt-nexus</id>
-                    <name>Bolt-Nexus</name>
-                    <url>
-                        http://bolt-ci-nexus-v2-11-9025.phx01.dev.ebayc3.com:8081/nexus/content/repositories/bolt-hosted-ecg-releases
-                    </url>
-                    <layout>default</layout>
-                </repository>
-            </distributionManagement>
-
-            <modules>
-                <module>coremods/bt-coremod-overrides</module>
-
-                <module>filters/bt-filter-user</module>
-                <module>filters/bt-filter-word</module>
-                <module>filters/bt-filter-ip</module>
-                <module>filters/bt-filter-volume</module>
-                <module>filters/bt-filter-identicalcap</module>
-                <module>filters/bt-filter-dedupe</module>
-
-                <module>messagecenters/bt-messagecenter</module>
-
-                <module>resultinspectors/core-resultinspector-threshold</module>
-            </modules>
-        </profile>
-
-        <profile>
-            <id>dk</id>
-
-            <modules>
-                <module>filters/core-filter-word</module>
-
-                <module>postprocessors/core-postprocessor-buyeralias</module>
-
-                <module>resultinspectors/core-resultinspector-threshold</module>
+                <module>distribution</module>
             </modules>
         </profile>
     </profiles>
 
     <properties>
-        <!-- Overridden in build script with -Denv-name=.. to build for a certain (tenant) environment (integration, production, etc.) -->
+        <skip.surefire.tests>${skipTests}</skip.surefire.tests>
 
         <env-name>local</env-name>
 
@@ -619,8 +235,8 @@
         <cassandra-client-version>2.1.10</cassandra-client-version>
         <HdrHistogram.version>2.1.9</HdrHistogram.version>
         <cglib-version>3.1</cglib-version>
+        <exec-maven-plugin-version>1.6.0</exec-maven-plugin-version>
         <elasticsearch-version>5.6.9</elasticsearch-version>
-        <exec-maven-plugin-version>1.4.0</exec-maven-plugin-version>
         <guava-version>18.0</guava-version>
         <commons-collections-version>3.2.1</commons-collections-version>
         <hamcrest-version>1.3</hamcrest-version>
@@ -723,7 +339,6 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <jackson-mapper-asl.version>1.9.2</jackson-mapper-asl.version>
     </properties>
-
 
     <dependencyManagement>
         <dependencies>
@@ -2412,8 +2027,34 @@
                         <useFile>true</useFile>
                         <redirectTestOutputToFile>true</redirectTestOutputToFile>
                         <argLine>-Djava.security.egd=file:/dev/urandom</argLine>
+                        <excludes>
+                            <exclude>**/*IntegrationTest.java</exclude>
+                            <exclude>**/*AcceptanceTest.java</exclude>
+                        </excludes>
+                        <!-- skips surefire tests without skipping failsafe tests. Property value seems to magically default to false -->
+                        <skipTests>${skip.surefire.tests}</skipTests>
                     </configuration>
                 </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-failsafe-plugin</artifactId>
+                    <version>2.13</version>
+                    <configuration>
+                        <includes>
+                            <include>**/*IntegrationTest.java</include>
+                            <include>**/*AcceptanceTest.java</include>
+                        </includes>
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <goals>
+                                <goal>integration-test</goal>
+                                <goal>verify</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-enforcer-plugin</artifactId>

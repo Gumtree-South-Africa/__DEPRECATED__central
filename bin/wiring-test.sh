@@ -61,8 +61,8 @@ function startComaas() {
     log "Starting comaas on HTTP port ${COMAAS_HTTP_PORT}, Hazelcast port ${COMAAS_HAZELCAST_PORT}"
 
     (cd distribution/target
-    tar xfz comaas-${TENANT}_1-SNAPSHOT-comaas.tar.gz
-    cd comaas-${TENANT}_1-SNAPSHOT
+    tar xfz comaas-1-SNAPSHOT-comaas.tar.gz
+    cd comaas-1-SNAPSHOT
     mkdir -p log
 
     COMAAS_HTTP_PORT=${COMAAS_HTTP_PORT} \
@@ -119,7 +119,7 @@ function stopAll() {
 
 function main() {
     log "Packaging Comaas (-T ${TENANT} -P docker)"
-    bin/build.sh -T ${TENANT} -P docker
+    bin/build.sh -p
 
     log "Importing properties into Consul"
     docker run --network ${DOCKER_NETWORK} --rm --volume ${PWD}/distribution/conf/${TENANT}/docker.properties:/props.properties \

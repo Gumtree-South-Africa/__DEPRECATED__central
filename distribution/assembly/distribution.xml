@@ -7,13 +7,6 @@
         <format>tar.gz</format>
     </formats>
 
-    <fileSets>
-        <fileSet>
-            <directory>conf/${profile-classifier}/${env-name}</directory>
-            <outputDirectory>conf</outputDirectory>
-        </fileSet>
-    </fileSets>
-
     <dependencySets>
         <dependencySet>
             <outputDirectory>lib</outputDirectory>
