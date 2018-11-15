@@ -3,18 +3,18 @@ docker_namespace: dock.es.ecg.tools/comaas
 http:
   count: 12
   memory: 4096
-  cpu: 3500
+  cpu: 1000
   heap: 2G
   max_parallel: 3
 
 newmsg:
   count: 54
   memory: 4096
-  cpu: 2500
+  cpu: 2000
   heap: 3G
   max_parallel: 14
 
 cronjob:
-  cpu: 3000
+  cpu: 500
   memory: 16384
   heap: 12G

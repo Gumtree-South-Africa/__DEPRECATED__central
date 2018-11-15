@@ -19,20 +19,6 @@ export DIR=$(dirname $0)
 
 MVN_ARGS="--update-snapshots"
 
-# If we are running on a non-builder environment (locally for example) then import the certificates into
-# a local trust store; on builder we rely on e.g. mobile-ca-certificates being installed
-
-if [ ! -f /usr/bin/apt-get ] ; then
-    MVN_ARGS="-Djavax.net.ssl.trustStore=${PWD}/comaas.jks -Djavax.net.ssl.keyStoreType=JKS -Djavax.net.ssl.trustStorePassword=comaas $MVN_ARGS"
-
-    curl -s0 -o comaas.jks -z comaas.jks https://swift.dus1.cloud.ecg.so/v1/81776e54d8664296b0fab63916911ca3/public/java/keystore/comaas.jks
-else
-    # If we are running on a builder environment then the certificates should have been installed in
-    # /etc/ssl/certs/java/cacerts (mobile-ca-certificates doesn't support Oracle JDK)
-
-    MVN_ARGS="-Djavax.net.ssl.trustStore=/etc/java-8-oracle/security/cacerts -Djavax.net.ssl.trustStorePassword=changeit $MVN_ARGS"
-fi
-
 function parseCmd() {
     RUN_TESTS=0
     RUN_INTEGRATION_TESTS=0

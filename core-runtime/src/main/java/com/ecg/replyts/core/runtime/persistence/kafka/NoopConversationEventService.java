@@ -7,6 +7,7 @@ import org.joda.time.DateTime;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -20,7 +21,8 @@ public class NoopConversationEventService implements ConversationEventService {
     }
 
     @Override
-    public void sendMessageAddedEvent(String tenant, String conversationId, Optional<String> senderUserId, String messageId, String message, Map<String, String> metaData, MessageTransport transport, String origin, DateTime receivedAt) {
+    public void sendMessageAddedEvent(String tenant, String conversationId, String senderUserId, String messageId, String message,
+                                      Map<String, String> metaData, MessageTransport transport, String origin, DateTime receivedAt, List<String> receivingUsers) {
         // noop
     }
 
