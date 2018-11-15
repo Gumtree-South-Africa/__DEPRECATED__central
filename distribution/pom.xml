@@ -220,18 +220,6 @@
             <artifactId>core-eventpublisher-kafka-mail</artifactId>
             <version>${project.version}</version>
         </dependency>
-
-        <dependency>
-            <groupId>ecg.comaas</groupId>
-            <artifactId>core-messagecenter</artifactId>
-            <version>${project.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>commons-logging</groupId>
-                    <artifactId>commons-logging</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
         <dependency>
             <groupId>ecg.comaas</groupId>
             <artifactId>mp-eventpublisher-kafka</artifactId>
@@ -314,12 +302,6 @@
             <artifactId>ebayk-listener-jsonlogging</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <dependency>
-            <groupId>ecg.comaas</groupId>
-            <artifactId>ecg-message-synchronizer</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
         <dependency>
             <groupId>ecg.comaas</groupId>
             <artifactId>ebayk-messagecenter</artifactId>
@@ -659,27 +641,6 @@
                 <configuration>
                     <classifier>${profile-classifier}-${env-name}</classifier>
                 </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-enforcer-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>enforce-versions</id>
-                        <goals>
-                            <goal>enforce</goal>
-                        </goals>
-                        <configuration>
-                            <rules>
-                                <requireActiveProfile>
-                                    <profiles>mp,ebayk,mde,kjca,gtau,gtuk,mx,ar,za,sg,it,dk,mvca</profiles>
-                                    <all>false</all>
-                                </requireActiveProfile>
-                            </rules>
-                            <fail>true</fail>
-                        </configuration>
-                    </execution>
-                </executions>
             </plugin>
         </plugins>
     </build>
