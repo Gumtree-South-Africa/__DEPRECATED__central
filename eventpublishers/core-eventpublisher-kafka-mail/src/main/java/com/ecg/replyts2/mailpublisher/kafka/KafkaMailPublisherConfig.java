@@ -1,9 +1,11 @@
 package com.ecg.replyts2.mailpublisher.kafka;
 
+import com.ecg.replyts.core.api.pluginconfiguration.ComaasPlugin;
 import com.ecg.replyts.core.runtime.listener.KafkaMailPublisher;
 import com.ecg.replyts.core.runtime.listener.MailPublisher;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
@@ -18,8 +20,9 @@ import static org.apache.kafka.clients.producer.ProducerConfig.BOOTSTRAP_SERVERS
 import static org.apache.kafka.clients.producer.ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG;
 import static org.apache.kafka.clients.producer.ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG;
 
+@ComaasPlugin
 @Configuration
-@Conditional(KafkaMailPublisherConditional.class)
+@ConditionalOnProperty(name = "mailpublisher.kafka.enabled", havingValue = "true")
 public class KafkaMailPublisherConfig {
     @Value("${mailpublisher.kafka.broker.list:#{null}}")
     private String kafkaBrokers;
@@ -41,7 +44,6 @@ public class KafkaMailPublisherConfig {
     }
 
     @Bean
-    @Conditional(KafkaMailPublisherConditional.class)
     public MailPublisher kafkaMailPublisher() {
         return new KafkaMailPublisher(producer, kafkaTopic);
     }
