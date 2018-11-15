@@ -19,5 +19,5 @@ newmsg:
 
 cronjob:
   cpu: 500
-  memory: 16384
-  heap: 12G
+  memory: 8192
+  heap: 6G
