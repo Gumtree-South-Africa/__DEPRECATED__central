@@ -19,6 +19,7 @@ import static org.apache.kafka.clients.producer.ProducerConfig.KEY_SERIALIZER_CL
 import static org.apache.kafka.clients.producer.ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG;
 
 @Configuration
+@Conditional(KafkaMailPublisherConditional.class)
 public class KafkaMailPublisherConfig {
     @Value("${mailpublisher.kafka.broker.list:#{null}}")
     private String kafkaBrokers;
@@ -27,7 +28,6 @@ public class KafkaMailPublisherConfig {
     private KafkaProducer<String, byte[]> producer;
 
     @PostConstruct
-    @Conditional(KafkaMailPublisherConditional.class)
     private void createKafkaProducer() {
         checkNotNull(kafkaBrokers);
 
