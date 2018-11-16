@@ -18,7 +18,6 @@ import static com.ecg.replyts.core.api.model.Tenants.TENANT_MX;
 import static com.ecg.replyts.integration.test.support.IntegrationTestUtils.propertiesWithTenant;
 import static org.junit.Assert.assertEquals;
 
-@Ignore
 public class VolumeFilterIntegrationTest {
 
     @Rule
