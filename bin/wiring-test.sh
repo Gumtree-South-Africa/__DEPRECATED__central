@@ -61,8 +61,6 @@ function startComaas() {
     log "Starting comaas on HTTP port ${COMAAS_HTTP_PORT}, Hazelcast port ${COMAAS_HAZELCAST_PORT}"
 
     (cd distribution/target
-    tar xfz comaas-1-SNAPSHOT-comaas.tar.gz
-    cd comaas-1-SNAPSHOT
     mkdir -p log
 
     COMAAS_HTTP_PORT=${COMAAS_HTTP_PORT} \
@@ -88,12 +86,7 @@ function startComaas() {
     -XX:+PrintConcurrentLocks \
     -XX:+PrintClassHistogram \
     -XX:+PrintStringTableStatistics \
-    -classpath lib/\* \
-    -Dapp.name=comaas \
-    -Dapp.pid=63123 \
-    -Dapp.repo=lib \
-    -Dapp.home=. \
-    -Dbasedir=. \
+    -classpath dependency/\* \
     com.ecg.replyts.core.Application \
     2>&1 &
 
