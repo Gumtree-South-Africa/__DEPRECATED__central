@@ -329,7 +329,7 @@ String getGitHashForTag(String tag) {
     return env.TEMP
 }
 
-Closure wrapWithStepDefinition(param, closure, String commit, String stageName) {
+Closure wrapWithStepDefinition(version, closure, String commit, String stageName) {
     return {
         stage("$stageName") {
             node('qa') {
@@ -337,11 +337,7 @@ Closure wrapWithStepDefinition(param, closure, String commit, String stageName) 
                     checkoutComaasCentralRepo(commit)
                     loginToDocker()
 
-                    if (param == null) {
-                        closure()
-                    } else {
-                        closure(param)
-                    }
+                    closure(version)
                 } catch (ex) {
                     if (env.FAILED_BUILD == null || env.FAILED_BUILD == false) {
                         env.FAILED_BUILD = true
