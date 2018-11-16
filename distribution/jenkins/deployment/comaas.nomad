@@ -208,7 +208,7 @@ job "comaas-[[ .tenant_short ]]" {
       driver = "docker"
 
       config {
-        image = "[[ .docker_namespace ]]/comaas-[[ .tenant ]]:[[ .version ]]"
+        image = "[[ .docker_namespace ]]/comaas:[[ .version ]]"
         network_mode = "host"
 
         auth {
