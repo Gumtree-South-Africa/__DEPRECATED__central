@@ -18,8 +18,7 @@ void packageComaas(String version) {
 
 // p contains [tenant, version]
 distribute = { String[] p ->
-    String tenant = p[0], version = p[1]
-    packageComaas(tenant, version)
+    packageComaas(p[0])
 }
 
 void setEnvVars() {
@@ -69,15 +68,8 @@ node('build') {
     }
 
     echo "Packaging version $version using git hash $gitHash"
-    currentBuild.description = "$version $PROVIDED_TENANT"
-
-    if (PROVIDED_TENANT == 'all' || PROVIDED_TENANT == '') {
-        tenants = commonFunctions.allTenants()
-    } else {
-        tenants = [PROVIDED_TENANT]
-    }
-
-    commonFunctions.wrapWithStepDefinition(version, distribute, gitHash, "Package artifact for all")
+    currentBuild.description = "$version"
+    commonFunctions.wrapWithStepDefinition([version], distribute, gitHash, "Package artifact for all")
 
     if (createTag) {
         stage("Tag commit with version") {
