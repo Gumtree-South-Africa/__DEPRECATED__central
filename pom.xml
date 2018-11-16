@@ -295,6 +295,7 @@
         <protobuf-version>3.5.1</protobuf-version>
         <json-version>20180130</json-version>
         <commons-validator-version>1.6</commons-validator-version>
+        <consul-client.version>0.13.12</consul-client.version>
 
         <!-- gtau artifact dependencies -->
         <jsoup.version>1.9.1</jsoup.version>
@@ -1585,6 +1586,11 @@
                 <groupId>io.prometheus</groupId>
                 <artifactId>simpleclient_dropwizard</artifactId>
                 <version>${io-prometheus.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.orbitz.consul</groupId>
+                <artifactId>consul-client</artifactId>
+                <version>${consul-client.version}</version>
             </dependency>
 
             <!-- tackle encoding problems -->
