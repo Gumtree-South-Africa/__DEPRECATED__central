@@ -90,6 +90,7 @@
             <!-- stop the production of a jar for this module -->
             <plugin>
                 <artifactId>maven-jar-plugin</artifactId>
+                <version>${maven-jar-plugin.version}</version>
                 <executions>
                     <execution>
                         <id>default-jar</id>
