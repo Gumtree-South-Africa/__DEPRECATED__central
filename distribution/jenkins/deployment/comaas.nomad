@@ -5,7 +5,7 @@ job "comaas-[[ .tenant_short ]]" {
   type = "service"
 
   meta {
-    docker_image = "[[ .docker_namespace ]]/comaas-[[ .tenant ]]:[[ .version ]]"
+    docker_image = "[[ .docker_namespace ]]/comaas:[[ .version ]]"
     version = "[[ .version ]]"
   }
 
@@ -35,7 +35,7 @@ job "comaas-[[ .tenant_short ]]" {
       driver = "docker"
 
       config {
-        image = "[[ .docker_namespace ]]/comaas-[[ .tenant ]]:[[ .version ]]"
+        image = "[[ .docker_namespace ]]/comaas:[[ .version ]]"
         network_mode = "host"
 
         auth {
@@ -119,7 +119,7 @@ job "comaas-[[ .tenant_short ]]" {
       driver = "docker"
 
       config {
-        image = "[[ .docker_namespace ]]/comaas-[[ .tenant ]]:[[ .version ]]"
+        image = "[[ .docker_namespace ]]/comaas:[[ .version ]]"
         network_mode = "host"
 
         auth {
