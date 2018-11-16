@@ -537,78 +537,58 @@
     </dependencies>
 
     <build>
-        <finalName>
-            ${project.groupId}.${project.parent.artifactId}-${project.parent.version}-${profile-classifier}-${env-name}
-        </finalName>
-
         <plugins>
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
+                <groupId>io.fabric8</groupId>
+                <artifactId>docker-maven-plugin</artifactId>
+                <version>0.26.0</version>
                 <configuration>
-                    <archive>
-                        <manifest>
-                            <mainClass>com.ecg.replyts.core.Application</mainClass>
-                            <addClasspath>true</addClasspath>
-                            <classpathPrefix>lib/</classpathPrefix>
-                        </manifest>
-                        <manifestEntries>
-                            <Class-Path>conf/${profile-classifier}/${env-name}/</Class-Path>
-                        </manifestEntries>
-                    </archive>
+                    <images>
+                        <image>
+                            <name>dock.es.ecg.tools/comaas/comaas:${project.version}</name>
+                            <build>
+                                <dockerFileDir>${project.basedir}/docker</dockerFileDir>
+                                <tags>
+                                    <tag>latest</tag>
+                                </tags>
+                                <assembly>
+                                    <inline>
+                                        <fileSet>
+                                            <directory>${project.build.directory}</directory>
+                                            <outputDirectory>target</outputDirectory>
+                                        </fileSet>
+                                    </inline>
+                                </assembly>
+                            </build>
+                        </image>
+                    </images>
                 </configuration>
                 <executions>
                     <execution>
-                        <id>default-jar</id>
-                        <configuration>
-                            <classifier>${profile-classifier}-${env-name}</classifier>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <executions>
-                    <execution>
+                        <id>docker:build</id>
                         <phase>package</phase>
                         <goals>
-                            <goal>single</goal>
-                        </goals>
-                        <configuration>
-                            <appendAssemblyId>true</appendAssemblyId>
-                            <finalName>comaas-${project.version}</finalName>
-                            <tarLongFileMode>posix</tarLongFileMode>
-                            <descriptors>
-                                <descriptor>assembly/distribution.xml</descriptor>
-                            </descriptors>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>exec-maven-plugin</artifactId>
-                <version>${exec-maven-plugin-version}</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>java</goal>
+                            <goal>build</goal>
                         </goals>
                     </execution>
                 </executions>
-                <configuration>
-                    <mainClass>com.example.Main</mainClass>
-                </configuration>
             </plugin>
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-install-plugin</artifactId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>3.1.1</version>
+                <executions>
+                    <execution>
+                        <id>copy-dependencies</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                    </execution>
+                </executions>
                 <configuration>
-                    <classifier>${profile-classifier}-${env-name}</classifier>
+                    <includeScope>compile</includeScope>
                 </configuration>
             </plugin>
         </plugins>
