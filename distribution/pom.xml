@@ -539,6 +539,10 @@
             <groupId>com.orbitz.consul</groupId>
             <artifactId>consul-client</artifactId>
         </dependency>
+        <dependency>
+            <groupId>commons-configuration</groupId>
+            <artifactId>commons-configuration</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
