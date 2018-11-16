@@ -5,12 +5,20 @@ library "commonFunctions@${PROVIDED_PIPELINE_BRANCH}"
 
 void packageComaas(String version) {
     echo "Packaging Comaas version $version"
-    final String dockerImageName = "dock.es.ecg.tools/comaas/comaas:${version}"
-
     sh "cd ecg-comaas-central && " +
             "mvn --settings etc/settings.xml versions:set -DnewVersion=\"$version\" -DgenerateBackupPoms=false &&" +
-            "bin/build.sh -p"
+            "bin/build.sh -p && " +
+            "mkdir -p builds && " +
+            "mv -v distribution/target/*.tar.gz builds/comaas-${version}.tar.gz"
 
+    echo "Creating Docker image for $version"
+    final String dockerImageName = "dock.es.ecg.tools/comaas/comaas:${version}"
+    final String tmpDir = "docker_image_src"
+    sh "cd ecg-comaas-central && " +
+            "rm -rf ${tmpDir} && " +
+            "mkdir -p ${tmpDir} && " +
+            "tar xf builds/comaas-${version}.tar.gz -C ${tmpDir} && " +
+            "docker build --no-cache --pull --tag ${dockerImageName} ."
     commonFunctions.loginToDocker()
     sh "docker push $dockerImageName"
     sh "docker image remove $dockerImageName"
@@ -77,7 +85,9 @@ node('build') {
         tenants = [PROVIDED_TENANT]
     }
 
-    commonFunctions.wrapWithStepDefinition(version, distribute, gitHash, "Package artifact for all")
+    buildSteps = ["failFast": false]
+    buildSteps += [((String) "package-all"): commonFunctions.wrapWithStepDefinition(['all', version], distribute, gitHash, "Package artifact for all")]
+    parallel buildSteps
 
     if (createTag) {
         stage("Tag commit with version") {

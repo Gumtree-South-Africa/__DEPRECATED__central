@@ -431,16 +431,19 @@
             <artifactId>kjca-filter-newreplier</artifactId>
             <version>${project.version}</version>
         </dependency>
+
         <dependency>
             <groupId>ecg.comaas</groupId>
             <artifactId>kjca-messagecenter</artifactId>
             <version>${project.version}</version>
         </dependency>
+
         <dependency>
             <groupId>ecg.comaas</groupId>
             <artifactId>kjca-listener-dw</artifactId>
             <version>${project.version}</version>
         </dependency>
+
         <dependency>
             <groupId>ecg.comaas</groupId>
             <artifactId>kjca-listener-user-behaviour</artifactId>
@@ -534,58 +537,78 @@
     </dependencies>
 
     <build>
+        <finalName>
+            ${project.groupId}.${project.parent.artifactId}-${project.parent.version}-${profile-classifier}-${env-name}
+        </finalName>
+
         <plugins>
             <plugin>
-                <groupId>io.fabric8</groupId>
-                <artifactId>docker-maven-plugin</artifactId>
-                <version>0.26.0</version>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
                 <configuration>
-                    <images>
-                        <image>
-                            <name>dock.es.ecg.tools/comaas/comaas:${project.version}</name>
-                            <build>
-                                <dockerFileDir>${project.basedir}/docker</dockerFileDir>
-                                <tags>
-                                    <tag>latest</tag>
-                                </tags>
-                                <assembly>
-                                    <inline>
-                                        <fileSet>
-                                            <directory>${project.build.directory}</directory>
-                                            <outputDirectory>target</outputDirectory>
-                                        </fileSet>
-                                    </inline>
-                                </assembly>
-                            </build>
-                        </image>
-                    </images>
+                    <archive>
+                        <manifest>
+                            <mainClass>com.ecg.replyts.core.Application</mainClass>
+                            <addClasspath>true</addClasspath>
+                            <classpathPrefix>lib/</classpathPrefix>
+                        </manifest>
+                        <manifestEntries>
+                            <Class-Path>conf/${profile-classifier}/${env-name}/</Class-Path>
+                        </manifestEntries>
+                    </archive>
                 </configuration>
                 <executions>
                     <execution>
-                        <id>docker:build</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>build</goal>
-                        </goals>
+                        <id>default-jar</id>
+                        <configuration>
+                            <classifier>${profile-classifier}-${env-name}</classifier>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <version>3.1.1</version>
+                <artifactId>maven-assembly-plugin</artifactId>
                 <executions>
                     <execution>
-                        <id>copy-dependencies</id>
                         <phase>package</phase>
                         <goals>
-                            <goal>copy-dependencies</goal>
+                            <goal>single</goal>
+                        </goals>
+                        <configuration>
+                            <appendAssemblyId>true</appendAssemblyId>
+                            <finalName>comaas-${project.version}</finalName>
+                            <tarLongFileMode>posix</tarLongFileMode>
+                            <descriptors>
+                                <descriptor>assembly/distribution.xml</descriptor>
+                            </descriptors>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>${exec-maven-plugin-version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>java</goal>
                         </goals>
                     </execution>
                 </executions>
                 <configuration>
-                    <includeScope>compile</includeScope>
+                    <mainClass>com.example.Main</mainClass>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-install-plugin</artifactId>
+                <configuration>
+                    <classifier>${profile-classifier}-${env-name}</classifier>
                 </configuration>
             </plugin>
         </plugins>
