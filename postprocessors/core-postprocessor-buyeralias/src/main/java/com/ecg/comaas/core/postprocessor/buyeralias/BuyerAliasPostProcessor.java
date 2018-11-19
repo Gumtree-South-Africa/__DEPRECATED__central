@@ -8,7 +8,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
-import static com.ecg.replyts.core.api.model.Tenants.*;
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_EBAYK;
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_GTUK;
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_IT;
 
 @ComaasPlugin
 @Profile({TENANT_GTUK, TENANT_EBAYK, TENANT_IT})

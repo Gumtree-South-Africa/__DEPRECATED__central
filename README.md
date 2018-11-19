@@ -31,7 +31,8 @@ Before running from IDE you have to import properties into consul manually to do
 
 ```
 cd ecg-comaas-docker
-TENANT=<tenant long name> ECG_COMAAS_CENTRAL=/Users/${USER}/dev/comaas/ecg-comaas-central make import
+export ECG_COMAAS_CENTRAL=/Users/<USER_NAME>/dev/comaas/ecg-comaas-central
+make import
 ```
 replace `/Users/${USER}/dev/comaas/ecg-comaas-central` with your path to Comaas's `central` repository and `tenant long name` with the tenant's long name.
 

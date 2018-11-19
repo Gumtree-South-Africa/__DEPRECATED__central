@@ -234,7 +234,6 @@
         <cassandra-client-version>2.1.10</cassandra-client-version>
         <HdrHistogram.version>2.1.9</HdrHistogram.version>
         <cglib-version>3.1</cglib-version>
-        <exec-maven-plugin-version>1.6.0</exec-maven-plugin-version>
         <elasticsearch-version>5.6.9</elasticsearch-version>
         <guava-version>18.0</guava-version>
         <commons-collections-version>3.2.1</commons-collections-version>
