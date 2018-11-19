@@ -6,6 +6,6 @@ COPY maven/target/dependency /app
 
 RUN apk add --no-cache ca-certificates
 
-ADD ./docker-entrypoint.sh /
+COPY ./docker-entrypoint.sh /
 
 ENTRYPOINT ["/docker-entrypoint.sh"]
