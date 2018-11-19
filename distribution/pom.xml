@@ -390,10 +390,6 @@
         </dependency>
         <dependency>
             <groupId>ecg.comaas</groupId>
-            <artifactId>core-filter-user</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>ecg.comaas</groupId>
             <artifactId>core-filter-activable</artifactId>
         </dependency>
         <dependency>
