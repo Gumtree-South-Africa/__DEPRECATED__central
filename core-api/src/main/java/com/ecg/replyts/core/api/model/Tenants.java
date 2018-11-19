@@ -20,5 +20,4 @@ public final class Tenants {
     public static final String TENANT_MVCA = "mvca";
     public static final String TENANT_SG = "sg";
     public static final String TENANT_ZA = "za";
-    public static final String TENANT_DK = "dk";
 }

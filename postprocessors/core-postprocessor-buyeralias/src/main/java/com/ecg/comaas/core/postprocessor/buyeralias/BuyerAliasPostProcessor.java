@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 import static com.ecg.replyts.core.api.model.Tenants.*;
 
 @ComaasPlugin
-@Profile({TENANT_GTUK, TENANT_EBAYK, TENANT_IT, TENANT_DK})
+@Profile({TENANT_GTUK, TENANT_EBAYK, TENANT_IT})
 @Component
 public class BuyerAliasPostProcessor implements PostProcessor {
 

@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 import static com.ecg.replyts.core.api.model.Tenants.*;
 
 @ComaasPlugin
-@Profile({TENANT_GTUK, TENANT_GTAU, TENANT_MP, TENANT_EBAYK, TENANT_KJCA, TENANT_IT, TENANT_MX, TENANT_AR, TENANT_ZA, TENANT_SG, TENANT_MVCA, TENANT_DK})
+@Profile({TENANT_GTUK, TENANT_GTAU, TENANT_MP, TENANT_EBAYK, TENANT_KJCA, TENANT_IT, TENANT_MX, TENANT_AR, TENANT_ZA, TENANT_SG, TENANT_MVCA})
 @Component
 public class ThresholdResultInspectorFactory implements ResultInspectorFactory {
 
