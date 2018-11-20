@@ -18,6 +18,7 @@ import com.ecg.replyts.core.api.model.conversation.MessageDirection;
 import com.ecg.replyts.core.api.model.conversation.MessageState;
 import com.ecg.replyts.core.api.model.conversation.ModerationResultState;
 import com.ecg.replyts.core.api.model.conversation.ProcessingFeedback;
+import com.ecg.replyts.core.api.pluginconfiguration.ComaasPlugin;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.listener.MessageProcessedListener;
 import com.google.common.collect.ImmutableList;
@@ -25,6 +26,7 @@ import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Profile;
 import org.springframework.jms.JmsException;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.stereotype.Component;
@@ -33,8 +35,12 @@ import org.springframework.util.StringUtils;
 import java.util.List;
 import java.util.Map;
 
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_KJCA;
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_MVCA;
 import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
 
+@ComaasPlugin
+@Profile({TENANT_KJCA, TENANT_MVCA})
 @Component
 /*
  * Listens for message-processed events and reports current conversation and message
