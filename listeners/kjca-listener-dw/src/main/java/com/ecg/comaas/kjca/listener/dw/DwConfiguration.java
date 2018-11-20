@@ -3,6 +3,7 @@ package com.ecg.comaas.kjca.listener.dw;
 import com.ecg.replyts.core.api.pluginconfiguration.ComaasPlugin;
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.pool.PooledConnectionFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -19,7 +20,6 @@ import static com.ecg.replyts.core.api.model.Tenants.TENANT_MVCA;
 @Profile({TENANT_KJCA, TENANT_MVCA})
 @Configuration
 @Import(ActiveMQReporter.class)
-@ComponentScan("com.ecg.comaas.kjca")
 public class DwConfiguration {
 
     private static final String AMQ_CONN_ARGS =
@@ -48,6 +48,17 @@ public class DwConfiguration {
         connectionFactory.setConnectionFactory(activeMQConnectionFactory);
         connectionFactory.setMaxConnections(maxConnections);
         return connectionFactory;
+    }
+
+    @Bean
+    public ActiveMQReporter activeMQReporter(
+            @Qualifier("dwJmsTemplate") JmsTemplate jmsTemplate,
+            @Value("${mailcloaking.localized.buyer}") String buyerPrefix,
+            @Value("${mailcloaking.localized.seller}") String sellerPrefix,
+            // Do not ever change this, you will break replies to existing messages.
+            @Value("${mailcloaking.seperator:.}") String mailCloakingSeparator) {
+
+        return new ActiveMQReporter(jmsTemplate, buyerPrefix, sellerPrefix, mailCloakingSeparator);
     }
 
     private static String createAmqUrl(String protocol, String host, int port) {

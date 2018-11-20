@@ -39,9 +39,6 @@ import static com.ecg.replyts.core.api.model.Tenants.TENANT_KJCA;
 import static com.ecg.replyts.core.api.model.Tenants.TENANT_MVCA;
 import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
 
-@ComaasPlugin
-@Profile({TENANT_KJCA, TENANT_MVCA})
-@Component
 /*
  * Listens for message-processed events and reports current conversation and message
  * states to the data warehouse queue, which is processed in Box's Batch runner.
@@ -61,13 +58,12 @@ public class ActiveMQReporter implements MessageProcessedListener {
     private List<MessageState> acceptableMessageStates = ImmutableList.of(MessageState.BLOCKED, MessageState.HELD, MessageState.SENT);
     private JsonTransformer<ReplyTSProcessedMessageEventDTO> transformer = new JsonTransformer<>(ReplyTSProcessedMessageEventDTO.class, false);
 
-    @Autowired
     public ActiveMQReporter(
-            @Qualifier("dwJmsTemplate") JmsTemplate jmsTemplate,
-            @Value("${mailcloaking.localized.buyer}") String buyerPrefix,
-            @Value("${mailcloaking.localized.seller}") String sellerPrefix,
-            @Value("${mailcloaking.seperator:.}") String mailCloakingSeparator // Do not ever change this, you will break replies to existing messages.
-    ) {
+            JmsTemplate jmsTemplate,
+            String buyerPrefix,
+            String sellerPrefix,
+            String mailCloakingSeparator) {
+
         this.jmsTemplate = jmsTemplate;
         this.buyerPrefix = buyerPrefix;
         this.sellerPrefix = sellerPrefix;
