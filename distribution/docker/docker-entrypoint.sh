@@ -3,7 +3,7 @@ set -e
 
 BASE_DIR=/opt/replyts
 
-CLASSPATH="${BASE_DIR}/lib/*"
+CLASSPATH="/app/*"
 REPO=${BASE_DIR}/lib
 CONF_DIR=${BASE_DIR}/conf
 
@@ -64,11 +64,6 @@ export https_proxy=http://proxy.${region}.cloud.ecg.so:3128
     -XX:+PrintClassHistogram \
     -XX:+PrintStringTableStatistics \
     -classpath "${CLASSPATH}" \
-    -Dapp.name="comaas" \
-    -Dapp.pid="$$" \
-    -Dapp.home="${BASE_DIR}" \
-    -Dbasedir="${BASE_DIR}" \
-    -Dapp.repo="${REPO}" \
     com.ecg.replyts.core.Application & pid=$!
 
 wait

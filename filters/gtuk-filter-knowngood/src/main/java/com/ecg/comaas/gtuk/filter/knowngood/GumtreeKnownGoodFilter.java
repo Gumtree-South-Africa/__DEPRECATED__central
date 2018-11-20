@@ -2,6 +2,7 @@ package com.ecg.comaas.gtuk.filter.knowngood;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Timer;
+import com.ecg.gumtree.comaas.common.filter.GumshieldClient;
 import com.ecg.gumtree.replyts2.common.message.GumtreeCustomHeaders;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;
@@ -11,7 +12,6 @@ import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.gumtree.filters.comaas.Filter;
 import com.gumtree.filters.comaas.config.KnownGoodFilterConfig;
-import com.gumtree.gumshield.api.client.spec.UserApi;
 import com.gumtree.gumshield.api.domain.known_good.KnownGoodResponse;
 import com.gumtree.gumshield.api.domain.known_good.KnownGoodStatus;
 import org.slf4j.Logger;
@@ -31,8 +31,7 @@ public class GumtreeKnownGoodFilter implements com.ecg.replyts.core.api.pluginco
     private static final String SELLERGOOD = "sellergood";
     private final Timer processTimer = TimingReports.newTimer("known-good-filter-process-time");
     private final Counter errorCounter = TimingReports.newCounter("known-good-failed-gumshield-calls");
-
-    private UserApi userApi;
+    private GumshieldClient client;
     private Filter pluginConfig;
     private KnownGoodFilterConfig filterConfig;
 
@@ -65,7 +64,7 @@ public class GumtreeKnownGoodFilter implements com.ecg.replyts.core.api.pluginco
         Long senderId = getSenderId(message.getHeaders(), message.getMessageDirection());
         if (senderId != null) {
             try {
-                KnownGoodResponse knownGoodResponse = userApi.knownGood(senderId);
+                KnownGoodResponse knownGoodResponse = client.knownGood(senderId);
                 knownGood = knownGoodResponse != null && knownGoodResponse.getStatus() == KnownGoodStatus.GOOD;
             } catch (RuntimeException e) {
                 errorCounter.inc();
@@ -106,8 +105,8 @@ public class GumtreeKnownGoodFilter implements com.ecg.replyts.core.api.pluginco
         return this;
     }
 
-    GumtreeKnownGoodFilter withUserApi(UserApi userApi) {
-        this.userApi = userApi;
+    GumtreeKnownGoodFilter withUserApi(GumshieldClient client) {
+        this.client = client;
         return this;
     }
 }

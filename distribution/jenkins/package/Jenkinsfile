@@ -3,22 +3,14 @@ import java.text.SimpleDateFormat
 
 library "commonFunctions@${PROVIDED_PIPELINE_BRANCH}"
 
-void packageComaas(String tenant, String version) {
-    echo "Packaging Comaas for $tenant"
+void packageComaas(String version) {
+    echo "Packaging Comaas version $version"
+    final String dockerImageName = "dock.es.ecg.tools/comaas/comaas:${version}"
+
     sh "cd ecg-comaas-central && " +
             "mvn --settings etc/settings.xml versions:set -DnewVersion=\"$version\" -DgenerateBackupPoms=false &&" +
-            "bin/build.sh -T ${tenant} -P prod && " +
-            "mkdir -p builds && " +
-            "mv -v distribution/target/*.tar.gz builds/comaas-${tenant}_${version}.tar.gz"
+            "bin/build.sh -p"
 
-    echo "Creating Docker image for $tenant"
-    final String dockerImageName = "dock.es.ecg.tools/comaas/comaas-${tenant}:${version}"
-    final String tmpDir = "docker_image_src"
-    sh "cd ecg-comaas-central && " +
-            "rm -rf ${tmpDir} && " +
-            "mkdir -p ${tmpDir} && " +
-            "tar xf builds/comaas-${tenant}_${version}.tar.gz -C ${tmpDir} && " +
-            "docker build --no-cache --pull --tag ${dockerImageName} --label tenant=${tenant} ."
     commonFunctions.loginToDocker()
     sh "docker push $dockerImageName"
     sh "docker image remove $dockerImageName"
@@ -26,8 +18,7 @@ void packageComaas(String tenant, String version) {
 
 // p contains [tenant, version]
 distribute = { String[] p ->
-    String tenant = p[0], version = p[1]
-    packageComaas(tenant, version)
+    packageComaas(p[0])
 }
 
 void setEnvVars() {
@@ -77,20 +68,11 @@ node('build') {
     }
 
     echo "Packaging version $version using git hash $gitHash"
-    currentBuild.description = "$version $PROVIDED_TENANT"
-
-    if (PROVIDED_TENANT == 'all' || PROVIDED_TENANT == '') {
-        tenants = commonFunctions.allTenants()
-    } else {
-        tenants = [PROVIDED_TENANT]
-    }
+    currentBuild.description = "$version"
 
     buildSteps = ["failFast": false]
-    buildSteps += tenants.collectEntries { tenant ->
-        String stageName = "Package artifact for $tenant"
-        [((String) "package-$tenant"): commonFunctions.wrapWithStepDefinition([tenant, version], distribute, gitHash, stageName)]
-    }
-    parallel buildSteps
+        buildSteps += [((String) "package"): commonFunctions.wrapWithStepDefinition([version], distribute, gitHash, "Package artifact")]
+        parallel buildSteps
 
     if (createTag) {
         stage("Tag commit with version") {

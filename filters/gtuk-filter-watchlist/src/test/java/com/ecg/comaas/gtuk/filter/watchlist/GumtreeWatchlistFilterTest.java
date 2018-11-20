@@ -1,5 +1,6 @@
 package com.ecg.comaas.gtuk.filter.watchlist;
 
+import com.ecg.gumtree.comaas.common.filter.GumshieldClient;
 import com.ecg.replyts.core.api.model.conversation.FilterResultState;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;
@@ -15,7 +16,6 @@ import com.gumtree.filters.comaas.Filter;
 import com.gumtree.filters.comaas.config.Result;
 import com.gumtree.filters.comaas.config.State;
 import com.gumtree.filters.comaas.config.WatchlistFilterConfig;
-import com.gumtree.gumshield.api.client.spec.ChecklistApi;
 import com.gumtree.gumshield.api.domain.checklist.ApiChecklistAttribute;
 import com.gumtree.gumshield.api.domain.checklist.ApiChecklistEntry;
 import com.gumtree.gumshield.api.domain.checklist.ApiChecklistType;
@@ -44,7 +44,7 @@ public class GumtreeWatchlistFilterTest {
     private GumtreeWatchlistFilter gumtreeWatchlistFilter;
 
     @Autowired
-    private ChecklistApi checklistApi;
+    private GumshieldClient gumshieldClient;
 
     @Test
     public void testExemptedCategoriesReturnsEmptyList() {
@@ -71,11 +71,11 @@ public class GumtreeWatchlistFilterTest {
     public void testGoodSender() {
         Mail mail = mock(Mail.class);
         when(mail.getFrom()).thenReturn("goodguy@hotmail.com");
-        when(checklistApi.findEntryByValue(eq(ApiChecklistType.WATCH), eq(ApiChecklistAttribute.EMAIL),
+        when(gumshieldClient.checkByValue(eq(ApiChecklistType.WATCH), eq(ApiChecklistAttribute.EMAIL),
                 eq("goodguy@hotmail.com"))).thenThrow(new NotFoundHttpStatusException());
-        when(checklistApi.findEntryByValue(eq(ApiChecklistType.WATCH), eq(ApiChecklistAttribute.EMAIL_DOMAIN),
+        when(gumshieldClient.checkByValue(eq(ApiChecklistType.WATCH), eq(ApiChecklistAttribute.EMAIL_DOMAIN),
                 eq("hotmail.com"))).thenThrow(new NotFoundHttpStatusException());
-        when(checklistApi.findEntryByValue(eq(ApiChecklistType.WATCH), eq(ApiChecklistAttribute.HOST),
+        when(gumshieldClient.checkByValue(eq(ApiChecklistType.WATCH), eq(ApiChecklistAttribute.HOST),
                 eq("1.1.1.1"))).thenThrow(new NotFoundHttpStatusException());
 
         List<FilterFeedback> feedbacks = gumtreeWatchlistFilter.filter(getMessageProcessingContext(mail));
@@ -86,9 +86,9 @@ public class GumtreeWatchlistFilterTest {
     public void testWatchlistedSenderEmailDomain() {
         Mail mail = mock(Mail.class);
         when(mail.getFrom()).thenReturn("goodguy@hotmail.com");
-        when(checklistApi.findEntryByValue(eq(ApiChecklistType.WATCH), eq(ApiChecklistAttribute.EMAIL),
+        when(gumshieldClient.checkByValue(eq(ApiChecklistType.WATCH), eq(ApiChecklistAttribute.EMAIL),
                 eq("goodguy@hotmail.com"))).thenThrow(new NotFoundHttpStatusException());
-        when(checklistApi.findEntryByValue(eq(ApiChecklistType.WATCH), eq(ApiChecklistAttribute.EMAIL_DOMAIN),
+        when(gumshieldClient.checkByValue(eq(ApiChecklistType.WATCH), eq(ApiChecklistAttribute.EMAIL_DOMAIN),
                 eq("hotmail.com"))).thenReturn(new ApiChecklistEntry());
 
         List<FilterFeedback> feedbacks = gumtreeWatchlistFilter.filter(getMessageProcessingContext(mail));
@@ -100,11 +100,11 @@ public class GumtreeWatchlistFilterTest {
     public void testWatchlistedSenderIpAddress() {
         Mail mail = mock(Mail.class);
         when(mail.getFrom()).thenReturn("goodguy@hotmail.com");
-        when(checklistApi.findEntryByValue(eq(ApiChecklistType.WATCH), eq(ApiChecklistAttribute.EMAIL),
+        when(gumshieldClient.checkByValue(eq(ApiChecklistType.WATCH), eq(ApiChecklistAttribute.EMAIL),
                 eq("goodguy@hotmail.com"))).thenThrow(new NotFoundHttpStatusException());
-        when(checklistApi.findEntryByValue(eq(ApiChecklistType.WATCH), eq(ApiChecklistAttribute.EMAIL_DOMAIN),
+        when(gumshieldClient.checkByValue(eq(ApiChecklistType.WATCH), eq(ApiChecklistAttribute.EMAIL_DOMAIN),
                 eq("hotmail.com"))).thenThrow(new NotFoundHttpStatusException());
-        when(checklistApi.findEntryByValue(eq(ApiChecklistType.WATCH), eq(ApiChecklistAttribute.HOST),
+        when(gumshieldClient.checkByValue(eq(ApiChecklistType.WATCH), eq(ApiChecklistAttribute.HOST),
                 eq("1.1.1.1"))).thenReturn(new ApiChecklistEntry());
 
         List<FilterFeedback> feedbacks = gumtreeWatchlistFilter.filter(getMessageProcessingContext(mail));
@@ -126,7 +126,7 @@ public class GumtreeWatchlistFilterTest {
     @Configuration
     static class TestContext {
         @MockBean
-        ChecklistApi checklistApi;
+        GumshieldClient checklistApi;
 
         @Bean
         public WatchlistFilterConfig filterConfig() throws Exception {

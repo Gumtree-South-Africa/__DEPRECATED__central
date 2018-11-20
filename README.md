@@ -27,44 +27,26 @@ Note that you will have to install Docker on your local machines, the automated 
 
 #### Option 1. IDE
 
-Before running from IDE you have to import properties into consul manually to do that execute:  
+Before running from IDE you have to import properties into consul manually to do that execute:
 
 ```
 cd ecg-comaas-docker
 export ECG_COMAAS_CENTRAL=/Users/<USER_NAME>/dev/comaas/ecg-comaas-central
 make import
 ```
-replace `/Users/<USER_NAME>/dev/comaas/ecg-comaas-central` with you path to `ecg-comaas-central` repository.
+replace `/Users/${USER}/dev/comaas/ecg-comaas-central` with your path to Comaas's `central` repository and `tenant long name` with the tenant's long name.
 
-* Type: Maven
+Before IntelliJ understands the project, you will need to generate the protobuf sources by executing `bin/build.sh` without arguments.
+
+Now add a Run Configuration in IntelliJ with the following properties:
+
+* Type: Application
 * Name: COMaaS for: [name of tenant, mp|mde|ebayk]
 
-* Parameters / Working directory: [full path to the ecg-comaas-central folder]
-* Parameters / Command line: verify -Dmaven.exec.skip=false
-* Parameters / Profiles: [name of tenant, e.g. mp]
-
-* General / Maven home directory: [make sure you select the latest version, usually not the IntelliJ built-in, e.g. 3.3.9, set `User setting file` to <PATH_TO>/ecg-comaas-central/etc/settings.xml]
-* General / Make sure "Execute goals recursively" is checked
-
-* Runner / VM arguments:
-  ```
-  -DconfDir=distribution/conf/<name of tenant, e.g. mp>/docker
-  -DlogDir=/tmp
-  -Dmail.mime.parameters.strict=false
-  -Dmail.mime.address.strict=false
-  -Dmail.mime.ignoreunknownencoding=true
-  -Dmail.mime.uudecode.ignoreerrors=true
-  -Dmail.mime.uudecode.ignoremissingbeginend=true
-  -Dmail.mime.multipart.allowempty=true
-  -Dmaven.wagon.http.ssl.insecure=true
-  -Dmaven.wagon.http.ssl.allowall=true
-  -Dmaven.wagon.http.ssl.ignore.validity.dates=true
-  -Djavax.net.ssl.trustStore=comaas.jks
-  -Djavax.net.ssl.trustStorePassword=comaas
-  ```
-* Skip tests: check this
-
-This will call exec:java through the 'verify' phase in the distribution module. 'maven.exec.skip' is normally true, which prevents exec:java from being called prior to the normal 'deploy' phase.
+* Main class: com.ecg.replyts.core.Application
+* VM Options: -Dtenant=<tenant long name> -Dservice.discovery.port=8599 -Dlogging.service.structured.logging=false
+* Working directory: /Users/<user name>/dev/ecg-comaas-central
+* Use classpath of module: distribution
 
 #### Option 1. Build script
 
@@ -79,36 +61,14 @@ In the docker repo, run `make send`. This puts a message in the `mp_messages`  k
 
 After being succesfully processed in the Trust & Safety pipeline, the approved message should show up in the `conversation_events`  topic , which you can check at [http://localhost:8073/#/cluster/default/topic/n/conversation_events/data](http://localhost:8073/#/cluster/default/topic/n/conversation_events/data) . 
 
-### Native Cassandra
-
-If you want to be able to run Cassandra natively, download Cassandra from http://archive.apache.org/dist/cassandra/2.1.15/ to your machine and put it in /opt/cassandra. Alternatively, use `brew install homebrew/versions/cassandra21`.
-This is no longer strictly needed.
-
-If you are using python >= 2.7.12 you need cassandra 2.1.16+ (http://archive.apache.org/dist/cassandra/2.1.16/apache-cassandra-2.1.16-bin.tar.gz) download it and put it in /opt/cassandra.
-
-If you are using older python you can use brew `brew install homebrew/versions/cassandra21`.
-
-1. Run `cassandra` to start the service. Start the VM.
-2. Run `bin/setup-cassandra.sh; bin/setup-cassandra.sh localhost` to run initial db migrations on both instances. Integration tests use the local one, while runtime uses the VM.
-
-If you get an error like `Connection error: ('Unable to connect to any servers', {'localhost': TypeError('ref() does not take keyword arguments',)})` try to upgrade cassandra to 2.1.16 (if released), or downgrade python to <2.7.12. For example, using homebrew: `brew switch python 2.7.9`.
-
-Check the profile you want to build against in IntelliJ's Maven Projects view
-![IntelliJ Profile Selection](/docs/intellij-profile-selection.png)
-
 ## Auto-discovery of (cloud) services and properties (Consul)
 COMaaS has support for auto-discovery of some cloud services (currently Cassandra, when registered in Consul) as well as configuration properties (Consul KV).
 
-### Registration with Consul
-The application will register itself with the Consul server as `comaas:core:<tenant>:<port>` and appear under 'comaas-core' in Consul.
-
 ### Consul services
-The application will automatically scan for other Consul-registered services. Currently this is only Cassandra, where the service name is hard-matched to 'cassandra'. Cassandra must be registered with Consul (e.g. through a `cassandra.json` file on each Cassandra/Consul node) for this to work.
+The application will automatically scan for other Consul-registered services. Currently this is Cassandra, Kafka, and ElasticSearch.
 
 ### Consul configuration (KV)
-Consul will also be added as a PropertySource for configuration resolution (similar to replyts.properties). Configuration in Consul overrides what is present in the replyts.properties file.
-
-In order to add keys to consul, add them with the prefix `comaas/<tenant>` or `comaas/comaas:core:<tenant>:<port>`. E.g. `comaas/kjca/persistence.strategy` with value `cassandra`. This prefix approach allows one Consul instance to contain properties for multiple tenants (or the same tenant running on multiple ports).
+In order to add keys to consul, add them with the prefix `comaas/comaas:core:<tenant long name>`. E.g. `comaas/comaas:core:ebayk/persistence.strategy` with value `cassandra`. This prefix approach allows one Consul instance to contain properties for multiple tenants (or the same tenant running on multiple ports).
 
 ## MP system overview
 ![Messaging system overview at Marktplaats](/docs/20151221-messaging-system-overview.jpg)
