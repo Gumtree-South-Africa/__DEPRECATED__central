@@ -1,14 +1,23 @@
 package com.ecg.replyts.core;
 
+import com.ecg.replyts.app.postprocessorchain.PostProcessor;
+import com.ecg.replyts.app.preprocessorchain.PreProcessor;
 import com.ecg.replyts.core.api.pluginconfiguration.ComaasPlugin;
+import com.ecg.replyts.core.api.pluginconfiguration.filter.Filter;
 import com.ecg.replyts.core.runtime.HttpServerFactory;
 import com.ecg.replyts.core.runtime.StartupExperience;
+import com.ecg.replyts.core.runtime.listener.MessageProcessedListener;
+import com.ecg.replyts.core.runtime.persistence.ObjectMapperConfigurer;
 import com.ecg.replyts.core.runtime.prometheus.PrometheusExporter;
 import com.ecg.replyts.core.webapi.SpringContextProvider;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.hazelcast.config.Config;
 import com.hazelcast.config.DiscoveryStrategyConfig;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.core.MessageListener;
+import net.logstash.logback.argument.StructuredArguments;
 import org.bitsofinfo.hazelcast.discovery.consul.ConsulDiscoveryStrategy;
 import org.bitsofinfo.hazelcast.discovery.consul.DoNothingRegistrator;
 import org.slf4j.Logger;
@@ -23,6 +32,7 @@ import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.support.AbstractRefreshableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -159,8 +169,32 @@ public class Application {
             context.getBean(StartupExperience.class).running(context.getBean(HttpServerFactory.class).getPort());
 
             context.publishEvent(new ApplicationReadyEvent(context));
+
+            logRegisteredComponents(context);
         } catch (Exception e) {
             LOG.error("Unable to start Comaas", e);
         }
+    }
+
+    private static void logRegisteredComponents(AbstractRefreshableApplicationContext context) {
+        ArrayNode filters = ObjectMapperConfigurer.arrayBuilder();
+        context.getBeansOfType(Filter.class).values().stream().forEach(comp -> filters.add(comp.getClass().getName()));
+
+        ArrayNode preProcessors = ObjectMapperConfigurer.arrayBuilder();
+        context.getBeansOfType(PreProcessor.class).values().stream().forEach(comp -> preProcessors.add(comp.getClass().getName()));
+
+        ArrayNode postProcessors = ObjectMapperConfigurer.arrayBuilder();
+        context.getBeansOfType(PostProcessor.class).values().stream().forEach(comp -> postProcessors.add(comp.getClass().getName()));
+
+        ArrayNode listeners = ObjectMapperConfigurer.arrayBuilder();
+        context.getBeansOfType(MessageProcessedListener.class).values().stream().forEach(comp -> listeners.add(comp.getClass().getName()));
+
+        ObjectNode components = ObjectMapperConfigurer.objectBuilder();
+        components.set("pre_processors", preProcessors);
+        components.set("filters", filters);
+        components.set("post_processors", postProcessors);
+        components.set("listeners", listeners);
+
+        LOG.info("Registration Completed", StructuredArguments.raw("components", components.toString()));
     }
 }
