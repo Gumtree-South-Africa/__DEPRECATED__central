@@ -3,7 +3,7 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
     <bean id="amqConnArgs" class="java.lang.String">
-        <constructor-arg value="wireFormat.maxInactivityDurationInitalDelay=5000&amp;wireFormat.maxInactivityDuration=10000&amp;wireFormat.stackTraceEnabled=true&amp;keepAlive=true&amp;soTimeout=3000&amp;connectionTimeout=3000"/>
+        <constructor-arg value="wireFormat.maxInactivityDurationInitalDelay=5000&amp;wireFormat.maxInactivityDuration=10000&amp;wireFormat.stackTraceEnabled=true&amp;keepAlive=true&amp;soTimeout=3000&amp;connectionTimeout=2999"/>
     </bean>
     <bean id="amqPrimary" class="java.lang.String">
         <constructor-arg value="${activemq.broker.protocol:tcp}://${activemq.broker.host:localhost}:${activemq.broker.port:61616}?#{amqConnArgs}"/>
