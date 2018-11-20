@@ -12,7 +12,7 @@
         <constructor-arg value="${activemq.broker.protocol:tcp}://${activemq.standby.broker.host:localhost}:${activemq.broker.port:61616}?#{amqConnArgs}"/>
     </bean>
     <bean id="amqFailover" class="java.lang.String">
-        <constructor-arg value="failover://(#{amqPrimary},#{amqStandby})?randomize=false&amp;initialReconnectDelay=100&amp;maxReconnectDelay=2000&amp;maxReconnectAttempts=6&amp;timeout=1000"/>
+        <constructor-arg value="failover://(#{amqPrimary},#{amqStandby})?randomize=false&amp;initialReconnectDelay=100&amp;maxReconnectDelay=2000&amp;maxReconnectAttempts=6&amp;timeout=999"/>
     </bean>
 
     <!-- Pools JMS connections, this is most likely the ideal way to connect to JMS -->
