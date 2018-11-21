@@ -5,7 +5,6 @@ import com.ecg.messagecenter.core.persistence.simple.SimplePostBoxRepository;
 import com.ecg.messagecenter.kjca.capi.AdInfoLookup;
 import com.ecg.messagecenter.kjca.capi.UserInfoLookup;
 import com.ecg.messagecenter.kjca.listeners.KjcaPostBoxUpdateListener;
-import com.ecg.messagecenter.kjca.listeners.UnreadCountCacher;
 import com.ecg.messagecenter.kjca.persistence.SimplePostBoxInitializer;
 import com.ecg.messagecenter.kjca.pushmessage.PushMessageOnUnreadConversationCallback;
 import com.ecg.messagecenter.kjca.pushmessage.PushService;
@@ -52,15 +51,13 @@ public class KjcaPostBoxUpdateListenerTest {
     private UserInfoLookup userInfoLookup;
     @Mock
     private TextAnonymizer textAnonymizer;
-    @Mock
-    private UnreadCountCacher unreadCountCacher;
 
     private ImmutableConversation.Builder convoBuilder;
     private ImmutableMessage.Builder msgBuilder;
 
     @Before
     public void setUp() throws Exception {
-        listener = new KjcaPostBoxUpdateListener(postBoxInitializer, postBoxRepository, false, "http", "capi", 80, "username", "password", 1000, 1000, 1000, 1, 0, 0, null, sendPushService, textAnonymizer, unreadCountCacher);
+        listener = new KjcaPostBoxUpdateListener(postBoxInitializer, postBoxRepository, false, "http", "capi", 80, "username", "password", 1000, 1000, 1000, 1, 0, sendPushService, textAnonymizer);
 
         convoBuilder = ImmutableConversation.Builder
                 .aConversation()
@@ -94,14 +91,12 @@ public class KjcaPostBoxUpdateListenerTest {
                 eq(conversation.getSellerId()),
                 eq(conversation),
                 eq(true),
-                any(PushMessageOnUnreadConversationCallback.class),
-                eq(unreadCountCacher));
+                any(PushMessageOnUnreadConversationCallback.class));
         verify(postBoxInitializer).moveConversationToPostBox(
                 eq(conversation.getBuyerId()),
                 eq(conversation),
                 eq(false),
-                any(PushMessageOnUnreadConversationCallback.class),
-                eq(unreadCountCacher));
+                any(PushMessageOnUnreadConversationCallback.class));
     }
 
     @Test
@@ -167,7 +162,6 @@ public class KjcaPostBoxUpdateListenerTest {
                 eq(conversation.getSellerId()),
                 eq(conversation),
                 eq(true),
-                any(),
                 any());
 
         listener.messageProcessed(conversation, message);

@@ -43,7 +43,6 @@ public class KjcaPostBoxUpdateListener implements MessageProcessedListener {
     private final AdInfoLookup adInfoLookup;
     private final UserInfoLookup userInfoLookup;
     private final TextAnonymizer textAnonymizer;
-    private final UnreadCountCacher unreadCountCacher;
 
     @Autowired
     public KjcaPostBoxUpdateListener(SimplePostBoxInitializer postBoxInitializer,
@@ -60,12 +59,10 @@ public class KjcaPostBoxUpdateListener implements MessageProcessedListener {
                                      @Value("${capi.maxConnectionsPerHost:40}") int maxConnectionsPerHost,
                                      @Value("${capi.retryCount:1}") int retryCount,
                                      @Qualifier("sendPushService") PushService sendPushService,
-                                     TextAnonymizer textAnonymizer,
-                                     UnreadCountCacher unreadCountCacher) {
+                                     TextAnonymizer textAnonymizer) {
         this.postBoxInitializer = postBoxInitializer;
         this.postBoxRepository = postBoxRepository;
         this.textAnonymizer = textAnonymizer;
-        this.unreadCountCacher = unreadCountCacher;
 
         final HttpClientConfig httpClientConfig = new HttpClientConfig(connectionTimeout, connectionManagerTimeout, socketTimeout, maxConnectionsPerHost, retryCount);
         final CommonApiConfig commonApiConfig = new CommonApiConfig(capiHost, capiPort, capiScheme, capiUsername, capiPassword);
@@ -129,7 +126,6 @@ public class KjcaPostBoxUpdateListener implements MessageProcessedListener {
                         userInfoLookup,
                         conversation,
                         message
-                ),
-                unreadCountCacher);
+                ));
     }
 }
