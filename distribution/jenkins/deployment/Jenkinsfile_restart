@@ -153,7 +153,7 @@ node("master") {
                             "-var='environment=${environment}' " +
                             "-var='region=${dc}' " +
                             "-var='hazelcast_group_name=${hazelcastGroupName}'"
-                final String levantCmd = "docker run --network host --rm -v \$(pwd)/distribution/jenkins/deployment/:/deployment:ro jrasell/levant:0.0.4 levant"
+                final String levantCmd = "docker run --network host --rm -v \$(pwd)/distribution/jenkins/deployment/:/deployment:ro jrasell/levant:0.2.5 levant"
 
                 sh "$levantCmd render ${vars} /deployment/comaas.nomad"
                 sh "$levantCmd deploy ${vars} -log-level=debug -address='http://http.nomad.service.consul:4646' /deployment/comaas.nomad"
