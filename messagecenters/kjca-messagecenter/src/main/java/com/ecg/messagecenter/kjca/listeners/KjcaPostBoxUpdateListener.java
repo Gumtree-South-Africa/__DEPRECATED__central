@@ -39,11 +39,9 @@ public class KjcaPostBoxUpdateListener implements MessageProcessedListener {
     private final UserNotificationRules userNotificationRules;
     private final SimplePostBoxRepository postBoxRepository;
     private final SimplePostBoxInitializer postBoxInitializer;
-    private final PushService amqPushService;
     private final PushService sendPushService;
     private final AdInfoLookup adInfoLookup;
     private final UserInfoLookup userInfoLookup;
-    private final Integer pushServicePercentage;
     private final TextAnonymizer textAnonymizer;
     private final UnreadCountCacher unreadCountCacher;
 
@@ -61,8 +59,6 @@ public class KjcaPostBoxUpdateListener implements MessageProcessedListener {
                                      @Value("${capi.socketTimeout:2500}") int socketTimeout,
                                      @Value("${capi.maxConnectionsPerHost:40}") int maxConnectionsPerHost,
                                      @Value("${capi.retryCount:1}") int retryCount,
-                                     @Value("${send.push.percentage:0}") int pushServicePercentage,
-                                     @Qualifier("messageCentreJmsTemplate") JmsTemplate jmsTemplate,
                                      @Qualifier("sendPushService") PushService sendPushService,
                                      TextAnonymizer textAnonymizer,
                                      UnreadCountCacher unreadCountCacher) {
@@ -76,13 +72,9 @@ public class KjcaPostBoxUpdateListener implements MessageProcessedListener {
         this.adInfoLookup = new AdInfoLookup(httpClientConfig, commonApiConfig);
         this.userInfoLookup = new UserInfoLookup(httpClientConfig, commonApiConfig);
 
-        this.pushServicePercentage = pushServicePercentage;
-
         if (pushEnabled) {
-            this.amqPushService = new ActiveMQPushServiceImpl(jmsTemplate);
             this.sendPushService = sendPushService;
         } else {
-            this.amqPushService = null;
             this.sendPushService = null;
         }
         this.userNotificationRules = new UserNotificationRules();
@@ -131,8 +123,6 @@ public class KjcaPostBoxUpdateListener implements MessageProcessedListener {
                 newReplyArrived,
                 new PushMessageOnUnreadConversationCallback(
                         postBoxRepository,
-                        pushServicePercentage,
-                        amqPushService,
                         sendPushService,
                         textAnonymizer,
                         adInfoLookup,

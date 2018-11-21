@@ -16,7 +16,6 @@ public class SendPushService extends PushService {
 
     private final PushMessageTransformer transformer;
 
-    @Autowired
     public SendPushService(SendClient sendClient) {
         this.sendClient = sendClient;
         this.transformer = new PushMessageTransformer();
