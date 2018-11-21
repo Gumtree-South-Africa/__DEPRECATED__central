@@ -13,11 +13,12 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_BE;
 import static com.ecg.replyts.core.api.model.Tenants.TENANT_MP;
 
 // TODO akobiakov this should probably also be not email specific
 @ComaasPlugin
-@Profile(TENANT_MP)
+@Profile({TENANT_MP, TENANT_BE})
 @Component
 public class MessagingUrlPostProcessor implements EmailPostProcessor {
 

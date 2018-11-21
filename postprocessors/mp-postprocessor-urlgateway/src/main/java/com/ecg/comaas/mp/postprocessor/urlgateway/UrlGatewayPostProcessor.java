@@ -22,11 +22,12 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_BE;
 import static com.ecg.replyts.core.api.model.Tenants.TENANT_MP;
 
 // TODO akobiakov: this thing should actually work with post message api messages as well.
 @ComaasPlugin
-@Profile(TENANT_MP)
+@Profile({TENANT_MP, TENANT_BE})
 @Component
 @Import(UrlGatewayPostProcessorConfig.class)
 public class UrlGatewayPostProcessor implements EmailPostProcessor, ContentOverridingPostProcessor {

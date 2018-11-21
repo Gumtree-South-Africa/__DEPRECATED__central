@@ -7,9 +7,11 @@ import com.ecg.replyts.core.webapi.SpringContextProvider;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.*;
 
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_BE;
+
 @ComaasPlugin
 @Configuration
-@Profile({Tenants.TENANT_MDE, Tenants.TENANT_MP, Tenants.TENANT_MVCA})
+@Profile({Tenants.TENANT_MDE, Tenants.TENANT_MP, Tenants.TENANT_MVCA, TENANT_BE})
 @ComponentScan(value = "com.ecg.messagebox", excludeFilters =
 @ComponentScan.Filter(type = FilterType.REGEX, pattern = "com.ecg.messagebox.resources.*"))
 @Import(ConsumerConfiguration.class)

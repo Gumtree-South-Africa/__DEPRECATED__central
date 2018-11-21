@@ -13,7 +13,7 @@ import static com.ecg.replyts.core.api.model.Tenants.*;
 
 /** Factory that generates wordfilters form a json config that basically contains an array of pattern/score pairs. */
 @ComaasPlugin
-@Profile({TENANT_GTAU, TENANT_EBAYK, TENANT_IT, TENANT_MP})
+@Profile({TENANT_GTAU, TENANT_EBAYK, TENANT_IT, TENANT_MP, TENANT_BE})
 @Component
 class WordfilterFactory implements FilterFactory {
 

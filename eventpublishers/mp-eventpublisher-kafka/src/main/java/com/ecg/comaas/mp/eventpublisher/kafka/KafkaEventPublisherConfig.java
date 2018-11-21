@@ -24,6 +24,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.util.Properties;
 
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_BE;
 import static com.ecg.replyts.core.api.model.Tenants.TENANT_MP;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.kafka.clients.producer.ProducerConfig.ACKS_CONFIG;
@@ -45,7 +46,7 @@ import static org.apache.kafka.clients.producer.ProducerConfig.VALUE_SERIALIZER_
  * </pre>
  */
 @ComaasPlugin
-@Profile(TENANT_MP)
+@Profile({TENANT_MP, TENANT_BE})
 @Configuration
 @Import(KafkaEventReplayCronJobConfig.class)
 public class KafkaEventPublisherConfig {

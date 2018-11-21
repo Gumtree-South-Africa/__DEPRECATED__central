@@ -2,6 +2,7 @@
 static def tenantAliases() {
     [
             'mp'     : 'mp',
+            'be'     : 'be',
             'ebayk'  : 'ek',
             'it'     : 'it',
             'kjca'   : 'ca',

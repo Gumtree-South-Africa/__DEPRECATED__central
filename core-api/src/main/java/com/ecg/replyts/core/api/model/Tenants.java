@@ -9,6 +9,7 @@ public final class Tenants {
     public static final String TENANT = "tenant";
 
     public static final String TENANT_AR = "ar";
+    public static final String TENANT_BE = "be";
     public static final String TENANT_EBAYK = "ebayk";
     public static final String TENANT_GTAU = "gtau";
     public static final String TENANT_GTUK = "gtuk";
