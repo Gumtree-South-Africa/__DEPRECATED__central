@@ -15,7 +15,7 @@ import static com.ecg.replyts.core.api.model.Tenants.TENANT_MVCA;
 @ComaasPlugin
 @Profile({TENANT_KJCA, TENANT_MVCA})
 @Configuration
-@ImportResource("/jmx-configuration.xml")
+@ImportResource("/jms-configuration.xml")
 public class DwConfiguration {
 
 //    private static final String AMQ_CONN_ARGS =
