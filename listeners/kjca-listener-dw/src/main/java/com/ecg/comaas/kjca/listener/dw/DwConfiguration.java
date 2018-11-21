@@ -23,11 +23,12 @@ public class DwConfiguration {
 
     private static final String AMQ_CONN_ARGS =
             "wireFormat.maxInactivityDurationInitalDelay=5000" +
-                    "&amp;wireFormat.maxInactivityDuration=10000" +
-                    "&amp;wireFormat.stackTraceEnabled=true" +
-                    "&amp;keepAlive=true&amp;soTimeout=3000" +
-                    "&amp;soWriteTimeout=3000" +
-                    "&amp;connectionTimeout=3000";
+                    "&wireFormat.maxInactivityDuration=10000" +
+                    "&wireFormat.stackTraceEnabled=true" +
+                    "&keepAlive=true" +
+                    "&soTimeout=3000" +
+                    "&soWriteTimeout=3000" +
+                    "&connectionTimeout=3000";
 
     @Bean(initMethod = "start", destroyMethod = "stop")
     public PooledConnectionFactory jmsConnectionFactory(
@@ -65,7 +66,7 @@ public class DwConfiguration {
     }
 
     private static String createAmqFailoverUrl(String primary, String standby) {
-        return "failover://(" + primary + "," + standby + ")?randomize=false&amp;initialReconnectDelay=100&amp;maxReconnectDelay=2000&amp;timeout=1&amp;priorityBackup=true";
+        return "failover://(" + primary + "," + standby + ")?randomize=false&initialReconnectDelay=100&maxReconnectDelay=2000&timeout=1&priorityBackup=true";
     }
 
     @Bean
