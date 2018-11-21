@@ -29,9 +29,7 @@
         <property name="connectionFactory" ref="jmsConnectionFactory"/>
     </bean>
 
-    <!-- create JMS template, this is the class we interact with -->
-    <bean id="messageCentreJmsTemplate" class="org.springframework.jms.core.JmsTemplate">
+    <bean id="jmsTemplate" class="org.springframework.jms.core.JmsTemplate">
         <constructor-arg ref="jmsConnectionFactory"/>
     </bean>
-
 </beans>

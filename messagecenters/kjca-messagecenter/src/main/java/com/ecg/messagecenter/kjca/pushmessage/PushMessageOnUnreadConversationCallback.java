@@ -33,19 +33,15 @@ public class PushMessageOnUnreadConversationCallback implements SimplePostBoxIni
     private static final Pattern DISPLAY_NAME_REMOVE_QUOTES = Pattern.compile("^\"([^\"]+)\"$");
 
     private final SimplePostBoxRepository postBoxRepository;
-    private final PushService amqPushService;
     private final PushService sendPushService;
     private final TextAnonymizer textAnonymizer;
     private final AdInfoLookup adInfoLookup;
     private final UserInfoLookup userInfoLookup;
     private final Conversation conversation;
     private final Message message;
-    private final Integer sendPushPercentage;
 
     public PushMessageOnUnreadConversationCallback(
             SimplePostBoxRepository postBoxRepository,
-            Integer sendPushPercentage,
-            PushService amqPushService,
             PushService sendPushService,
             TextAnonymizer textAnonymizer,
             AdInfoLookup adInfoLookup,
@@ -53,8 +49,6 @@ public class PushMessageOnUnreadConversationCallback implements SimplePostBoxIni
             Conversation conversation,
             Message message) {
         this.postBoxRepository = postBoxRepository;
-        this.sendPushPercentage = sendPushPercentage;
-        this.amqPushService = amqPushService;
         this.sendPushService = sendPushService;
         this.textAnonymizer = textAnonymizer;
         this.adInfoLookup = adInfoLookup;
@@ -115,8 +109,7 @@ public class PushMessageOnUnreadConversationCallback implements SimplePostBoxIni
                 return;
             }
 
-            pushService = determinePushService();
-            sendPushMessageInternal(pushService, payload.get());
+            sendPushMessageInternal(sendPushService, payload.get());
 
         } catch (Exception e) {
             if (pushService != null) {
@@ -143,20 +136,6 @@ public class PushMessageOnUnreadConversationCallback implements SimplePostBoxIni
             LOG.error("Error sending push for conversation '{}' and message '{}'", conversation.getId(), message.getId(), sendPushResult.getException());
         }
 
-    }
-
-    /**
-     * Determines which push service to use, this is for tuning and rolling out sending push notifications via SEND API.œ
-     *
-     * @return the right push service to be used.
-     */
-    private PushService determinePushService() {
-        if (sendPushPercentage == null || Math.random() * 100 >= sendPushPercentage) {
-            LOG.debug("No send service percentage is defined or random number is larger than the allowed percentage. Falling back to using old push service.");
-            return amqPushService;
-        }
-        LOG.trace("Going to send message thru SEND");
-        return sendPushService;
     }
 
     private Optional<PushMessagePayload> createPayloadBasedOnNotificationRules(Conversation conversation, Message message, String email, int unreadCount, Optional<AdInfoLookup.AdInfo> adInfo, Optional<UserInfoLookup.UserInfo> userInfo) {

@@ -5,7 +5,6 @@ import com.ecg.messagecenter.core.persistence.simple.PostBox;
 import com.ecg.messagecenter.core.persistence.simple.PostBoxId;
 import com.ecg.messagecenter.core.persistence.simple.SimplePostBoxRepository;
 import com.ecg.messagecenter.kjca.persistence.ConversationThread;
-import com.ecg.messagecenter.kjca.persistence.UnreadCountCachePopulater;
 import com.ecg.messagecenter.kjca.persistence.block.ConversationBlock;
 import com.ecg.messagecenter.kjca.persistence.block.ConversationBlockRepository;
 import com.ecg.messagecenter.kjca.webapi.responses.PostBoxSingleConversationThreadResponse;
@@ -36,7 +35,6 @@ public class ConversationService {
     private final ConversationBlockRepository conversationBlockRepository;
     private final MailCloakingService mailCloakingService;
     private final TextAnonymizer textAnonymizer;
-    private final UnreadCountCachePopulater unreadCountCachePopulater;
 
     @Autowired
     public ConversationService(
@@ -44,15 +42,13 @@ public class ConversationService {
             final ConversationRepository conversationRepository,
             final ConversationBlockRepository conversationBlockRepository,
             final MailCloakingService mailCloakingService,
-            final TextAnonymizer textAnonymizer,
-            final UnreadCountCachePopulater unreadCountCachePopulater) {
+            final TextAnonymizer textAnonymizer) {
 
         this.postBoxRepository = postBoxRepository;
         this.conversationRepository = conversationRepository;
         this.conversationBlockRepository = conversationBlockRepository;
         this.mailCloakingService = mailCloakingService;
         this.textAnonymizer = textAnonymizer;
-        this.unreadCountCachePopulater = unreadCountCachePopulater;
     }
 
     public Optional<PostBoxSingleConversationThreadResponse> getConversation(String email, String conversationId) {
@@ -99,7 +95,6 @@ public class ConversationService {
         if (needToMarkAsRead) {
             final PostBox updatedPostbox = markConversationAsRead(email, conversationId, postBox);
             numUnread = updatedPostbox.getUnreadConversationsCapped().size();
-            unreadCountCachePopulater.populateCache(updatedPostbox);
         } else {
             numUnread = postBox.getUnreadConversationsCapped().size();
         }
@@ -115,7 +110,6 @@ public class ConversationService {
             postBoxRepository.deleteConversations(postBox, Collections.singletonList(conversationId));
         }
 
-        unreadCountCachePopulater.populateCache(postBox);
         return null;
     }
 
