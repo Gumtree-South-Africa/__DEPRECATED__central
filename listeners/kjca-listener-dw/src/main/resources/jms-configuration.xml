@@ -24,4 +24,12 @@
         </property>
         <property name="maxConnections" value="${activemq.broker.maxConnections:100}"/>
     </bean>
+
+    <bean id="jmsTransactionManager" class="org.springframework.jms.connection.JmsTransactionManager">
+        <property name="connectionFactory" ref="jmsConnectionFactory"/>
+    </bean>
+
+    <bean id="jmsTemplate" class="org.springframework.jms.core.JmsTemplate">
+        <constructor-arg ref="jmsConnectionFactory"/>
+    </bean>
 </beans>
