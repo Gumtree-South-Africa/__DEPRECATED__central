@@ -55,6 +55,7 @@ job "comaas-[[ .tenant_short ]]" {
         SWIFT_KEYSTONE = "https://keystone.[[ .region ]].cloud.ecg.so/v2.0"
         ESAAS_USERNAME = "[[ .esaas_username ]]"
         ESAAS_PASSWORD = "[[ .esaas_password ]]"
+        VERSION = "[[ .version ]]"
       }
 
       service {
