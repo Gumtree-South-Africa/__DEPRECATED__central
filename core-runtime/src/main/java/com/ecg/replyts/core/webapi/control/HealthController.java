@@ -30,7 +30,7 @@ public class HealthController {
 
     private String searchClusterVersion;
 
-    @Value("${#{systemEnvironment['VERSION']}:UNKNOWN}")
+    @Value("${VERSION:UNKNOWN}")
     private String version;
 
     @Value("${active.dc:unknown}")
