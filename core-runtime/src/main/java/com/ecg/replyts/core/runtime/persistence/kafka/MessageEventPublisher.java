@@ -6,6 +6,7 @@ import com.ecg.replyts.core.api.processing.ConversationEventService;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.ecg.replyts.core.api.util.ConversationEventConverter;
 import com.ecg.replyts.core.runtime.identifier.UserIdentifierService;
+import com.ecg.replyts.core.runtime.mailcloaking.AnonymizedMailConverter;
 import com.ecg.replyts.core.runtime.persistence.BlockUserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,6 +33,7 @@ public class MessageEventPublisher {
     private final UserIdentifierService userIdentifierService;
     private final ContentOverridingPostProcessorService contentOverridingPostProcessorService;
     private final String shortTenant;
+    private final AnonymizedMailConverter anonymizedMailConverter;
 
     @Autowired
     public MessageEventPublisher(
@@ -39,6 +41,7 @@ public class MessageEventPublisher {
             ConversationEventService conversationEventService,
             UserIdentifierService userIdentifierService,
             ContentOverridingPostProcessorService contentService,
+            AnonymizedMailConverter anonymizedMailConverter,
             @Value("${replyts.tenant.short}") String shortTenant) {
 
         this.blockUserRepository = blockUserRepository;
@@ -46,6 +49,7 @@ public class MessageEventPublisher {
         this.userIdentifierService = userIdentifierService;
         this.contentOverridingPostProcessorService = contentService;
         this.shortTenant = shortTenant;
+        this.anonymizedMailConverter = anonymizedMailConverter;
     }
 
     public void publish(MessageProcessingContext context, Conversation conversation, Message message) {
@@ -144,13 +148,13 @@ public class MessageEventPublisher {
                 conversation.getCustomValues().get(CUST_HEADER_BUYER_NAME),
                 conversation.getBuyerId(),
                 com.ecg.comaas.events.Conversation.Participant.Role.BUYER,
-                conversation.getBuyerSecret());
+                anonymizedMailConverter.toCloakedEmailAddress(conversation.getBuyerSecret(), ConversationRole.Buyer, conversation.getCustomValues()));
         com.ecg.comaas.events.Conversation.Participant seller = ConversationEventConverter.createParticipant(
                 getSellerUserId(conversation.getCustomValues(), conversation.getSellerId()),
                 conversation.getCustomValues().get(CUST_HEADER_SELLER_NAME),
                 conversation.getSellerId(),
                 com.ecg.comaas.events.Conversation.Participant.Role.SELLER,
-                conversation.getSellerSecret());
+                anonymizedMailConverter.toCloakedEmailAddress(conversation.getSellerSecret(), ConversationRole.Seller, conversation.getCustomValues()));
         return new HashSet<>(asList(buyer, seller));
     }
 

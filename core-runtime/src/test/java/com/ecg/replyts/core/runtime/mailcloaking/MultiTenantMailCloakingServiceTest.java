@@ -37,7 +37,7 @@ public class MultiTenantMailCloakingServiceTest {
 
     @Before
     public void setUp() {
-        when(anonymizedMailConverter.fromSecretToMail(conversation, ConversationRole.Buyer)).thenReturn(new MailAddress("new@host.com"));
+        when(anonymizedMailConverter.toCloakedEmailAddress(conversation, ConversationRole.Buyer)).thenReturn(new MailAddress("new@host.com"));
         when(context.getConversation()).thenReturn(conversation);
     }
 
@@ -50,7 +50,7 @@ public class MultiTenantMailCloakingServiceTest {
     @Test
     public void uncloaksValidNewMailAddress() {
         when(anonymizedMailConverter.isCloaked(any(MailAddress.class))).thenReturn(true);
-        when(anonymizedMailConverter.fromMailToSecret(any(MailAddress.class))).thenReturn("foo");
+        when(anonymizedMailConverter.toParticipantSecret(any(MailAddress.class))).thenReturn("foo");
         when(conversationRepository.getBySecret("foo")).thenReturn(conversation);
         when(conversation.getId()).thenReturn("123@456");
         when(conversation.getSecretFor(ConversationRole.Buyer)).thenReturn("foo");
@@ -60,7 +60,7 @@ public class MultiTenantMailCloakingServiceTest {
     @Test
     public void failsToUncloakNewMailAddressForUnknownSecret() {
         when(anonymizedMailConverter.isCloaked(any(MailAddress.class))).thenReturn(true);
-        when(anonymizedMailConverter.fromMailToSecret(any(MailAddress.class))).thenReturn("foo");
+        when(anonymizedMailConverter.toParticipantSecret(any(MailAddress.class))).thenReturn("foo");
         assertFalse(mailCloakingService.resolveUser(new MailAddress("foo@bar")).isPresent());
     }
 
@@ -68,7 +68,7 @@ public class MultiTenantMailCloakingServiceTest {
     @Test
     public void emptyIfUserCantBeresolve() {
         when(anonymizedMailConverter.isCloaked(any(MailAddress.class))).thenReturn(true);
-        when(anonymizedMailConverter.fromMailToSecret(any(MailAddress.class))).thenReturn("foo");
+        when(anonymizedMailConverter.toParticipantSecret(any(MailAddress.class))).thenReturn("foo");
         when(conversationRepository.getBySecret("foo")).thenReturn(null);
 
         assertFalse(mailCloakingService.resolveUser(new MailAddress("foo@bar")).isPresent());

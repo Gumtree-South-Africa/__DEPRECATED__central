@@ -41,18 +41,20 @@ public class AnonymizedMailConverter {
         this.mailFormatPatterns = builder.build();
     }
 
-    MailAddress fromSecretToMail(Conversation conv, ConversationRole role) {
-        String roleName = ConversationRole.Buyer == role ? buyerRole : sellerRole;
-        String hash = conv.getSecretFor(role);
-        String domain = renderDomainFromContext(conv, role);
-        String ma = String.format("%s%s%s@%s", roleName, MAIL_CLOAKING_SEPARATOR, hash, domain);
+    MailAddress toCloakedEmailAddress(Conversation conv, ConversationRole role) {
+        String ma = toCloakedEmailAddress(conv.getSecretFor(role), role, conv.getCustomValues());
 
         return new MailAddress(ma);
     }
 
-    private String renderDomainFromContext(Conversation conv, ConversationRole role) {
+    public String toCloakedEmailAddress(String secret, ConversationRole role, Map<String, String> metaData) {
+        String roleName = ConversationRole.Buyer == role ? buyerRole : sellerRole;
+        String domain = renderDomainFromContext(role, metaData);
+        return String.format("%s%s%s@%s", roleName, MAIL_CLOAKING_SEPARATOR, secret, domain);
+    }
+
+    private String renderDomainFromContext(ConversationRole role, Map<String, String> customHeaders) {
         final String headerKey = ConversationRole.Buyer.equals(role) ? "buyer_domain" : "seller_domain";
-        final Map<String, String> customHeaders = conv.getCustomValues();
         if (!customHeaders.containsKey(headerKey)) {
             return this.domains[0];
         }
@@ -66,7 +68,7 @@ public class AnonymizedMailConverter {
         return domain;
     }
 
-    String fromMailToSecret(MailAddress mailAddress) {
+    String toParticipantSecret(MailAddress mailAddress) {
         for (String domain : this.domains) {
             Pattern mailFormatPattern = this.mailFormatPatterns.get(domain);
             Matcher matcher = mailFormatPattern.matcher(mailAddress.getAddress());

@@ -10,7 +10,7 @@ public class ConversationEventConverter {
     }
 
     //Move to utility class
-    public static Conversation.Participant createParticipant(String userId, String userName, String userEmail, Conversation.Participant.Role role, String emailSecret) {
+    public static Conversation.Participant createParticipant(String userId, String userName, String userEmail, Conversation.Participant.Role role, String cloakedEmailAddress) {
         Conversation.Participant.Builder builder = Conversation.Participant.newBuilder();
         if (userId != null) {
             builder.setUserId(userId);
@@ -24,8 +24,8 @@ public class ConversationEventConverter {
         if (!StringUtils.isEmpty(userName)) {
             builder.setName(userName);
         }
-        if (emailSecret != null) {
-            builder.setEmailSecret(emailSecret);
+        if (cloakedEmailAddress != null) {
+            builder.setCloakedEmailAddress(cloakedEmailAddress);
         }
 
         return builder.build();

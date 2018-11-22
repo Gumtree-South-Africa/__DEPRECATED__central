@@ -149,7 +149,7 @@
 
                 <repository>
                     <id>gtukNexus</id>
-                    <url>https://gtuk-nexus.es.dus1.cloud/nexus/content/repositories/public/</url>
+                    <url>https://gtuk-nexus.es.dus1.cloud/nexus/repository/public/</url>
                     <releases>
                         <enabled>true</enabled>
                     </releases>

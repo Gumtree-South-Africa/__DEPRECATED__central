@@ -40,26 +40,26 @@ public class AnonymizedMailConverterMultiDomainTest {
 
     @Test
     public void uncloakValidAddressRegardlessOfSeparator() {
-        assertEquals("1234", anonymizedMailConverter.fromMailToSecret(new MailAddress("Buyer.1234@ebay.com")));
-        assertEquals("1234", anonymizedMailConverter.fromMailToSecret(new MailAddress("Buyer-1234@ebay.com")));
-        assertEquals("1234", anonymizedMailConverter.fromMailToSecret(new MailAddress("BuyerX1234@ebay.com")));
-        assertEquals("234", anonymizedMailConverter.fromMailToSecret(new MailAddress("Buyer1234@ebay.com")));
-        assertEquals("1234", anonymizedMailConverter.fromMailToSecret(new MailAddress("Buyer.1234@kijiji.it")));
-        assertEquals("1234", anonymizedMailConverter.fromMailToSecret(new MailAddress("Buyer-1234@kijiji.it")));
-        assertEquals("1234", anonymizedMailConverter.fromMailToSecret(new MailAddress("BuyerX1234@kijiji.it")));
-        assertEquals("234", anonymizedMailConverter.fromMailToSecret(new MailAddress("Buyer1234@kijiji.it")));
+        assertEquals("1234", anonymizedMailConverter.toParticipantSecret(new MailAddress("Buyer.1234@ebay.com")));
+        assertEquals("1234", anonymizedMailConverter.toParticipantSecret(new MailAddress("Buyer-1234@ebay.com")));
+        assertEquals("1234", anonymizedMailConverter.toParticipantSecret(new MailAddress("BuyerX1234@ebay.com")));
+        assertEquals("234", anonymizedMailConverter.toParticipantSecret(new MailAddress("Buyer1234@ebay.com")));
+        assertEquals("1234", anonymizedMailConverter.toParticipantSecret(new MailAddress("Buyer.1234@kijiji.it")));
+        assertEquals("1234", anonymizedMailConverter.toParticipantSecret(new MailAddress("Buyer-1234@kijiji.it")));
+        assertEquals("1234", anonymizedMailConverter.toParticipantSecret(new MailAddress("BuyerX1234@kijiji.it")));
+        assertEquals("234", anonymizedMailConverter.toParticipantSecret(new MailAddress("Buyer1234@kijiji.it")));
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void failWhenNoSeparatorAndMessageId() {
-        assertEquals("1234", anonymizedMailConverter.fromMailToSecret(new MailAddress("Buyer@ebay.com")));
+        assertEquals("1234", anonymizedMailConverter.toParticipantSecret(new MailAddress("Buyer@ebay.com")));
     }
 
     @Test
     public void testAnonymizeBuyerDomain() throws Exception {
         // set header value
         when(conversation.getCustomValues()).thenReturn(ImmutableMap.of("buyer_domain", "kijiji.it"));
-        assertThat(anonymizedMailConverter.fromSecretToMail(conversation, ConversationRole.Buyer).getAddress(), equalTo("Buyer-any@kijiji.it"));
+        assertThat(anonymizedMailConverter.toCloakedEmailAddress(conversation, ConversationRole.Buyer).getAddress(), equalTo("Buyer-any@kijiji.it"));
 
     }
 
@@ -67,14 +67,14 @@ public class AnonymizedMailConverterMultiDomainTest {
     public void testAnonymizeSellerDomain() throws Exception {
         // set header value
         when(conversation.getCustomValues()).thenReturn(ImmutableMap.of("seller_domain", "kijiji.it"));
-        assertThat(anonymizedMailConverter.fromSecretToMail(conversation, ConversationRole.Seller).getAddress(), equalTo("Seller-any@kijiji.it"));
+        assertThat(anonymizedMailConverter.toCloakedEmailAddress(conversation, ConversationRole.Seller).getAddress(), equalTo("Seller-any@kijiji.it"));
     }
 
     @Test
     public void testAnonymizeSellerDomainFallback() throws Exception {
         // set header value
         when(conversation.getCustomValues()).thenReturn(Collections.EMPTY_MAP);
-        assertThat(anonymizedMailConverter.fromSecretToMail(conversation, ConversationRole.Seller).getAddress(), equalTo("Seller-any@ebay.com"));
+        assertThat(anonymizedMailConverter.toCloakedEmailAddress(conversation, ConversationRole.Seller).getAddress(), equalTo("Seller-any@ebay.com"));
     }
 
     @Test
@@ -95,7 +95,7 @@ public class AnonymizedMailConverterMultiDomainTest {
 
     @Test
     public void uncloakValidAddress() {
-        assertEquals("1234", anonymizedMailConverter.fromMailToSecret(new MailAddress("Buyer.1234@kijiji.it")));
-        assertEquals("4321", anonymizedMailConverter.fromMailToSecret(new MailAddress("Buyer.4321@ebay.com")));
+        assertEquals("1234", anonymizedMailConverter.toParticipantSecret(new MailAddress("Buyer.1234@kijiji.it")));
+        assertEquals("4321", anonymizedMailConverter.toParticipantSecret(new MailAddress("Buyer.4321@ebay.com")));
     }
 }

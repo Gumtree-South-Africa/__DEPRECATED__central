@@ -22,7 +22,7 @@ public class MultiTenantMailCloakingService implements MailCloakingService {
 
     @Override
     public MailAddress createdCloakedMailAddress(ConversationRole role, Conversation conversation) {
-        return anonymizedMailConverter.fromSecretToMail(conversation, role);
+        return anonymizedMailConverter.toCloakedEmailAddress(conversation, role);
     }
 
     @Override
@@ -34,7 +34,7 @@ public class MultiTenantMailCloakingService implements MailCloakingService {
     public Optional<CloakedReceiverContext> resolveUser(MailAddress mailAddress) {
         if (anonymizedMailConverter.isCloaked(mailAddress)) {
 
-            String secret = anonymizedMailConverter.fromMailToSecret(mailAddress);
+            String secret = anonymizedMailConverter.toParticipantSecret(mailAddress);
             MutableConversation conv = conversationRepository.getBySecret(secret);
             if (conv == null) {
                 return Optional.empty();

@@ -8,7 +8,7 @@ import static org.junit.Assert.assertEquals;
 public class ConversationEventConverterTest {
 
     private static final String USER_ID = "userId";
-    private static final String SECRET = "secret";
+    private static final String ANONYMIZED_EMAIL = "anonymized@mail.com";
 
     @Test
     public void createParticipantWithUserIdOnly() {
@@ -19,8 +19,8 @@ public class ConversationEventConverterTest {
 
     @Test
     public void createParticipantWithSecret() {
-        Conversation.Participant participant = ConversationEventConverter.createParticipant(USER_ID, null, null, null, SECRET);
+        Conversation.Participant participant = ConversationEventConverter.createParticipant(USER_ID, null, null, null, ANONYMIZED_EMAIL);
 
-        assertEquals(SECRET, participant.getEmailSecret());
+        assertEquals(ANONYMIZED_EMAIL, participant.getCloakedEmailAddress());
     }
 }

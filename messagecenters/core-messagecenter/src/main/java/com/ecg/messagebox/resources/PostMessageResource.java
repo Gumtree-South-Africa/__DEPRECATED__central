@@ -14,6 +14,7 @@ import com.ecg.messagebox.resources.exceptions.ClientException;
 import com.ecg.messagebox.resources.responses.ErrorResponse;
 import com.ecg.messagebox.resources.responses.PostMessageResponse;
 import com.ecg.replyts.app.preprocessorchain.preprocessors.UniqueConversationSecret;
+import com.ecg.replyts.core.api.model.conversation.ConversationRole;
 import com.ecg.replyts.core.api.model.conversation.MutableConversation;
 import com.ecg.replyts.core.api.model.conversation.command.NewConversationCommand;
 import com.ecg.replyts.core.api.model.conversation.event.ConversationCreatedEvent;
@@ -23,6 +24,7 @@ import com.ecg.replyts.core.api.util.ConversationEventConverter;
 import com.ecg.replyts.core.runtime.cluster.Guids;
 import com.ecg.replyts.core.runtime.cluster.XidFactory;
 import com.ecg.replyts.core.runtime.identifier.UserIdentifierService;
+import com.ecg.replyts.core.runtime.mailcloaking.AnonymizedMailConverter;
 import com.ecg.replyts.core.runtime.persistence.conversation.MutableConversationRepository;
 import com.ecg.replyts.core.runtime.persistence.kafka.KafkaTopicService;
 import com.ecg.replyts.core.runtime.persistence.kafka.QueueService;
@@ -62,6 +64,7 @@ public class PostMessageResource {
     private final CassandraPostBoxRepository postBoxRepository;
     private final QueueService queueService;
     private final ConversationEventService conversationEventService;
+    private final AnonymizedMailConverter anonymizedMailConverter;
 
     @Value("${replyts.tenant.short:${replyts.tenant}}")
     private String shortTenant;
@@ -73,13 +76,15 @@ public class PostMessageResource {
             UniqueConversationSecret uniqueConversationSecret,
             CassandraPostBoxRepository postBoxRepository,
             QueueService queueService,
-            ConversationEventService conversationEventService) {
+            ConversationEventService conversationEventService,
+            AnonymizedMailConverter anonymizedMailConverter) {
         this.conversationRepository = conversationRepository;
         this.userIdentifierService = userIdentifierService;
         this.uniqueConversationSecret = uniqueConversationSecret;
         this.postBoxRepository = postBoxRepository;
         this.queueService = queueService;
         this.conversationEventService = conversationEventService;
+        this.anonymizedMailConverter = anonymizedMailConverter;
     }
 
     @ApiOperation(
@@ -146,15 +151,17 @@ public class PostMessageResource {
         postBoxRepository.createEmptyConversation(buyer.getUserId(), conversationThread);
         postBoxRepository.createEmptyConversation(seller.getUserId(), conversationThread);
 
-        placeConversationCreatedEventOnQueue(adId, conversationId, customValues, participants, creationDate, buyerSecret, sellerSecret);
+        String buyerCloakedEmailAddress = anonymizedMailConverter.toCloakedEmailAddress(buyerSecret, ConversationRole.Buyer, createConversationRequest.metadata);
+        String sellerCloakedEmailAddress = anonymizedMailConverter.toCloakedEmailAddress(sellerSecret, ConversationRole.Seller, createConversationRequest.metadata);
+        placeConversationCreatedEventOnQueue(adId, conversationId, customValues, participants, creationDate, buyerCloakedEmailAddress, sellerCloakedEmailAddress);
         conversationRepository.commit(conversationId, Collections.singletonList(conversationCreatedEvent));
 
         return new CreateConversationResponse(false, conversationId);
     }
 
-    private void placeConversationCreatedEventOnQueue(String adId, String conversationId, Map<String, String> customValues, List<Participant> participants, DateTime creationDate, String buyerSecret, String sellerSecret) {
+    private void placeConversationCreatedEventOnQueue(String adId, String conversationId, Map<String, String> customValues, List<Participant> participants, DateTime creationDate, String buyerCloakedEmailAddress, String sellerCloakedEmailAddress) {
         try {
-            conversationEventService.sendConversationCreatedEvent(shortTenant, adId, conversationId, customValues, toConversationEventParticipants(participants, buyerSecret, sellerSecret), creationDate);
+            conversationEventService.sendConversationCreatedEvent(shortTenant, adId, conversationId, customValues, toConversationEventParticipants(participants, buyerCloakedEmailAddress, sellerCloakedEmailAddress), creationDate);
         } catch (InterruptedException e) {
             // we are not sure whether the message is now received by kafka or not. The caller should retry.
             LOG.warn("Aborting POST because thread is interrupted. conversation id: {}." + INTERRUPTED_WARNING, conversationId);
@@ -163,18 +170,18 @@ public class PostMessageResource {
         }
     }
 
-    private Set<Conversation.Participant> toConversationEventParticipants(List<Participant> participants, String buyerSecret, String sellerSecret) {
+    private Set<Conversation.Participant> toConversationEventParticipants(List<Participant> participants, String buyerCloakedEmailAddress, String sellerCloakedEmailAddress) {
         Set<Conversation.Participant> participantSet = new HashSet<>();
         for (Participant participant : participants) {
-            String secret =
+            String cloakedEmailAddress =
                     participant.getRole() == BUYER
-                            ? buyerSecret
+                            ? buyerCloakedEmailAddress
                             : participant.getRole() == SELLER
-                            ? sellerSecret
+                            ? sellerCloakedEmailAddress
                             : null;
 
             participantSet.add(ConversationEventConverter.createParticipant(participant.getUserId(), participant.getName(),
-                    participant.getEmail(), Conversation.Participant.Role.valueOf(participant.getRole().name()), secret));
+                    participant.getEmail(), Conversation.Participant.Role.valueOf(participant.getRole().name()), cloakedEmailAddress));
         }
 
         return participantSet;

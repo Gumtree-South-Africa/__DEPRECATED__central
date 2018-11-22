@@ -8,13 +8,13 @@ import com.ecg.replyts.core.api.model.conversation.MessageTransport;
 import com.ecg.replyts.core.api.processing.ConversationEventService;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.ecg.replyts.core.runtime.identifier.UserIdentifierService;
+import com.ecg.replyts.core.runtime.mailcloaking.AnonymizedMailConverter;
 import com.ecg.replyts.core.runtime.persistence.BlockUserRepository;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.*;
@@ -51,6 +51,9 @@ public class MessageEventPublisherTest {
     @Mock
     private ContentOverridingPostProcessorService contentOverridingPostProcessorService;
 
+    @Mock
+    private AnonymizedMailConverter anonymizedMailConverter;
+
     private String shortTenant = "TENANT";
 
     private MessageEventPublisher publisher;
@@ -58,7 +61,7 @@ public class MessageEventPublisherTest {
     @Before
     public void setUp() {
         publisher = new MessageEventPublisher(blockUserRepository, conversationEventService, userIdentifierService,
-                contentOverridingPostProcessorService, shortTenant);
+                contentOverridingPostProcessorService, anonymizedMailConverter, shortTenant);
     }
 
     @Test
