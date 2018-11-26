@@ -65,7 +65,7 @@ public abstract class InfoLookup<T> {
             HttpRequest request = buildRequest(requestParamValue);
             return httpClient.execute(commonApiHost, request, getResponseHandler(), getHttpContext());
         } catch (IOException e) {
-            LOG.error("Error fetching {} for parameter [{}]", requestParamName, e);
+            LOG.error("Error fetching {} for parameter [{}]", requestParamName, requestParamValue, e);
             getCounter().inc();
             return Optional.empty();
         }
