@@ -5,19 +5,19 @@ import com.ecg.comaas.events.Conversation;
 import com.ecg.comaas.protobuf.MessageOuterClass;
 import com.ecg.comaas.protobuf.MessageOuterClass.Message;
 import com.ecg.comaas.protobuf.MessageOuterClass.Payload;
-import com.ecg.messagebox.resources.requests.CreateConversationRequest;
-import com.ecg.messagebox.resources.requests.PostMessageRequest;
-import com.ecg.messagebox.resources.responses.CreateConversationResponse;
 import com.ecg.messagebox.model.*;
 import com.ecg.messagebox.persistence.CassandraPostBoxRepository;
 import com.ecg.messagebox.resources.exceptions.ClientException;
+import com.ecg.messagebox.resources.requests.CreateConversationRequest;
+import com.ecg.messagebox.resources.requests.PostMessageRequest;
+import com.ecg.messagebox.resources.responses.CreateConversationResponse;
 import com.ecg.messagebox.resources.responses.ErrorResponse;
 import com.ecg.messagebox.resources.responses.PostMessageResponse;
+import com.ecg.replyts.app.ConversationEventListeners;
 import com.ecg.replyts.app.preprocessorchain.preprocessors.UniqueConversationSecret;
 import com.ecg.replyts.core.api.model.conversation.ConversationRole;
 import com.ecg.replyts.core.api.model.conversation.MutableConversation;
 import com.ecg.replyts.core.api.model.conversation.command.NewConversationCommand;
-import com.ecg.replyts.core.api.model.conversation.event.ConversationCreatedEvent;
 import com.ecg.replyts.core.api.persistence.ConversationIndexKey;
 import com.ecg.replyts.core.api.processing.ConversationEventService;
 import com.ecg.replyts.core.api.util.ConversationEventConverter;
@@ -25,6 +25,7 @@ import com.ecg.replyts.core.runtime.cluster.Guids;
 import com.ecg.replyts.core.runtime.cluster.XidFactory;
 import com.ecg.replyts.core.runtime.identifier.UserIdentifierService;
 import com.ecg.replyts.core.runtime.mailcloaking.AnonymizedMailConverter;
+import com.ecg.replyts.core.runtime.persistence.conversation.DefaultMutableConversation;
 import com.ecg.replyts.core.runtime.persistence.conversation.MutableConversationRepository;
 import com.ecg.replyts.core.runtime.persistence.kafka.KafkaTopicService;
 import com.ecg.replyts.core.runtime.persistence.kafka.QueueService;
@@ -65,6 +66,9 @@ public class PostMessageResource {
     private final QueueService queueService;
     private final ConversationEventService conversationEventService;
     private final AnonymizedMailConverter anonymizedMailConverter;
+    // As of now, in the end of the year 2018, it worth mentioning that the following object deals with the
+    // old style, replyts2 events, and has nothing to do with conversation_events of the new comaas architecture.
+    private final ConversationEventListeners conversationEventListeners;
 
     @Value("${replyts.tenant.short:${replyts.tenant}}")
     private String shortTenant;
@@ -77,7 +81,8 @@ public class PostMessageResource {
             CassandraPostBoxRepository postBoxRepository,
             QueueService queueService,
             ConversationEventService conversationEventService,
-            AnonymizedMailConverter anonymizedMailConverter) {
+            AnonymizedMailConverter anonymizedMailConverter,
+            ConversationEventListeners conversationEventListeners) {
         this.conversationRepository = conversationRepository;
         this.userIdentifierService = userIdentifierService;
         this.uniqueConversationSecret = uniqueConversationSecret;
@@ -85,6 +90,7 @@ public class PostMessageResource {
         this.queueService = queueService;
         this.conversationEventService = conversationEventService;
         this.anonymizedMailConverter = anonymizedMailConverter;
+        this.conversationEventListeners = conversationEventListeners;
     }
 
     @ApiOperation(
@@ -135,8 +141,6 @@ public class PostMessageResource {
                 .withCustomValues(customValues)
                 .build();
 
-        ConversationCreatedEvent conversationCreatedEvent = new ConversationCreatedEvent(newConversationBuilderCommand);
-
         String conversationId = newConversationBuilderCommand.getConversationId();
         DateTime creationDate = now();
         ConversationMetadata conversationMetadata = new ConversationMetadata(
@@ -154,8 +158,7 @@ public class PostMessageResource {
         String buyerCloakedEmailAddress = anonymizedMailConverter.toCloakedEmailAddress(buyerSecret, ConversationRole.Buyer, createConversationRequest.metadata);
         String sellerCloakedEmailAddress = anonymizedMailConverter.toCloakedEmailAddress(sellerSecret, ConversationRole.Seller, createConversationRequest.metadata);
         placeConversationCreatedEventOnQueue(adId, conversationId, customValues, participants, creationDate, buyerCloakedEmailAddress, sellerCloakedEmailAddress);
-        conversationRepository.commit(conversationId, Collections.singletonList(conversationCreatedEvent));
-
+        DefaultMutableConversation.create(newConversationBuilderCommand).commit(conversationRepository, conversationEventListeners);
         return new CreateConversationResponse(false, conversationId);
     }
 
