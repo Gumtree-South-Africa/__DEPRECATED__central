@@ -37,6 +37,7 @@ export https_proxy=http://proxy.${region}.cloud.ecg.so:3128
     -Djava.security.egd=file:/dev/urandom \
     -DlogDir=/tmp \
     -Dtenant=${TENANT} \
+    -Dservice.discovery.port=8500 \
     -Dfile.encoding=UTF-8 \
     -XX:+PreserveFramePointer \
     -Xms${HEAP_SIZE} \
