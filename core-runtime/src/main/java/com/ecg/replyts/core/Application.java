@@ -61,9 +61,9 @@ public class Application {
     public Config hazelcastConfiguration(
             @Value("${replyts.tenant}") String tenant,
             @Value("${service.discovery.hostname:localhost}") String discoveryHostname,
-            @Value("${service.discovery.port:8500}") int discoveryPort,
+            @Value("${service.discovery.port:8599}") int discoveryPort,
             @Value("${hazelcast.password}") String hazelcastPassword,
-            @Value("${hazelcast.ip}") String hazelcastIp,
+            @Value("${hazelcast.ip:127.0.0.1}") String hazelcastIp,
             @Value("${hazelcast.port:5701}") int hazelcastPort,
             @Value("${hazelcast.port.increment:false}") boolean hazelcastPortIncrement) {
         Config config = new Config();
