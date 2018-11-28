@@ -155,8 +155,8 @@ public class PostMessageResource {
         postBoxRepository.createEmptyConversation(buyer.getUserId(), conversationThread);
         postBoxRepository.createEmptyConversation(seller.getUserId(), conversationThread);
 
-        String buyerCloakedEmailAddress = anonymizedMailConverter.toCloakedEmailAddress(buyerSecret, ConversationRole.Buyer, createConversationRequest.metadata);
-        String sellerCloakedEmailAddress = anonymizedMailConverter.toCloakedEmailAddress(sellerSecret, ConversationRole.Seller, createConversationRequest.metadata);
+        String buyerCloakedEmailAddress = anonymizedMailConverter.toCloakedEmailAddress(buyerSecret, ConversationRole.Buyer, newConversationBuilderCommand.getCustomValues());
+        String sellerCloakedEmailAddress = anonymizedMailConverter.toCloakedEmailAddress(sellerSecret, ConversationRole.Seller, newConversationBuilderCommand.getCustomValues());
         placeConversationCreatedEventOnQueue(adId, conversationId, customValues, participants, creationDate, buyerCloakedEmailAddress, sellerCloakedEmailAddress);
         DefaultMutableConversation.create(newConversationBuilderCommand).commit(conversationRepository, conversationEventListeners);
         return new CreateConversationResponse(false, conversationId);
