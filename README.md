@@ -23,37 +23,25 @@ Remove all containers using `cd docker; make down`
 
 Note that you will have to install Docker on your local machines, the automated tests rely on it.
 
-### Run COMaaS for a specific tenant
+### Run/Debug COMaaS for a specific tenant
 
-#### Option 1. IDE
-
-Before running from IDE you have to import properties into consul manually to do that execute:
+- Run Docker Containers - `docker` project `make up logs`
+- Load properties from the root of `central` project
 
 ```
-cd ecg-comaas-docker
-export ECG_COMAAS_CENTRAL=/Users/<USER_NAME>/dev/comaas/ecg-comaas-central
-make import
+docker run --network comaasdocker_default --rm --volume ${PWD}/distribution/conf/mp/docker.properties:/props.properties \
+        dock.es.ecg.tools/comaas/properties-to-consul:0.0.7 -consul http://comaasdocker_consul_1_d1e3b633c48a:8500 -tenant mp
 ```
-replace `/Users/${USER}/dev/comaas/ecg-comaas-central` with your path to Comaas's `central` repository and `tenant long name` with the tenant's long name.
 
-Before IntelliJ understands the project, you will need to generate the protobuf sources by executing `bin/build.sh` without arguments.
+- Run Configuration in IntelliJ
 
-Now add a Run Configuration in IntelliJ with the following properties:
-
-* Type: Application
-* Name: COMaaS for: [name of tenant, mp|mde|ebayk]
-
-* Main class: com.ecg.replyts.core.Application
-* VM Options: -Dtenant=<tenant long name> -Dservice.discovery.port=8599 -Dlogging.service.structured.logging=false
-* Working directory: /Users/<user name>/dev/ecg-comaas-central
-* Use classpath of module: distribution
+![local_development](etc/local_dev.png)
 
 #### Option 1. Build script
 
-  ```
-  ./bin/build.sh -T gtuk -P docker -E -D
-  ```
-  see bin/README.md for more details
+```
+./bin/build.sh -p
+```
 
 ### Testing that your setup works
 
@@ -69,36 +57,3 @@ The application will automatically scan for other Consul-registered services. Cu
 
 ### Consul configuration (KV)
 In order to add keys to consul, add them with the prefix `comaas/comaas:core:<tenant long name>`. E.g. `comaas/comaas:core:ebayk/persistence.strategy` with value `cassandra`. This prefix approach allows one Consul instance to contain properties for multiple tenants (or the same tenant running on multiple ports).
-
-## MP system overview
-![Messaging system overview at Marktplaats](/docs/20151221-messaging-system-overview.jpg)
-
-### Certificate issues
-
-When encountering `sun.security.validator.ValidatorException: PKIX path building failed` while downloading artifacts from maven, one of the certificates might be expired.
-
-To create an updated keystore file, download and unzip `https://ebayinc.sharepoint.com/teams/SelfService/Directory%20Services/SiteAssets/SitePages/Active%20Directory%20Certificates%20Services%20Help%20Site/root-certs-pem.zip`.
-
-Generate a new `comaas.jks` file:
-```
-keytool -genkey -alias comaas -keyalg RSA -keystore comaas.jks -keysize 2048 \
-  -dname "CN=com, OU=COMaaS, O=eBay Classifieds, L=Amsterdam, S=Noord-Holland, C=NL" \
-  -storepass 'comaas' -keypass 'comaas'
-
-for f in root-certs-pem/*.pem; do
-    keytool -importcert -keystore comaas.jks -storepass 'comaas' -file ${f} -alias ${f} -noprompt
-done
-
-# Install AMS1 & DUS1 CA
-openssl s_client -connect keystone.ams1.cloud.ecg.so:443 -showcerts </dev/null 2>/dev/null | openssl x509 -outform PEM |
-  keytool -importcert -keystore comaas.jks -storepass 'comaas' -alias ams1 -noprompt
-
-openssl s_client -connect keystone.dus1.cloud.ecg.so:443 -showcerts </dev/null 2>/dev/null | openssl x509 -outform PEM |
-  keytool -importcert -keystore comaas.jks -storepass 'comaas' -alias dus1 -noprompt
-
-# Install Gumtree AU nexus CA
-openssl s_client -showcerts -connect nexus.au.ecg.so:443 </dev/null 2>/dev/null | openssl x509 -outform PEM | \
-  keytool -importcert -keystore comaas.jks -storepass 'comaas' -alias nexusau -noprompt
-```
-
-Finally, upload the new `comaas.jks` to Swift. Update the URL in `bin/build.sh` if needed.
