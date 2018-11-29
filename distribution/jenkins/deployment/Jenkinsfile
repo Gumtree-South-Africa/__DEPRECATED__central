@@ -38,7 +38,10 @@ void deploymentFailed(final String tenant, final String version, final String dc
 }
 
 void sendToSlack(final String colour, final String channel, final String message, final String environmentShort) {
-    final String c = environmentShort == 'lp' ? 'jenkins' : channel
+    String c = environmentShort == 'lp' ? 'jenkins' : channel
+    if ( channel == 'mvca' ) {
+        c = 'move'
+    }
     commonFunctions.sendToSlack(colour, c, message)
     if (environmentShort == 'prod') {
         commonFunctions.sendToSlackProdChannel(colour, message)
