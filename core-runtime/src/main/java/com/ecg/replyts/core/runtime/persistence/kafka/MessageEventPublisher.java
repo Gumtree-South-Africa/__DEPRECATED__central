@@ -2,6 +2,7 @@ package com.ecg.replyts.core.runtime.persistence.kafka;
 
 import com.ecg.replyts.app.ContentOverridingPostProcessorService;
 import com.ecg.replyts.core.api.model.conversation.*;
+import com.ecg.replyts.core.api.model.mail.MailAddress;
 import com.ecg.replyts.core.api.processing.ConversationEventService;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.ecg.replyts.core.api.util.ConversationEventConverter;
@@ -27,6 +28,7 @@ public class MessageEventPublisher {
 
     private static final String CUST_HEADER_BUYER_NAME = "buyer-name";
     private static final String CUST_HEADER_SELLER_NAME = "seller-name";
+    private static final String DELIVERED_TO_HEADER = "Delivered-To";
 
     private final BlockUserRepository blockUserRepository;
     private final ConversationEventService conversationEventService;
@@ -104,7 +106,18 @@ public class MessageEventPublisher {
         List<String> receivingUsers = getReceivingUsers(conversation, message, senderId);
 
         conversationEventService.sendMessageAddedEvent(shortTenant, conversation.getId(), senderId, message.getId(),
-                cleanedMessage, message.getHeaders(), transport, originTenant, message.getReceivedAt(), receivingUsers);
+                cleanedMessage, getHeaders(message), transport, originTenant, message.getReceivedAt(), receivingUsers);
+    }
+
+    /**
+     * Returns an empty map if the message is a DIRECT REPLY (a reply from mail) because we don't want to let users inject their own
+     * headers or headers of SMTP clients.
+     */
+    private Map<String, String> getHeaders(Message message) {
+        String deliveredTo = message.getHeaders().get(DELIVERED_TO_HEADER);
+        return anonymizedMailConverter.isCloaked(new MailAddress(deliveredTo))
+                ? Collections.emptyMap()
+                : message.getHeaders();
     }
 
     private List<String> getReceivingUsers(Conversation conversation, Message message, String senderId) {
