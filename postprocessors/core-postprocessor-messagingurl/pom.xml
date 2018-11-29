@@ -11,7 +11,7 @@
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
-    <artifactId>mp-postprocessor-messagingurl</artifactId>
+    <artifactId>core-postprocessor-messagingurl</artifactId>
     <packaging>jar</packaging>
 
     <dependencies>

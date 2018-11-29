@@ -8,24 +8,30 @@ import com.ecg.replyts.core.api.pluginconfiguration.ComaasPlugin;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-import static com.ecg.replyts.core.api.model.Tenants.TENANT_BE;
-import static com.ecg.replyts.core.api.model.Tenants.TENANT_MP;
+import static com.ecg.replyts.core.api.model.Tenants.*;
 
 // TODO akobiakov this should probably also be not email specific
 @ComaasPlugin
-@Profile({TENANT_MP, TENANT_BE})
+@Profile({TENANT_MP, TENANT_BE, TENANT_KJCA})
 @Component
 public class MessagingUrlPostProcessor implements EmailPostProcessor {
 
     private static final Logger LOG = LoggerFactory.getLogger(MessagingUrlPostProcessor.class);
 
-    private final String MESSAGING_RESOURCE = "/mijnberichten/";
     private final String CONVERSATION_ID_PLACEHOLDER = "conversationIdPlaceholder";
+    private final String messagegingResource;
+
+    public MessagingUrlPostProcessor(
+            @Value("comaas.postprocessor.messaging_url") String messagegingResource) {
+
+        this.messagegingResource = messagegingResource;
+    }
 
     @Override
     public void postProcess(MessageProcessingContext messageProcessingContext) {
@@ -43,13 +49,12 @@ public class MessagingUrlPostProcessor implements EmailPostProcessor {
             if (typedContent.isMutable()) {
 
                 String existingContent = typedContent.getContent();
-                String newContent = existingContent.replace(MESSAGING_RESOURCE + CONVERSATION_ID_PLACEHOLDER,
-                        MESSAGING_RESOURCE + messageProcessingContext.getConversation().getId());
+                String newContent = existingContent.replace(messagegingResource + CONVERSATION_ID_PLACEHOLDER,
+                        messagegingResource + messageProcessingContext.getConversation().getId());
 
                 typedContent.overrideContent(newContent);
             }
         }
-
     }
 
     @Override

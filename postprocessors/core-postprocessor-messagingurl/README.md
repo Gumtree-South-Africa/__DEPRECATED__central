@@ -1,4 +1,4 @@
-# mp-postprocessor-messagingurl
+# core-postprocessor-messagingurl
 
 Originally taken from https://github.corp.ebay.com/ecg-marktplaats/mp-replyts2
 replyts2-postprocessor-messagingurl

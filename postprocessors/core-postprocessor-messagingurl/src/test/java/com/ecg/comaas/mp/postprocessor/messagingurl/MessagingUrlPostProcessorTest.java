@@ -40,7 +40,7 @@ public class MessagingUrlPostProcessorTest{
     public void setup() throws Exception {
         initMocks(this);
 
-        processor = new MessagingUrlPostProcessor();
+        processor = new MessagingUrlPostProcessor("/mijnberichten/");
 
         when(messageProcessingContextMock.getConversation()).thenReturn(conversationMock);
         when(messageProcessingContextMock.getMessage()).thenReturn(messageMock);

@@ -69,6 +69,7 @@
                 <module>listeners/gtuk-listener-reporting</module>
 
                 <module>postprocessors/core-postprocessor-buyeralias</module>
+                <module>postprocessors/core-postprocessor-messagingurl</module>
 
                 <module>postprocessors/gtuk-postprocessor-bodyanonymizer</module>
                 <module>messagecenters/gtuk-messagecenter</module>
@@ -79,7 +80,6 @@
                 <module>postprocessors/mp-postprocessor-anonymizebody</module>
                 <module>postprocessors/mp-postprocessor-sendername</module>
                 <module>postprocessors/mp-postprocessor-urlgateway</module>
-                <module>postprocessors/mp-postprocessor-messagingurl</module>
                 <module>eventpublishers/mp-eventpublisher-kafka</module>
                 <module>integration-tests/mp-integration-test</module>
                 <module>filters/ebayk-filter-emailaddress</module>
