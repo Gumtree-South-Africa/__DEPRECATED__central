@@ -8,7 +8,7 @@ http:
   max_parallel: 1
 
 newmsg:
-  count: 6
+  count: 9
   memory: 4096
   cpu: 5000
   heap: 3G
