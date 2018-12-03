@@ -16,7 +16,6 @@ import com.hazelcast.config.Config;
 import com.hazelcast.config.DiscoveryStrategyConfig;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.core.MessageListener;
 import net.logstash.logback.argument.StructuredArguments;
 import org.bitsofinfo.hazelcast.discovery.consul.ConsulDiscoveryStrategy;
 import org.bitsofinfo.hazelcast.discovery.consul.DoNothingRegistrator;
@@ -24,15 +23,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.ImportResource;
+import org.springframework.context.annotation.*;
 import org.springframework.context.support.AbstractRefreshableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -41,7 +35,18 @@ import static com.ecg.replyts.core.api.model.Tenants.TENANT;
 import static java.lang.String.format;
 
 @Configuration
-@ComponentScan({ "com.ecg.replyts.app", "com.ecg.replyts.core.runtime" })
+@ComponentScan({
+        "com.ecg.replyts.app",
+        "com.ecg.replyts.core.runtime",
+        "com.ecg.comaas.kjca.coremod", // KJCA hacks
+        /*
+        "com.ecg.gumtree", // Gumtree UK hacks
+        "com.ecg.comaas.bt.coremode", // Bolt Hacks (there's no typo in the package name)
+        "com.ebay.ecg.bolt", // Also Bolt Hack, but different
+        "com.ecg.replyts.autogatemaildelivery", // Gumtree Australia hacks
+        "com.ecg.replyts.core.runtime.mailparser" // More Gumtree Australia hacks
+        */
+})
 @ComponentScan(value = { "com.ecg", "com.ebay" }, useDefaultFilters = false, includeFilters = @ComponentScan.Filter(ComaasPlugin.class))
 @ImportResource("classpath*:/plugin-inf/*.xml")
 public class Application {
