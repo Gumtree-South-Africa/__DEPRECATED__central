@@ -62,8 +62,12 @@ def checkoutComaasCentralRepo(String gitHash) {
 
 String getCurrentlyDeployedVersion(String tenantLongName, String dc, String environmentShort) {
     String tenant = getAlias(tenantLongName)
+    String dc_ip = sh(
+            script: "dig +short dmz-vip.comaas-${environmentShort}.${dc}.cloud",
+            returnStdout: true
+    ).trim()
     String version = sh(
-            script: "curl -s ${dc}.${tenant}.${environmentShort}.comaas.cloud/health | jq -r .version",
+            script: "curl -s --resolve ${tenant}.${environmentShort}.comaas.cloud:443:${dc_ip} https://${dc}.${tenant}.${environmentShort}.comaas.cloud/health | jq -r .version",
             returnStdout: true
     ).trim()
     return version
