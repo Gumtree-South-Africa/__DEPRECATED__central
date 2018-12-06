@@ -23,7 +23,7 @@ public class BlockedIpConfiguration {
             @Value("${replyts2-blockedipfilter-plugin.dataSource.url}") String url,
             @Value("${replyts2-blockedipfilter-plugin.dataSource.username:belen}") String username,
             @Value("${replyts2-blockedipfilter-plugin.dataSource.password:}") String password,
-            @Value("${replyts2-blockedipfilter-plugin.dataSource.pool.maxPoolSize:50}") int maxPoolSize,
+            @Value("${replyts2-blockedipfilter-plugin.dataSource.pool.maxPoolSize:4}") int maxPoolSize,
             @Value("${replyts2-blockedipfilter-plugin.dataSource.pool.name:}") String poolName,
             @Value("${replyts2-blockedipfilter-plugin.dataSource.cachePrepStmts:true}") String cachePreparedStatements,
             @Value("${replyts2-blockedipfilter-plugin.dataSource.prepStmtCacheSize:250}") String prepareStatementsCacheSize,

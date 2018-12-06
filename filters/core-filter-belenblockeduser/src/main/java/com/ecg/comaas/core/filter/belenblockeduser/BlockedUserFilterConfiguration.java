@@ -24,7 +24,7 @@ public class BlockedUserFilterConfiguration {
             @Value("${replyts2-belenblockeduserfilter-plugin.dataSource.url}") String url,
             @Value("${replyts2-belenblockeduserfilter-plugin.dataSource.username:belen}") String username,
             @Value("${replyts2-belenblockeduserfilter-plugin.dataSource.password:}") String password,
-            @Value("${replyts2-belenblockeduserfilter-plugin.dataSource.maxPoolSize:50}") int maxPoolSize,
+            @Value("${replyts2-belenblockeduserfilter-plugin.dataSource.maxPoolSize:4}") int maxPoolSize,
             @Value("${replyts2-belenblockeduserfilter-plugin.dataSource.maxLifetime:1500000}") long maxLifetime,
             @Value("${replyts2-belenblockeduserfilter-plugin.dataSource.poolName:}") String poolName,
             @Value("${replyts2-belenblockeduserfilter-plugin.dataSource.cachePrepStmts:true}") String cachePreparedStatements,
