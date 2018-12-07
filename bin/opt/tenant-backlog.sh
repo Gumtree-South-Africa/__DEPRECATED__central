@@ -10,6 +10,6 @@ fi
 TENANT=$1
 ENVIRONMENT=$2
 
-REVISION=`curl -s http://$TENANT.$ENVIRONMENT.comaas.cloud/health | jq -r .version`
+VERSION=`curl -s http://$TENANT.$ENVIRONMENT.comaas.cloud/health | jq -r .version`
 
-git -C ${0%/*} log --oneline $REVISION..origin/master
+git -C ${0%/*} log --oneline $VERSION..origin/master

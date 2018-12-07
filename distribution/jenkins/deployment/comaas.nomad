@@ -56,6 +56,7 @@ job "comaas-[[ .tenant_short ]]" {
         ESAAS_USERNAME = "[[ .esaas_username ]]"
         ESAAS_PASSWORD = "[[ .esaas_password ]]"
         VERSION = "[[ .version ]]"
+        APPLICATION_NAME = "comaas-newmsg"
       }
 
       service {
@@ -140,6 +141,7 @@ job "comaas-[[ .tenant_short ]]" {
         ESAAS_USERNAME = "[[ .esaas_username ]]"
         ESAAS_PASSWORD = "[[ .esaas_password ]]"
         VERSION = "[[ .version ]]"
+        APPLICATION_NAME = "comaas-http"
       }
 
       service {
@@ -231,6 +233,7 @@ job "comaas-[[ .tenant_short ]]" {
         ESAAS_USERNAME = "[[ .esaas_username ]]"
         ESAAS_PASSWORD = "[[ .esaas_password ]]"
         VERSION = "[[ .version ]]"
+        APPLICATION_NAME = "comaas-cronjob"
       }
 
       service {

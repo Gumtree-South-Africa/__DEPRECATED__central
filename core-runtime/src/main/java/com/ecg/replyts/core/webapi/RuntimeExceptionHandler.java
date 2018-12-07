@@ -1,6 +1,5 @@
 package com.ecg.replyts.core.webapi;
 
-import com.ecg.replyts.core.Application;
 import com.google.common.base.Throwables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,8 +15,8 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import static com.ecg.replyts.core.runtime.logging.MDCConstants.APPLICATION;
-import static com.ecg.replyts.core.runtime.logging.MDCConstants.REVISION;
+import static com.ecg.replyts.core.runtime.logging.MDCConstants.APPLICATION_NAME;
+import static com.ecg.replyts.core.runtime.logging.MDCConstants.VERSION;
 
 @ControllerAdvice
 public final class RuntimeExceptionHandler extends ResponseEntityExceptionHandler {
@@ -28,15 +27,15 @@ public final class RuntimeExceptionHandler extends ResponseEntityExceptionHandle
     private static final String MESSAGE = "message";
     private static final String DETAILS = "details";
 
-    @ExceptionHandler(value = { RuntimeException.class })
+    @ExceptionHandler(value = {RuntimeException.class})
     protected ResponseEntity<Object> handleRuntimeException(RuntimeException ex, WebRequest request) {
         LOG.error("Exception on {}", request, ex);
 
         Map<String, String> response = new LinkedHashMap<>();
         response.put(STATE, FAILURE);
         response.put(MESSAGE, ex.getClass().getName() + ": " + ex.getMessage());
-        response.put(APPLICATION, Application.class.getPackage().getImplementationTitle());
-        response.put(REVISION, Application.class.getPackage().getImplementationVersion());
+        response.put(APPLICATION_NAME, System.getenv("APPLICATION_NAME"));
+        response.put(VERSION, System.getenv("VERSION"));
 
         MDC.getCopyOfContextMap().forEach((key, value) -> response.put(key, value));
 
