@@ -1,6 +1,7 @@
 package com.ecg.replyts.core;
 
 import com.ecg.replyts.app.postprocessorchain.PostProcessor;
+import com.ecg.replyts.app.postprocessorchain.PostProcessorTracer;
 import com.ecg.replyts.app.preprocessorchain.PreProcessor;
 import com.ecg.replyts.core.api.pluginconfiguration.ComaasPlugin;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.Filter;
@@ -47,7 +48,7 @@ import static java.lang.String.format;
         "com.ecg.replyts.core.runtime.mailparser" // More Gumtree Australia hacks
         */
 })
-@ComponentScan(value = { "com.ecg", "com.ebay" }, useDefaultFilters = false, includeFilters = @ComponentScan.Filter(ComaasPlugin.class))
+@ComponentScan(value = {"com.ecg", "com.ebay"}, useDefaultFilters = false, includeFilters = @ComponentScan.Filter(ComaasPlugin.class))
 @ImportResource("classpath*:/plugin-inf/*.xml")
 public class Application {
     private static final Logger LOG = LoggerFactory.getLogger(Application.class);
@@ -55,11 +56,68 @@ public class Application {
     private static final String HAZELCAST_GROUP_NAME_ENV_VAR = "HAZELCAST_GROUP_NAME";
 
     static {
-        java.security.Security.setProperty("networkaddress.cache.ttl" , "60");
+        java.security.Security.setProperty("networkaddress.cache.ttl", "60");
 
         Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> LOG.error("Uncaught exception in thread {}", thread, throwable));
 
         LoggingService.bootstrap();
+    }
+
+    public static void main(String[] args) {
+        try {
+            // XXX: Refactor this into a ApplicationContextInitializer once on Spring Boot
+
+            AnnotationConfigApplicationContext parent = new AnnotationConfigApplicationContext();
+
+            parent.getEnvironment().getPropertySources().addFirst(new ComaasPropertySource());
+
+            parent.register(LoggingService.class, CloudConfiguration.class, PrometheusExporter.class);
+
+            parent.refresh();
+
+            // XXX: Initialize the application as we were doing before; as going annotation-only requires quite some more refactoring as parent/child is not as easily supported
+
+            AbstractRefreshableApplicationContext context = new ClassPathXmlApplicationContext(new String[]{
+                    "classpath:super-mega-temporary-context.xml",
+            }, false, parent);
+
+            context.registerShutdownHook();
+
+            context.getEnvironment().setActiveProfiles(parent.getEnvironment().getProperty(TENANT));
+
+            context.refresh();
+
+            context.getBean(StartupExperience.class).running(context.getBean(HttpServerFactory.class).getPort());
+
+            context.publishEvent(new ApplicationReadyEvent(context));
+
+            PostProcessorTracer.info(Application.class, "Starting Application");
+            logRegisteredComponents(context);
+        } catch (Exception e) {
+            LOG.error("Unable to start Comaas", e);
+        }
+    }
+
+    private static void logRegisteredComponents(AbstractRefreshableApplicationContext context) {
+        ArrayNode filters = ObjectMapperConfigurer.arrayBuilder();
+        context.getBeansOfType(Filter.class).values().stream().forEach(comp -> filters.add(comp.getClass().getName()));
+
+        ArrayNode preProcessors = ObjectMapperConfigurer.arrayBuilder();
+        context.getBeansOfType(PreProcessor.class).values().stream().forEach(comp -> preProcessors.add(comp.getClass().getName()));
+
+        ArrayNode postProcessors = ObjectMapperConfigurer.arrayBuilder();
+        context.getBeansOfType(PostProcessor.class).values().stream().forEach(comp -> postProcessors.add(comp.getClass().getName()));
+
+        ArrayNode listeners = ObjectMapperConfigurer.arrayBuilder();
+        context.getBeansOfType(MessageProcessedListener.class).values().stream().forEach(comp -> listeners.add(comp.getClass().getName()));
+
+        ObjectNode components = ObjectMapperConfigurer.objectBuilder();
+        components.set("pre_processors", preProcessors);
+        components.set("filters", filters);
+        components.set("post_processors", postProcessors);
+        components.set("listeners", listeners);
+
+        LOG.info("Registration Completed", StructuredArguments.raw("components", components.toString()));
     }
 
     @Bean
@@ -127,17 +185,17 @@ public class Application {
 
     @Bean
     public SpringContextProvider mainContextProvider(ApplicationContext context) {
-        return new SpringContextProvider("/", new String[] { "classpath:control-context.xml" }, context);
+        return new SpringContextProvider("/", new String[]{"classpath:control-context.xml"}, context);
     }
 
     @Bean
     public SpringContextProvider configContextProvider(ApplicationContext context) {
-        return new SpringContextProvider("/configv2", new String[] { "classpath:config-mvc-context.xml" }, context);
+        return new SpringContextProvider("/configv2", new String[]{"classpath:config-mvc-context.xml"}, context);
     }
 
     @Bean
     public SpringContextProvider screeningContextProvider(ApplicationContext context) {
-        return new SpringContextProvider("/screeningv2", new String[] { "classpath:screening-mvc-context.xml" }, context);
+        return new SpringContextProvider("/screeningv2", new String[]{"classpath:screening-mvc-context.xml"}, context);
     }
 
     @Bean
@@ -145,61 +203,5 @@ public class Application {
         contextProviders.forEach(c -> LOG.info("Registering context {}", c.getPath()));
 
         return new Webserver(contextProviders);
-    }
-
-    public static void main(String[] args) {
-        try {
-            // XXX: Refactor this into a ApplicationContextInitializer once on Spring Boot
-
-            AnnotationConfigApplicationContext parent = new AnnotationConfigApplicationContext();
-
-            parent.getEnvironment().getPropertySources().addFirst(new ComaasPropertySource());
-
-            parent.register(LoggingService.class, CloudConfiguration.class, PrometheusExporter.class);
-
-            parent.refresh();
-
-            // XXX: Initialize the application as we were doing before; as going annotation-only requires quite some more refactoring as parent/child is not as easily supported
-
-            AbstractRefreshableApplicationContext context = new ClassPathXmlApplicationContext(new String[] {
-              "classpath:super-mega-temporary-context.xml",
-            }, false, parent);
-
-            context.registerShutdownHook();
-
-            context.getEnvironment().setActiveProfiles(parent.getEnvironment().getProperty(TENANT));
-
-            context.refresh();
-
-            context.getBean(StartupExperience.class).running(context.getBean(HttpServerFactory.class).getPort());
-
-            context.publishEvent(new ApplicationReadyEvent(context));
-
-            logRegisteredComponents(context);
-        } catch (Exception e) {
-            LOG.error("Unable to start Comaas", e);
-        }
-    }
-
-    private static void logRegisteredComponents(AbstractRefreshableApplicationContext context) {
-        ArrayNode filters = ObjectMapperConfigurer.arrayBuilder();
-        context.getBeansOfType(Filter.class).values().stream().forEach(comp -> filters.add(comp.getClass().getName()));
-
-        ArrayNode preProcessors = ObjectMapperConfigurer.arrayBuilder();
-        context.getBeansOfType(PreProcessor.class).values().stream().forEach(comp -> preProcessors.add(comp.getClass().getName()));
-
-        ArrayNode postProcessors = ObjectMapperConfigurer.arrayBuilder();
-        context.getBeansOfType(PostProcessor.class).values().stream().forEach(comp -> postProcessors.add(comp.getClass().getName()));
-
-        ArrayNode listeners = ObjectMapperConfigurer.arrayBuilder();
-        context.getBeansOfType(MessageProcessedListener.class).values().stream().forEach(comp -> listeners.add(comp.getClass().getName()));
-
-        ObjectNode components = ObjectMapperConfigurer.objectBuilder();
-        components.set("pre_processors", preProcessors);
-        components.set("filters", filters);
-        components.set("post_processors", postProcessors);
-        components.set("listeners", listeners);
-
-        LOG.info("Registration Completed", StructuredArguments.raw("components", components.toString()));
     }
 }
