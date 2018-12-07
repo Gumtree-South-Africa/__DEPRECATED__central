@@ -23,14 +23,19 @@ public class PostProcessorChain {
 
     @PostConstruct
     public void orderPostProcessors() {
+        // !!! mutating sort operation, not thread safe !!! ???
         this.postProcessors.sort(new OrderComparator());
-        LOG.info("PostProcessors registered: {}", postProcessors.stream().map(Object::getClass).map(Class::getName).collect(Collectors.joining(", ")));
+        String processorNames = postProcessors.stream().map(Object::getClass).map(Class::getName).collect(Collectors.joining(", "));
+        LOG.info("PostProcessors registered: {}", processorNames);
+        PostProcessorTracer.info(this, "constructed with postProcessors: {}", processorNames);
     }
 
     public void postProcess(MessageProcessingContext context) {
         for (PostProcessor postProcessor : postProcessors) {
             if (postProcessor.isApplicable(context)) {
-                LOG.trace("Applying post-processor {} for message id {}", postProcessor.getClass().getSimpleName(), context.getMessageId());
+                PostProcessorTracer.logPostProcessorApplicable(postProcessor);
+
+                LOG.debug("Applying post-processor {} for message id {}", postProcessor.getClass().getSimpleName(), context.getMessageId());
 
                 postProcessor.postProcess(context);
 
@@ -40,7 +45,8 @@ public class PostProcessorChain {
                 }
 
             } else {
-                LOG.trace("NOT applying post-processor {} for message id {}", postProcessor.getClass().getSimpleName(), context.getMessageId());
+                PostProcessorTracer.logPostProcessorNotApplicable(postProcessor);
+                LOG.debug("NOT applying post-processor {} for message id {}", postProcessor.getClass().getSimpleName(), context.getMessageId());
             }
         }
     }

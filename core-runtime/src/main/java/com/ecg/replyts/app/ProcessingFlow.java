@@ -4,20 +4,14 @@ import com.codahale.metrics.Counter;
 import com.codahale.metrics.Timer;
 import com.ecg.replyts.app.filterchain.FilterChain;
 import com.ecg.replyts.app.postprocessorchain.PostProcessorChain;
+import com.ecg.replyts.app.postprocessorchain.PostProcessorTracer;
 import com.ecg.replyts.app.preprocessorchain.PreProcessorManager;
-import com.ecg.replyts.core.api.model.conversation.Conversation;
-import com.ecg.replyts.core.api.model.conversation.Message;
-import com.ecg.replyts.core.api.model.conversation.MessageDirection;
 import com.ecg.replyts.core.api.model.mail.Mail;
-import com.ecg.replyts.core.api.processing.ConversationEventService;
 import com.ecg.replyts.core.api.processing.MessageFixer;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
-import com.ecg.replyts.core.api.util.ConversationEventConverter;
 import com.ecg.replyts.core.runtime.TimingReports;
-import com.ecg.replyts.core.runtime.identifier.UserIdentifierService;
 import com.ecg.replyts.core.runtime.maildelivery.MailDeliveryException;
 import com.ecg.replyts.core.runtime.maildelivery.MailDeliveryService;
-import com.google.common.collect.Iterables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,8 +20,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.*;
 
-import static com.ecg.comaas.events.Conversation.Participant;
-import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 
 /**
@@ -90,13 +82,17 @@ class ProcessingFlow {
 
     void inputForPostProcessor(MessageProcessingContext context) {
         try (Timer.Context ignore = postProcessorTimer.time()) {
-            LOG.trace("PostProcessing Message {}", context.getMessageId());
+            LOG.debug("PostProcessing Message {}", context.getMessageId());
+            PostProcessorTracer.info(this, "START Postprocessing message {}", context.getMessageId());
             postProcessor.postProcess(context);
+            PostProcessorTracer.info(this, "DONE Postprocessing message {}", context.getMessageId());
         }
 
         if (context.isTerminated()) {
             throw new IllegalStateException("PostProcessors may not Terminate messages");
         }
+
+        PostProcessorTracer.info(this, "inputForSending message {}", context.getMessageId());
 
         inputForSending(context);
     }
