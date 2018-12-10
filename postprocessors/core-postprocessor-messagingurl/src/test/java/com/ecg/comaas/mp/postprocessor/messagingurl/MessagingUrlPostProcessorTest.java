@@ -22,7 +22,7 @@ public class MessagingUrlPostProcessorTest{
             "Message with a link to https://www.marktplaats.nl/mijnberichten/conversationIdPlaceholder";
     private static final String  PROCESSED_TEXT_CONTENT =
             "Message with a link to https://www.marktplaats.nl/mijnberichten/" + conversationId;
-
+    
     private MessagingUrlPostProcessor processor;
 
     @Mock
