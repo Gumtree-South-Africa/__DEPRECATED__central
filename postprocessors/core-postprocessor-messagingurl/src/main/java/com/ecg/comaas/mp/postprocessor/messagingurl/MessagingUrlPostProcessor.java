@@ -25,13 +25,13 @@ public class MessagingUrlPostProcessor implements EmailPostProcessor {
     private static final Logger LOG = LoggerFactory.getLogger(MessagingUrlPostProcessor.class);
 
     private final String CONVERSATION_ID_PLACEHOLDER = "conversationIdPlaceholder";
-    private final String messagegingResource;
+    private final String messagingResource;
     private final String replaceString;
 
     MessagingUrlPostProcessor(
-            @Value("${comaas.postprocessor.messaging_url}") String messagegingResource) {
-        this.messagegingResource = messagegingResource;
-        this.replaceString = messagegingResource + CONVERSATION_ID_PLACEHOLDER;
+            @Value("${comaas.postprocessor.messaging_url}") String messagingResource) {
+        this.messagingResource = messagingResource;
+        this.replaceString = messagingResource + CONVERSATION_ID_PLACEHOLDER;
     }
 
     @Override
@@ -52,14 +52,14 @@ public class MessagingUrlPostProcessor implements EmailPostProcessor {
                 String existingContent = typedContent.getContent();
 
                 if (existingContent.contains(replaceString)) {
-                    String newContent = existingContent.replace(messagegingResource + CONVERSATION_ID_PLACEHOLDER,
-                            messagegingResource + messageProcessingContext.getConversation().getId());
+                    String newContent = existingContent.replace(messagingResource + CONVERSATION_ID_PLACEHOLDER,
+                            messagingResource + messageProcessingContext.getConversation().getId());
 
                     typedContent.overrideContent(newContent);
                 }
 
             } else {
-                LOG.warn("Message {} is immutable cannot change it's content ", message.getId());
+                LOG.warn("Message {} is immutable cannot change its content ", message.getId());
             }
         }
     }
