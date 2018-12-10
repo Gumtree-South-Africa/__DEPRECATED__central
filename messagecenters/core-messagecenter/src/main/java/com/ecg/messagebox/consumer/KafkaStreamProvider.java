@@ -7,6 +7,7 @@ import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.kstream.KStream;
+import org.apache.kafka.streams.processor.UsePreviousTimeOnInvalidTimestamp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,6 +40,7 @@ class KafkaStreamProvider {
 
         Properties consumerProperties = createConsumerProperties(kafkaEndpoints, tenantShort);
         Topology topology = createTopology(consumerService, builder -> builder.stream(kafkaTopic));
+
         return new KafkaStreams(topology, consumerProperties);
     }
 
@@ -73,6 +75,8 @@ class KafkaStreamProvider {
             props.put(StreamsConfig.CLIENT_ID_CONFIG, format("%s-%d", allocId, threadId));
         }
         props.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.StringSerde.class);
+        // Prevent failures on Invalid or missing Timestamps
+        props.put(StreamsConfig.DEFAULT_TIMESTAMP_EXTRACTOR_CLASS_CONFIG, UsePreviousTimeOnInvalidTimestamp.class);
         props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.ByteArraySerde.class);
         return props;
     }
