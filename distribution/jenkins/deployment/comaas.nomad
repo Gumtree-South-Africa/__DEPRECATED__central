@@ -120,6 +120,8 @@ job "comaas-[[ .tenant_short ]]" {
     task "http" {
       driver = "docker"
 
+      shutdown_delay = "5s"
+
       config {
         image = "[[ .docker_namespace ]]/comaas:[[ .version ]]"
         network_mode = "host"
@@ -151,6 +153,7 @@ job "comaas-[[ .tenant_short ]]" {
           "version-[[.version]]",
           "http",
           "traefik.enable=true",
+          "traefik.backend.loadbalancer.method=drr",
           "traefik.frontend.rule=Host:[[ .tenant_short ]].[[ .environment ]].comaas.cloud",
           "urlprefix-[[ .tenant_short ]].[[ .environment ]].comaas.cloud/",
           "urlprefix-[[ .region ]].[[ .tenant_short ]].[[ .environment ]].comaas.cloud/"

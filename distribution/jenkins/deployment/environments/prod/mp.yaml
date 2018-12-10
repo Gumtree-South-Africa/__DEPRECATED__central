@@ -4,7 +4,7 @@ vault:
   policy: nomad-secret-readonly
 
 http:
-  count: 12
+  count: 15
   memory: 4096
   cpu: 2500
   heap: 2G
