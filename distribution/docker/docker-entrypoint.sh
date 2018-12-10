@@ -8,7 +8,7 @@ REPO=${BASE_DIR}/lib
 CONF_DIR=${BASE_DIR}/conf
 
 if [ -z ${TENANT} ] || [ -z ${NOMAD_PORT_http} ] || [ -z ${NOMAD_IP_hazelcast} ] || [ -z ${NOMAD_PORT_hazelcast} ] || [ -z ${NOMAD_PORT_prometheus} ] || [ -z ${NOMAD_REGION} ] || [ -z ${HEAP_SIZE} ]; then
-    echo "Please set TENANT, NOMAD_PORT_http, NOMAD_IP_hazelcast, NOMAD_PORT_hazelcast, NOMAD_PORT_metrics, NOMAD_REGION, and HEAP_SIZE"
+    echo "Please set TENANT, NOMAD_PORT_http, NOMAD_IP_hazelcast, NOMAD_PORT_hazelcast, NOMAD_PORT_prometheus, NOMAD_REGION, and HEAP_SIZE"
     exit 1
 fi
 
