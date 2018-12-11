@@ -62,7 +62,6 @@ job "comaas-[[ .tenant_short ]]" {
       service {
         name = "${JOB}"
         tags = [
-          "version-[[ .version ]]",
           "newmsg"
         ]
       }
@@ -150,14 +149,10 @@ job "comaas-[[ .tenant_short ]]" {
         name = "${JOB}"
         port = "http"
         tags = [
-          "version-[[.version]]",
           "http",
           "traefik.enable=true",
           "traefik.backend.loadbalancer.method=drr",
-          "traefik.frontend.rule=Host:[[ .tenant_short ]].[[ .environment ]].comaas.cloud",
-          "urlprefix-[[ .tenant_short ]].[[ .environment ]].comaas.cloud/",
-          "urlprefix-[[ .region ]].[[ .tenant_short ]].[[ .environment ]].comaas.cloud/"
-          [[ .urlprefixes ]]
+          "traefik.frontend.rule=Host:[[ .tenant_short ]].[[ .environment ]].comaas.cloud"
         ]
         check {
           type     = "http"
@@ -243,7 +238,6 @@ job "comaas-[[ .tenant_short ]]" {
         name = "${JOB}"
         port = "http"
         tags = [
-          "version-[[.version]]",
           "cronjob"
         ]
       }
