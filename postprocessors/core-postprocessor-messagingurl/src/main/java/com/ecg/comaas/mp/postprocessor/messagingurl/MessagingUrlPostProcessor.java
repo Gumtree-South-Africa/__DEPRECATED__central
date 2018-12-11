@@ -25,12 +25,13 @@ public class MessagingUrlPostProcessor implements EmailPostProcessor {
     private static final Logger LOG = LoggerFactory.getLogger(MessagingUrlPostProcessor.class);
 
     private final String CONVERSATION_ID_PLACEHOLDER = "conversationIdPlaceholder";
-    private final String messagegingResource;
+    private final String messagingResource;
+    private final String replaceString;
 
-    public MessagingUrlPostProcessor(
-            @Value("comaas.postprocessor.messaging_url") String messagegingResource) {
-
-        this.messagegingResource = messagegingResource;
+    MessagingUrlPostProcessor(
+            @Value("${comaas.postprocessor.messaging_url}") String messagingResource) {
+        this.messagingResource = messagingResource;
+        this.replaceString = messagingResource + CONVERSATION_ID_PLACEHOLDER;
     }
 
     @Override
@@ -39,7 +40,7 @@ public class MessagingUrlPostProcessor implements EmailPostProcessor {
 
         MutableMail outboundMail = messageProcessingContext.getOutgoingMail();
 
-        LOG.trace("MessagingUrlPostProcessor for message #{}", message.getId());
+        LOG.debug("MessagingUrlPostProcessor for message #{}", message.getId());
 
         List<TypedContent<String>> typedContents = outboundMail.getTextParts(false);
         if (typedContents.isEmpty()) {
@@ -49,10 +50,16 @@ public class MessagingUrlPostProcessor implements EmailPostProcessor {
             if (typedContent.isMutable()) {
 
                 String existingContent = typedContent.getContent();
-                String newContent = existingContent.replace(messagegingResource + CONVERSATION_ID_PLACEHOLDER,
-                        messagegingResource + messageProcessingContext.getConversation().getId());
 
-                typedContent.overrideContent(newContent);
+                if (existingContent.contains(replaceString)) {
+                    String newContent = existingContent.replace(replaceString,
+                            messagingResource + messageProcessingContext.getConversation().getId());
+
+                    typedContent.overrideContent(newContent);
+                }
+
+            } else {
+                LOG.warn("Message {} is immutable cannot change its content ", message.getId());
             }
         }
     }
