@@ -29,8 +29,12 @@ Note that you will have to install Docker on your local machines, the automated 
 - Load properties from the root of `central` project
 
 ```
-docker run --network comaasdocker_default --rm --volume ${PWD}/distribution/conf/mp/docker.properties:/props.properties \
-        dock.es.ecg.tools/comaas/properties-to-consul:0.0.7 -consul http://comaasdocker_consul_1_d1e3b633c48a:8500 -tenant mp
+./bin/opt/docker-load-consul-properties.sh $TENANT_NAME
+```
+This should say something like: 
+```
+(...)
+2018/12/07 13:28:48 Importing 79 properties into Consul at http://comaasdocker_consul_1:8500/v1/kv/comaas/comaas:core:kjca
 ```
 
 - Run Configuration in IntelliJ
