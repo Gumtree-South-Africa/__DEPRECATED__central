@@ -41,6 +41,22 @@ This should say something like:
 
 ![local_development](etc/local_dev.png)
 
+Please note that this would only allow you debugging the core system, but none of the plugins (filters, post/pre processors, or message centers)
+
+### Run/debug Comaas with plugins
+ - Start Comaas docker and load properties as described above.
+ - Build the project with
+  ```
+./bin/build.sh -p
+  ```
+ - Create Remote configuration and run it
+ 
+![plugins-debugging](etc/remote_dev.png) 
+ 
+ - Use `bin/opt/run-locally.sh` to start Comaas. 
+ - When you make any changes to the code you need to build the project again and re-start comaas for the changes to be 
+ reflected.
+ 
 #### Option 1. Build script
 
 ```
