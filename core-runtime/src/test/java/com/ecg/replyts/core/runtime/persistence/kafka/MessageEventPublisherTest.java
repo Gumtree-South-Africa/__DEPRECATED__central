@@ -5,6 +5,7 @@ import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.conversation.MessageState;
 import com.ecg.replyts.core.api.model.conversation.MessageTransport;
+import com.ecg.replyts.core.api.model.mail.MailAddress;
 import com.ecg.replyts.core.api.processing.ConversationEventService;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.ecg.replyts.core.runtime.identifier.UserIdentifierService;
@@ -70,6 +71,10 @@ public class MessageEventPublisherTest {
         DateTime createdAt = DateTime.now();
         DateTime receivedAt = DateTime.now();
 
+        String cloaked = "cloaked@email.com";
+        Map<String, String> headers = new HashMap<>();
+        headers.put("Delivered-To", cloaked);
+
         when(context.getTransport()).thenReturn(MessageTransport.CHAT);
         when(context.getOriginTenant()).thenReturn(shortTenant);
         when(conversation.getCustomValues()).thenReturn(customValues);
@@ -80,9 +85,11 @@ public class MessageEventPublisherTest {
         when(message.getState()).thenReturn(MessageState.SENT);
         when(message.getId()).thenReturn(MESSAGE_ID);
         when(message.getReceivedAt()).thenReturn(receivedAt);
+        when(message.getHeaders()).thenReturn(headers);
         when(contentOverridingPostProcessorService.getCleanedMessage(conversation, message)).thenReturn(MESSAGE_CONTENT);
         when(userIdentifierService.getBuyerUserId(customValues)).thenReturn(Optional.of("BUYER_ID"));
         when(userIdentifierService.getSellerUserId(customValues)).thenReturn(Optional.of("SELLER_ID"));
+        when(anonymizedMailConverter.isCloaked(new MailAddress(cloaked))).thenReturn(false);
 
         publisher.publish(context, conversation, message);
 
@@ -90,7 +97,7 @@ public class MessageEventPublisherTest {
                 eq(CONVERSATION_ID), eq(customValues), any(), eq(createdAt));
 
         verify(conversationEventService).sendMessageAddedEvent(eq(shortTenant), eq(CONVERSATION_ID), eq("SELLER_ID"), eq(MESSAGE_ID), eq(MESSAGE_CONTENT),
-                eq(customValues), eq(MessageTransport.CHAT), eq(shortTenant), eq(receivedAt), eq(Arrays.asList("SELLER_ID", "BUYER_ID")));
+                eq(headers), eq(MessageTransport.CHAT), eq(shortTenant), eq(receivedAt), eq(Arrays.asList("SELLER_ID", "BUYER_ID")));
     }
 
     @Test
@@ -98,6 +105,10 @@ public class MessageEventPublisherTest {
         Map<String, String> customValues = new HashMap<>();
         DateTime createdAt = DateTime.now();
         DateTime receivedAt = DateTime.now();
+
+        String cloaked = "cloaked@email.com";
+        Map<String, String> headers = new HashMap<>();
+        headers.put("Delivered-To", cloaked);
 
         when(context.getTransport()).thenReturn(MessageTransport.CHAT);
         when(context.getOriginTenant()).thenReturn(shortTenant);
@@ -109,14 +120,50 @@ public class MessageEventPublisherTest {
         when(message.getState()).thenReturn(MessageState.SENT);
         when(message.getId()).thenReturn(MESSAGE_ID);
         when(message.getReceivedAt()).thenReturn(receivedAt);
+        when(message.getHeaders()).thenReturn(headers);
         when(contentOverridingPostProcessorService.getCleanedMessage(conversation, message)).thenReturn(MESSAGE_CONTENT);
         when(userIdentifierService.getBuyerUserId(customValues)).thenReturn(Optional.of("BUYER_ID"));
         when(userIdentifierService.getSellerUserId(customValues)).thenReturn(Optional.of("SELLER_ID"));
+        when(anonymizedMailConverter.isCloaked(new MailAddress(cloaked))).thenReturn(false);
 
         publisher.publish(context, conversation, message);
 
         verify(conversationEventService).sendMessageAddedEvent(eq(shortTenant), eq(CONVERSATION_ID), eq("SELLER_ID"), eq(MESSAGE_ID), eq(MESSAGE_CONTENT),
-                eq(customValues), eq(MessageTransport.CHAT), eq(shortTenant), eq(receivedAt), eq(Arrays.asList("SELLER_ID", "BUYER_ID")));
+                eq(headers), eq(MessageTransport.CHAT), eq(shortTenant), eq(receivedAt), eq(Arrays.asList("SELLER_ID", "BUYER_ID")));
+
+        verifyNoMoreInteractions(conversationEventService);
+    }
+
+    @Test
+    public void ignoreHeadersInCloakedMessage() throws InterruptedException {
+        Map<String, String> customValues = new HashMap<>();
+        DateTime createdAt = DateTime.now();
+        DateTime receivedAt = DateTime.now();
+
+        String cloaked = "cloaked@email.com";
+        Map<String, String> headers = new HashMap<>();
+        headers.put("Delivered-To", cloaked);
+
+        when(context.getTransport()).thenReturn(MessageTransport.CHAT);
+        when(context.getOriginTenant()).thenReturn(shortTenant);
+        when(conversation.getCustomValues()).thenReturn(customValues);
+        when(conversation.getMessages()).thenReturn(Arrays.asList(message, message));
+        when(conversation.getAdId()).thenReturn(AD_ID);
+        when(conversation.getId()).thenReturn(CONVERSATION_ID);
+        when(conversation.getCreatedAt()).thenReturn(createdAt);
+        when(message.getState()).thenReturn(MessageState.SENT);
+        when(message.getId()).thenReturn(MESSAGE_ID);
+        when(message.getReceivedAt()).thenReturn(receivedAt);
+        when(message.getHeaders()).thenReturn(headers);
+        when(contentOverridingPostProcessorService.getCleanedMessage(conversation, message)).thenReturn(MESSAGE_CONTENT);
+        when(userIdentifierService.getBuyerUserId(customValues)).thenReturn(Optional.of("BUYER_ID"));
+        when(userIdentifierService.getSellerUserId(customValues)).thenReturn(Optional.of("SELLER_ID"));
+        when(anonymizedMailConverter.isCloaked(new MailAddress(cloaked))).thenReturn(true);
+
+        publisher.publish(context, conversation, message);
+
+        verify(conversationEventService).sendMessageAddedEvent(eq(shortTenant), eq(CONVERSATION_ID), eq("SELLER_ID"), eq(MESSAGE_ID), eq(MESSAGE_CONTENT),
+                eq(Collections.emptyMap()), eq(MessageTransport.CHAT), eq(shortTenant), eq(receivedAt), eq(Arrays.asList("SELLER_ID", "BUYER_ID")));
 
         verifyNoMoreInteractions(conversationEventService);
     }
