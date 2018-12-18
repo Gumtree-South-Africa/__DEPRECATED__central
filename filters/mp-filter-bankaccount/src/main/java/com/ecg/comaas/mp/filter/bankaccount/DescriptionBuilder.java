@@ -63,7 +63,7 @@ class DescriptionBuilder {
     }
 
     private String getEmailHeader(Message message, String senderHeader) {
-        String value = message.getHeaders().get(senderHeader);
+        String value = message.getCaseInsensitiveHeaders().get(senderHeader);
         try {
             return value == null ? null : new InternetAddress(value).getAddress();
         } catch (AddressException e) {
@@ -73,10 +73,10 @@ class DescriptionBuilder {
 
     private String getIpFromMessage(Message message) {
         String ip = BankAccountFilterUtil.coalesce(
-                trimToNull(message.getHeaders().get("From-Ip")), // "From-Ip" - Mail.FROM_IP
-                trimToNull(message.getHeaders().get("X-Originating-Ip")), // "X-Originating-Ip" - Mail.X_ORIGINATING_IP
-                trimToNull(message.getHeaders().get("X-Sourceip")), // "X-SourceIP" - Mail.X_SOURCEIP
-                trimToNull(message.getHeaders().get("X-Aol-Ip"))); // "X-AOL-IP" - Mail.X_AOL_IP
+                trimToNull(message.getCaseInsensitiveHeaders().get("From-Ip")), // "From-Ip" - Mail.FROM_IP
+                trimToNull(message.getCaseInsensitiveHeaders().get("X-Originating-Ip")), // "X-Originating-Ip" - Mail.X_ORIGINATING_IP
+                trimToNull(message.getCaseInsensitiveHeaders().get("X-Sourceip")), // "X-SourceIP" - Mail.X_SOURCEIP
+                trimToNull(message.getCaseInsensitiveHeaders().get("X-Aol-Ip"))); // "X-AOL-IP" - Mail.X_AOL_IP
         return StringUtils.strip(ip, "[]");
     }
 }

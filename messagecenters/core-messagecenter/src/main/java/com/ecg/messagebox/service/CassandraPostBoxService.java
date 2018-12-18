@@ -85,9 +85,9 @@ public class CassandraPostBoxService implements PostBoxService {
 
         String senderUserId = getMessageSenderUserId(rtsConversation, rtsMessage);
 
-        String messageTypeStr = rtsMessage.getHeaders().getOrDefault("X-Message-Type", MessageType.EMAIL.getValue()).toLowerCase();
+        String messageTypeStr = rtsMessage.getCaseInsensitiveHeaders().getOrDefault("X-Message-Type", MessageType.EMAIL.getValue()).toLowerCase();
         MessageType messageType = MessageType.get(messageTypeStr);
-        String customData = rtsMessage.getHeaders().get("X-Message-Metadata");
+        String customData = rtsMessage.getCaseInsensitiveHeaders().get("X-Message-Metadata");
         UUID messageId = UUID.fromString(rtsMessage.getId());
         List<Attachment> attachments = rtsMessage.getAttachmentFilenames()
                 .stream()
@@ -96,7 +96,7 @@ public class CassandraPostBoxService implements PostBoxService {
                         .messageID(rtsMessage.getId())
                         .build())
                 .collect(Collectors.toList());
-        Message newMessage = new Message(messageId, cleanMessageText, senderUserId, messageType, customData, rtsMessage.getHeaders(), attachments);
+        Message newMessage = new Message(messageId, cleanMessageText, senderUserId, messageType, customData, rtsMessage.getCaseInsensitiveHeaders(), attachments);
         Optional<MessageNotification> messageNotificationOpt = postBoxRepository.getConversationMessageNotification(userId, rtsConversation.getId());
 
         if (messageNotificationOpt.isPresent()) {
@@ -113,9 +113,9 @@ public class CassandraPostBoxService implements PostBoxService {
                     newMessage,
                     new ConversationMetadata(
                             now(),
-                            rtsConversation.getMessages().get(0).getHeaders().get("Subject"),
-                            rtsMessage.getHeaders().get("X-Conversation-Title"),
-                            rtsMessage.getHeaders().get("X-Conversation-Image-Url")
+                            rtsConversation.getMessages().get(0).getCaseInsensitiveHeaders().get("Subject"),
+                            rtsMessage.getCaseInsensitiveHeaders().get("X-Conversation-Title"),
+                            rtsMessage.getCaseInsensitiveHeaders().get("X-Conversation-Image-Url")
                     )
             );
 
@@ -130,7 +130,7 @@ public class CassandraPostBoxService implements PostBoxService {
     }
 
     private static boolean allowReponseDataComputation(com.ecg.replyts.core.api.model.conversation.Message message) {
-        String skipResponseData = message.getHeaders().get(SKIP_RESPONSE_DATA_HEADER);
+        String skipResponseData = message.getCaseInsensitiveHeaders().get(SKIP_RESPONSE_DATA_HEADER);
         return !Boolean.parseBoolean(skipResponseData);
     }
 

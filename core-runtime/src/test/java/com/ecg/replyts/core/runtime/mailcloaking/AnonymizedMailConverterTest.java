@@ -32,18 +32,22 @@ public class AnonymizedMailConverterTest {
 
     @Test
     public void validCloakedEmailAddressesAreUncloakable() {
-        assertTrue(anonymizedMailConverter.isCloaked(new MailAddress("Buyer.1234@ebay.com")));
-        assertTrue(anonymizedMailConverter.isCloaked(new MailAddress("Seller.5678@ebay.com")));
+        final MailAddress mailAddress = new MailAddress("Buyer.1234@ebay.com");
+        assertTrue(anonymizedMailConverter.isCloaked(mailAddress.getAddress()));
+        final MailAddress mailAddress1 = new MailAddress("Seller.5678@ebay.com");
+        assertTrue(anonymizedMailConverter.isCloaked(mailAddress1.getAddress()));
     }
 
     @Test
     public void invalidRoleNameIsNotUncloakable() {
-        assertFalse(anonymizedMailConverter.isCloaked(new MailAddress("Something.1234@ebay.com")));
+        final MailAddress mailAddress = new MailAddress("Something.1234@ebay.com");
+        assertFalse(anonymizedMailConverter.isCloaked(mailAddress.getAddress()));
     }
 
     @Test
     public void invalidDomainIsNotUncloakable() {
-        assertFalse(anonymizedMailConverter.isCloaked(new MailAddress("Buyer.1234@ecg.com")));
+        final MailAddress mailAddress = new MailAddress("Buyer.1234@ecg.com");
+        assertFalse(anonymizedMailConverter.isCloaked(mailAddress.getAddress()));
     }
 
     @Test

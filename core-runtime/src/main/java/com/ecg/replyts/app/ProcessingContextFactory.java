@@ -71,7 +71,7 @@ public class ProcessingContextFactory {
 
     private BiPredicate<MailAddress, MailAddress> createOverrideRecipientOverride() {
         return (toRecipient, storedRecipient) -> {
-            if (overrideRecipient && !anonymizedMailConverter.isCloaked(toRecipient)) {
+            if (overrideRecipient && !anonymizedMailConverter.isCloaked(toRecipient.getAddress())) {
                 String toRecipientAddress = toRecipient.getAddress();
                 String storedRecipientAddress = storedRecipient.getAddress();
 

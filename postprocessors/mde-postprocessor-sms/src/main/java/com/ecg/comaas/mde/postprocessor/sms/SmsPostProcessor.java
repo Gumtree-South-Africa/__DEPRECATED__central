@@ -29,7 +29,7 @@ public class SmsPostProcessor implements PostProcessor {
     @Override
     public void postProcess(MessageProcessingContext messageContext) {
         Date sentDate = messageContext.getMail().map(Mail::getSentDate).orElse(null);
-        ContactMessage contactMessage = ContactMessageAssembler.assemble(messageContext.getConversation().getBuyerId(), sentDate, messageContext.getMessage().getHeaders());
+        ContactMessage contactMessage = ContactMessageAssembler.assemble(messageContext.getConversation().getBuyerId(), sentDate, messageContext.getMessage().getCaseInsensitiveHeaders());
 
         LOG.trace("SmsPostProcessor contactMessage {}", contactMessage);
         boolean result = sendSms(contactMessage);

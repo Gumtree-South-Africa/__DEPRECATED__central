@@ -74,7 +74,7 @@ public class GumtreeGeoIpFilterHeldTest {
 
     private MessageProcessingContext getMessageProcessingContext(String country, String ip) {
         Message message = mockMessage(MessageDirection.BUYER_TO_SELLER);
-        when(message.getHeaders()).thenReturn(ImmutableMap.of(GumtreeCustomHeaders.BUYER_IP.getHeaderValue(), ip));
+        when(message.getCaseInsensitiveHeaders()).thenReturn(ImmutableMap.of(GumtreeCustomHeaders.BUYER_IP.getHeaderValue(), ip));
         MutableConversation conversation = mockConversation("goodguy@hotmail.com", "badguy@hotmail.com", message);
 
         MessageProcessingContext messageProcessingContext = new MessageProcessingContext(mock(Mail.class), messageId,

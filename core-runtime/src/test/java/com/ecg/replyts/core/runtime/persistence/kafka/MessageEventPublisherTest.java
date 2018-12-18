@@ -5,7 +5,6 @@ import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.conversation.MessageState;
 import com.ecg.replyts.core.api.model.conversation.MessageTransport;
-import com.ecg.replyts.core.api.model.mail.MailAddress;
 import com.ecg.replyts.core.api.processing.ConversationEventService;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.ecg.replyts.core.runtime.identifier.UserIdentifierService;
@@ -20,7 +19,8 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.*;
 
-import static org.mockito.Matchers.*;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -85,11 +85,11 @@ public class MessageEventPublisherTest {
         when(message.getState()).thenReturn(MessageState.SENT);
         when(message.getId()).thenReturn(MESSAGE_ID);
         when(message.getReceivedAt()).thenReturn(receivedAt);
-        when(message.getHeaders()).thenReturn(headers);
+        when(message.getCaseInsensitiveHeaders()).thenReturn(headers);
         when(contentOverridingPostProcessorService.getCleanedMessage(conversation, message)).thenReturn(MESSAGE_CONTENT);
         when(userIdentifierService.getBuyerUserId(customValues)).thenReturn(Optional.of("BUYER_ID"));
         when(userIdentifierService.getSellerUserId(customValues)).thenReturn(Optional.of("SELLER_ID"));
-        when(anonymizedMailConverter.isCloaked(new MailAddress(cloaked))).thenReturn(false);
+        when(anonymizedMailConverter.isCloaked(cloaked)).thenReturn(false);
 
         publisher.publish(context, conversation, message);
 
@@ -120,11 +120,11 @@ public class MessageEventPublisherTest {
         when(message.getState()).thenReturn(MessageState.SENT);
         when(message.getId()).thenReturn(MESSAGE_ID);
         when(message.getReceivedAt()).thenReturn(receivedAt);
-        when(message.getHeaders()).thenReturn(headers);
+        when(message.getCaseInsensitiveHeaders()).thenReturn(headers);
         when(contentOverridingPostProcessorService.getCleanedMessage(conversation, message)).thenReturn(MESSAGE_CONTENT);
         when(userIdentifierService.getBuyerUserId(customValues)).thenReturn(Optional.of("BUYER_ID"));
         when(userIdentifierService.getSellerUserId(customValues)).thenReturn(Optional.of("SELLER_ID"));
-        when(anonymizedMailConverter.isCloaked(new MailAddress(cloaked))).thenReturn(false);
+        when(anonymizedMailConverter.isCloaked(cloaked)).thenReturn(false);
 
         publisher.publish(context, conversation, message);
 
@@ -154,11 +154,11 @@ public class MessageEventPublisherTest {
         when(message.getState()).thenReturn(MessageState.SENT);
         when(message.getId()).thenReturn(MESSAGE_ID);
         when(message.getReceivedAt()).thenReturn(receivedAt);
-        when(message.getHeaders()).thenReturn(headers);
+        when(message.getCaseInsensitiveHeaders()).thenReturn(headers);
         when(contentOverridingPostProcessorService.getCleanedMessage(conversation, message)).thenReturn(MESSAGE_CONTENT);
         when(userIdentifierService.getBuyerUserId(customValues)).thenReturn(Optional.of("BUYER_ID"));
         when(userIdentifierService.getSellerUserId(customValues)).thenReturn(Optional.of("SELLER_ID"));
-        when(anonymizedMailConverter.isCloaked(new MailAddress(cloaked))).thenReturn(true);
+        when(anonymizedMailConverter.isCloaked(cloaked)).thenReturn(true);
 
         publisher.publish(context, conversation, message);
 

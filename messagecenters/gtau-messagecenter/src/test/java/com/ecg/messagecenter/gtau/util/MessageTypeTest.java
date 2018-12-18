@@ -1,7 +1,6 @@
 package com.ecg.messagecenter.gtau.util;
 
 import com.ecg.messagecenter.gtau.persistence.Header;
-import com.ecg.messagecenter.gtau.util.MessageType;
 import com.ecg.messagecenter.gtau.webapi.responses.MessageResponse;
 import com.ecg.messagecenter.gtau.webapi.responses.RobotMessageResponse;
 import com.ecg.replyts.core.api.model.conversation.Message;
@@ -31,13 +30,13 @@ public class MessageTypeTest {
 
     @Test
     public void testHasLinks() throws Exception {
-        when(message.getHeaders()).thenReturn(headers());
+        when(message.getCaseInsensitiveHeaders()).thenReturn(headers());
         assertTrue("Message should contain links", MessageType.hasLinks(message));
     }
 
     @Test
     public void testGetLinks() throws Exception {
-        when(message.getHeaders()).thenReturn(headers());
+        when(message.getCaseInsensitiveHeaders()).thenReturn(headers());
         assertNotNull(MessageType.getLinks(message));
         assertEquals(1, MessageType.getLinks(message).size());
     }
@@ -45,7 +44,7 @@ public class MessageTypeTest {
     @Test
     public void testGetRobotDetailsNonRobotReturnsEmpty() throws Exception {
         Map<String, String> headers = new HashMap<>();
-        when(message.getHeaders()).thenReturn(headers);
+        when(message.getCaseInsensitiveHeaders()).thenReturn(headers);
 
         assertFalse("Robot Details must be empty.", MessageType.getRobotDetails(message).isPresent());
     }
@@ -54,7 +53,7 @@ public class MessageTypeTest {
     public void testGetRobotDetailsWithEmptySenderReturnsEmpty() throws Exception {
         Map<String, String> headers = new HashMap<>();
         headers.put(Header.Robot.getValue(), "GTAU");
-        when(message.getHeaders()).thenReturn(headers);
+        when(message.getCaseInsensitiveHeaders()).thenReturn(headers);
 
         assertFalse("Robot Details must be empty.", MessageType.getRobotDetails(message).isPresent());
 
@@ -66,7 +65,7 @@ public class MessageTypeTest {
         headers.put(Header.Robot.getValue(), "GTAU");
         headers.put(Header.MessageSender.getValue(), "{\"name\":\"Gumbot\"}");
 
-        when(message.getHeaders()).thenReturn(headers);
+        when(message.getCaseInsensitiveHeaders()).thenReturn(headers);
 
         Optional<RobotMessageResponse> response = MessageType.getRobotDetails(message);
         assertTrue("Robot Details must be defined.", response.isPresent());
@@ -82,7 +81,7 @@ public class MessageTypeTest {
         headers.put(Header.Robot.getValue(), "GTAU");
         headers.put(Header.MessageSender.getValue(), "{\"name\":\"Another Gumbot\",\"senderIcons\":[{\"name\":\"test\",\"url\":\"http://test\"},{\"name\":\"test2\",\"url\":\"http://test2\"}]}");
 
-        when(message.getHeaders()).thenReturn(headers);
+        when(message.getCaseInsensitiveHeaders()).thenReturn(headers);
 
         Optional<RobotMessageResponse> response = MessageType.getRobotDetails(message);
         assertTrue("Robot Details must be defined.", response.isPresent());
@@ -106,7 +105,7 @@ public class MessageTypeTest {
         headers.put(Header.RichTextLinks.getValue(), "[{\"end\":68,\"start\":64,\"type\":\"SEARCH\",\"url\":\"/s-motorcycles/city-canberra/c18626l3003021?ad=offering\"}]");
         headers.put(Header.RichTextMessage.getValue(), "<div>Testing this is a Rich Message with <a>a link!</a></div>");
 
-        when(message.getHeaders()).thenReturn(headers);
+        when(message.getCaseInsensitiveHeaders()).thenReturn(headers);
 
         Optional<RobotMessageResponse> response = MessageType.getRobotDetails(message);
         assertTrue("Robot Details must be defined.", response.isPresent());

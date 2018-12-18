@@ -56,7 +56,7 @@ public class RabbitMQClient implements MessageBrokerClient {
 																				  .text(messageProcessingContext.getMessage().getPlainTextBody())
 																				  .senderEmailAddress(mail.getFrom())
 																				  .senderRole("SELLER")
-																				  .mailerInfo(messageProcessingContext.getMessage().getHeaders().get("X-Mailer"))
+																				  .mailerInfo(messageProcessingContext.getMessage().getCaseInsensitiveHeaders().get("X-Mailer"))
 																				  .assertedSenderIpAddress(findSenderIp(mail))
 																				  .get();
 

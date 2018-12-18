@@ -38,7 +38,7 @@ public class GumtreeGeoIpLookupFilter implements com.ecg.replyts.core.api.plugin
                 return Collections.emptyList();
             }
 
-            String ip = messageContext.getMessage().getHeaders().get(GumtreeCustomHeaders.BUYER_IP.getHeaderValue());
+            String ip = messageContext.getMessage().getCaseInsensitiveHeaders().get(GumtreeCustomHeaders.BUYER_IP.getHeaderValue());
             if (ip == null) {
                 return Collections.emptyList();
             }

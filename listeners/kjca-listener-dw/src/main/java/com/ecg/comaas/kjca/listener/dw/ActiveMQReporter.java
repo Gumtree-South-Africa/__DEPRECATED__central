@@ -18,25 +18,17 @@ import com.ecg.replyts.core.api.model.conversation.MessageDirection;
 import com.ecg.replyts.core.api.model.conversation.MessageState;
 import com.ecg.replyts.core.api.model.conversation.ModerationResultState;
 import com.ecg.replyts.core.api.model.conversation.ProcessingFeedback;
-import com.ecg.replyts.core.api.pluginconfiguration.ComaasPlugin;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.listener.MessageProcessedListener;
 import com.google.common.collect.ImmutableList;
 import org.joda.time.DateTime;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Profile;
 import org.springframework.jms.JmsException;
 import org.springframework.jms.core.JmsTemplate;
-import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import java.util.List;
 import java.util.Map;
 
-import static com.ecg.replyts.core.api.model.Tenants.TENANT_KJCA;
-import static com.ecg.replyts.core.api.model.Tenants.TENANT_MVCA;
 import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
 
 /*
@@ -95,7 +87,7 @@ public class ActiveMQReporter implements MessageProcessedListener {
         final MessageState messageState = message.getState();
         final boolean droppedDueToBadEmail = isMessageBlockedDueToBadEmailAddress(message);
         final boolean droppedDueToBannedUser = isMessageBlockedDueToBadUser(message);
-        final Map<String, String> headers = message.getHeaders();
+        final Map<String, String> headers = message.getCaseInsensitiveHeaders();
         final String senderIpAddress = headers.get(BoxHeaders.SENDER_IP_ADDRESS.getHeaderName());
         final DateTime sentDate = messageState == MessageState.SENT ? conversation.getLastModifiedAt() : null;
         final DateTime approvedDate = message.getHumanResultState() == ModerationResultState.GOOD ? conversation.getLastModifiedAt() : null;
@@ -124,7 +116,7 @@ public class ActiveMQReporter implements MessageProcessedListener {
     }
 
     private ReplyTSConversationDTO buildReplyTSConversationDTO(Conversation conversation) {
-        Map<String, String> originalMsgHeaders = conversation.getMessages().get(0).getHeaders();
+        Map<String, String> originalMsgHeaders = conversation.getMessages().get(0).getCaseInsensitiveHeaders();
         String replierIdHeader = originalMsgHeaders.get(BoxHeaders.REPLIER_ID.getHeaderName());
         String posterIdHeader = originalMsgHeaders.get(BoxHeaders.POSTER_ID.getHeaderName());
         String buyerAnonID = buyerPrefix + mailCloakingSeparator + conversation.getBuyerSecret();

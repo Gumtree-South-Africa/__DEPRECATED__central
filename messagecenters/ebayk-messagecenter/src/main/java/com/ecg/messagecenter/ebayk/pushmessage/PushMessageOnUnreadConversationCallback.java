@@ -140,8 +140,8 @@ public class PushMessageOnUnreadConversationCallback implements SimplePostBoxIni
     private String messageShort(Message message) {
         String shortText = Strings.nullToEmpty(PushNotificationTextShortener.shortenText(message.getPlainTextBody()));
 
-        if (message.getHeaders().containsKey("X-Offer-Value")) {
-            String offer = "\nAngebot: "+message.getHeaders().get("X-Offer-Value");
+        if (message.getCaseInsensitiveHeaders().containsKey("X-Offer-Value")) {
+            String offer = "\nAngebot: "+message.getCaseInsensitiveHeaders().get("X-Offer-Value");
             return (truncateText(shortText, 50 - offer.length()) + offer).trim();
         } else {
             return truncateText(shortText, 50);

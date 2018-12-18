@@ -61,7 +61,7 @@ public class GumtreeKnownGoodFilter implements com.ecg.replyts.core.api.pluginco
     private Boolean isKnownGood(MessageProcessingContext messageContext) {
         Boolean knownGood = false;
         Message message = messageContext.getMessage();
-        Long senderId = getSenderId(message.getHeaders(), message.getMessageDirection());
+        Long senderId = getSenderId(message.getCaseInsensitiveHeaders(), message.getMessageDirection());
         if (senderId != null) {
             try {
                 KnownGoodResponse knownGoodResponse = client.knownGood(senderId);

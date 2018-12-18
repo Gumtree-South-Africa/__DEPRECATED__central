@@ -51,6 +51,7 @@ public class ImmutableMessage implements Message {
         this.inResponseToMessageId = bdr.inResponseToMessageId;
         this.filterResultState = bdr.filterResultState;
         this.humanResultState = bdr.humanResultState;
+        // ImmutableSortedMap.copyOf() never returns null even though this is not documented anywhere
         this.headers = ImmutableSortedMap.copyOf(bdr.headers, String.CASE_INSENSITIVE_ORDER);
         this.processingFeedback = ImmutableList.copyOf(bdr.processingFeedback);
         this.lastEditor = bdr.lastEditor;
@@ -111,7 +112,7 @@ public class ImmutableMessage implements Message {
     }
 
     @Override
-    public Map<String, String> getHeaders() {
+    public Map<String, String> getCaseInsensitiveHeaders() {
         return headers;
     }
 
@@ -209,7 +210,7 @@ public class ImmutableMessage implements Message {
                     withLastModifiedAt(message.getLastModifiedAt()).
                     withFilterResultState(message.getFilterResultState()).
                     withHumanResultState(message.getHumanResultState()).
-                    withHeaders(message.getHeaders()).
+                    withHeaders(message.getCaseInsensitiveHeaders()).
                     withLastEditor(message.getLastEditor().orElse(null)).
                     withInResponseToMessageId(message.getInResponseToMessageId()).
                     withSenderMessageIdHeader(message.getSenderMessageIdHeader()).

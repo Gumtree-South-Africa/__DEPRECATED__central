@@ -76,7 +76,7 @@ class VolumeFilter implements Filter {
     }
 
     private boolean isWhitelisted(Message message, String senderMailAddress) {
-        final Optional<String> contactType = Optional.ofNullable(message.getHeaders()).map(m -> m.get(CONTACT_TYPE_CUST_HEADER));
+        final Optional<String> contactType = Optional.ofNullable(message.getCaseInsensitiveHeaders()).map(m -> m.get(CONTACT_TYPE_CUST_HEADER));
 
         /*
          * We will whitelist this message if

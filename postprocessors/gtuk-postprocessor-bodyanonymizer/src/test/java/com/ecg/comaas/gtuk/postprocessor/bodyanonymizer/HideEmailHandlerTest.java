@@ -109,7 +109,7 @@ public class HideEmailHandlerTest {
     public void messageShouldNotBeAnonymized_notChanged() throws Exception {
         Map<String, String> headers = ImmutableMap.of("X-Cust-Emailaddresscloak", "REVEAL");
         Message message = mock(Message.class);
-        when(message.getHeaders()).thenReturn(headers);
+        when(message.getCaseInsensitiveHeaders()).thenReturn(headers);
         when(context.getMessage()).thenReturn(message);
 
         hideEmailHandler.process(context);

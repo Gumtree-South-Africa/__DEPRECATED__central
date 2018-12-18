@@ -88,7 +88,7 @@ public class BankAccountFilter implements Filter {
 
     private List<String> extractMessageTexts(Message message) {
         List<String> result = message.getTextParts().stream().filter(s -> !s.isEmpty()).collect(Collectors.toList());
-        String subject = message.getHeaders().get("Subject");
+        String subject = message.getCaseInsensitiveHeaders().get("Subject");
         if (!isEmpty(subject)) result.add(subject);
         return result;
     }

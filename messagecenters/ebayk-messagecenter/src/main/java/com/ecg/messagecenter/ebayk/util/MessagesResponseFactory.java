@@ -110,7 +110,7 @@ public class MessagesResponseFactory {
                 new MessageResponse(
                         firstMessage.getId(),
                         MessageCenterUtils.toFormattedTimeISO8601ExplicitTimezoneOffset(firstMessage.getReceivedAt()),
-                        firstMessage.getHeaders().get("X-Offerid"),
+                        firstMessage.getCaseInsensitiveHeaders().get("X-Offerid"),
                         ConversationBoundnessFinder.boundnessForRole(role, firstMessage.getMessageDirection()),
                         differ.cleanupFirstMessage(firstMessage.getPlainTextBody()),
                         Optional.ofNullable(phoneNumber),
@@ -153,7 +153,7 @@ public class MessagesResponseFactory {
                     new MessageResponse(
                             message.getId(),
                             MessageCenterUtils.toFormattedTimeISO8601ExplicitTimezoneOffset(message.getReceivedAt()),
-                            message.getHeaders().get("X-Offerid"),
+                            message.getCaseInsensitiveHeaders().get("X-Offerid"),
                             ConversationBoundnessFinder.boundnessForRole(role, message.getMessageDirection()),
                             diffedMessage,
                             Optional.<String>empty(),
@@ -204,14 +204,14 @@ public class MessagesResponseFactory {
     }
 
     private boolean comesFromMessageBoxClient(Message messageRts) {
-        return messageRts.getHeaders().containsKey("X-Reply-Channel") &&
-                (messageRts.getHeaders().get("X-Reply-Channel").contains("api_") ||
-                        messageRts.getHeaders().get("X-Reply-Channel").contains("desktop"));
+        return messageRts.getCaseInsensitiveHeaders().containsKey("X-Reply-Channel") &&
+                (messageRts.getCaseInsensitiveHeaders().get("X-Reply-Channel").contains("api_") ||
+                        messageRts.getCaseInsensitiveHeaders().get("X-Reply-Channel").contains("desktop"));
     }
 
     private boolean contactPosterForExistingConversation(Message messageRts) {
-        return messageRts.getHeaders().containsKey("X-Reply-Channel") &&
-                messageRts.getHeaders().get("X-Reply-Channel").startsWith("cp_");
+        return messageRts.getCaseInsensitiveHeaders().containsKey("X-Reply-Channel") &&
+                messageRts.getCaseInsensitiveHeaders().get("X-Reply-Channel").startsWith("cp_");
     }
 
 }

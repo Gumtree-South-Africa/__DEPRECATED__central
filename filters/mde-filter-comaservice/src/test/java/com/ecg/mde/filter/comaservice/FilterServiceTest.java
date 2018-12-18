@@ -66,17 +66,17 @@ public class FilterServiceTest {
     }
 
     private void headerSentByFsbo() {
-        when(processingContext.getMessage().getHeaders().get(CUSTOM_HEADER_BUYER_TYPE))
+        when(processingContext.getMessage().getCaseInsensitiveHeaders().get(CUSTOM_HEADER_BUYER_TYPE))
                 .thenReturn(FilterService.DEALER + "somethingElse");
     }
 
     private void headerViaConversation() {
-        when(processingContext.getMessage().getHeaders().get(CUSTOM_HEADER_MESSAGE_TYPE))
+        when(processingContext.getMessage().getCaseInsensitiveHeaders().get(CUSTOM_HEADER_MESSAGE_TYPE))
                 .thenReturn(MESSAGE_TYPE_CONVERSATION);
     }
 
     private void headerSentByDealer() {
-        when(processingContext.getMessage().getHeaders().get(CUSTOM_HEADER_BUYER_TYPE))
+        when(processingContext.getMessage().getCaseInsensitiveHeaders().get(CUSTOM_HEADER_BUYER_TYPE))
                 .thenReturn(FilterService.DEALER);
     }
 

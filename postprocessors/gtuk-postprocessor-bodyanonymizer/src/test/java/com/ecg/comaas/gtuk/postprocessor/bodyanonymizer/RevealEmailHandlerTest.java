@@ -152,7 +152,7 @@ public class RevealEmailHandlerTest {
     @Test
     public void testSellerNotKnownGood() {
         Map<String, String> headers = mock(Map.class);
-        when(message.getHeaders()).thenReturn(headers);
+        when(message.getCaseInsensitiveHeaders()).thenReturn(headers);
         setupMessageDate(0);
         setupMutableTextContent(MediaType.PLAIN_TEXT_UTF_8);
 
@@ -225,7 +225,7 @@ public class RevealEmailHandlerTest {
             when(headers.containsKey(CLOAKEMAIL_HEADER)).thenReturn(true);
         }
 
-        when(message.getHeaders()).thenReturn(headers);
+        when(message.getCaseInsensitiveHeaders()).thenReturn(headers);
         when(headers.containsKey(knownGoodHeader)).thenReturn(true);
     }
 

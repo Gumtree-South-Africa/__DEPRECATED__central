@@ -29,7 +29,7 @@ public final class EmailInviteAssemblerTest {
         headers.put("X-Mobile-Vi", "test-mobile-vi-id-123");
         headers.put("X-Cust-Buyer_Device_Id", "test-device-id-123");
         headers.put("X-Cust-Buyer_Customer_Id", "test-customer-id-123");
-        when(message.getHeaders()).thenReturn(headers);
+        when(message.getCaseInsensitiveHeaders()).thenReturn(headers);
 
         String conversationId = "56789-efgh";
         EmailInviteEntity invite = assemble(message, conversationId);
@@ -51,7 +51,7 @@ public final class EmailInviteAssemblerTest {
         Message message = mock(Message.class);
 
         Map<String, String> headers = Maps.newHashMap();
-        when(message.getHeaders()).thenReturn(headers);
+        when(message.getCaseInsensitiveHeaders()).thenReturn(headers);
 
         String conversationId = "56789-efgh";
         EmailInviteEntity invite = assemble(message, conversationId);
@@ -75,7 +75,7 @@ public final class EmailInviteAssemblerTest {
 
         Map<String, String> headers = Maps.newHashMap();
         headers.put("Reply-To", "max@mustermann.de");
-        when(message.getHeaders()).thenReturn(headers);
+        when(message.getCaseInsensitiveHeaders()).thenReturn(headers);
 
         EmailInviteEntity invite = assemble(message, null);
         assertThat(invite.getBuyerEmail(), is("max@mustermann.de"));
@@ -87,7 +87,7 @@ public final class EmailInviteAssemblerTest {
 
         Map<String, String> headers = Maps.newHashMap();
         headers.put("From", "max@mustermann.de");
-        when(message.getHeaders()).thenReturn(headers);
+        when(message.getCaseInsensitiveHeaders()).thenReturn(headers);
 
         EmailInviteEntity invite = assemble(message, null);
         assertThat(invite.getBuyerEmail(), is("max@mustermann.de"));
@@ -100,7 +100,7 @@ public final class EmailInviteAssemblerTest {
         Map<String, String> headers = Maps.newHashMap();
         headers.put("X-ADID", "COMA123");
         headers.put("X-Cust-Customer_Id", "COMA456");
-        when(message.getHeaders()).thenReturn(headers);
+        when(message.getCaseInsensitiveHeaders()).thenReturn(headers);
 
         EmailInviteEntity invite = assemble(message, null);
         assertThat(invite.getAdId(), is(123L));
@@ -114,7 +114,7 @@ public final class EmailInviteAssemblerTest {
         Map<String, String> headers = Maps.newHashMap();
         headers.put("X-ADID", "abc123");
         headers.put("X-Cust-Customer_Id", "456abc");
-        when(message.getHeaders()).thenReturn(headers);
+        when(message.getCaseInsensitiveHeaders()).thenReturn(headers);
 
         EmailInviteEntity invite = assemble(message, null);
         assertThat(invite.getAdId(), is(0L));
@@ -127,7 +127,7 @@ public final class EmailInviteAssemblerTest {
 
         Map<String, String> headers = Maps.newHashMap();
         headers.put("From", "assaf safsaf");
-        when(message.getHeaders()).thenReturn(headers);
+        when(message.getCaseInsensitiveHeaders()).thenReturn(headers);
 
         assemble(message, null);
     }
@@ -138,7 +138,7 @@ public final class EmailInviteAssemblerTest {
 
         Map<String, String> headers = Maps.newHashMap();
         headers.put("From", "Max Mustermann ( <max@mustermann.de>");
-        when(message.getHeaders()).thenReturn(headers);
+        when(message.getCaseInsensitiveHeaders()).thenReturn(headers);
 
         EmailInviteEntity invite = assemble(message, null);
         assertThat(invite.getBuyerEmail(), is("max@mustermann.de"));
@@ -150,7 +150,7 @@ public final class EmailInviteAssemblerTest {
 
         Map<String, String> headers = Maps.newHashMap();
         headers.put("From", "foo <test111@foo.de> <test@mobile.de>");
-        when(message.getHeaders()).thenReturn(headers);
+        when(message.getCaseInsensitiveHeaders()).thenReturn(headers);
 
         EmailInviteEntity invite = assemble(message, null);
         assertThat(invite.getBuyerEmail(), is("test@mobile.de"));

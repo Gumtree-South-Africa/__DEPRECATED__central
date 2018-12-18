@@ -59,7 +59,7 @@ public class GumtreeKnownGoodFilterTest {
     @Test
     public void testKnownGoodBuyerFirstMessage() {
         Message message = mockMessage(MessageDirection.BUYER_TO_SELLER);
-        message.getHeaders().put(GumtreeCustomHeaders.BUYER_ID.getHeaderValue(), "42");
+        message.getCaseInsensitiveHeaders().put(GumtreeCustomHeaders.BUYER_ID.getHeaderValue(), "42");
         MessageProcessingContext messageProcessingContext = getMessageProcessingContext(message, null);
 
         List<FilterFeedback> feedbacks = filter.filter(messageProcessingContext);
@@ -79,7 +79,7 @@ public class GumtreeKnownGoodFilterTest {
     @Test
     public void testKnownGoodSellerFirstReply() {
         Message message = mockMessage(MessageDirection.SELLER_TO_BUYER);
-        message.getHeaders().put(GumtreeCustomHeaders.SELLER_ID.getHeaderValue(), "23");
+        message.getCaseInsensitiveHeaders().put(GumtreeCustomHeaders.SELLER_ID.getHeaderValue(), "23");
         MessageProcessingContext messageProcessingContext = getMessageProcessingContext(message, null);
 
         List<FilterFeedback> feedbacks = filter.filter(messageProcessingContext);

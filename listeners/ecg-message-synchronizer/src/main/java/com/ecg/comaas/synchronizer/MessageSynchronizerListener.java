@@ -89,7 +89,7 @@ public class MessageSynchronizerListener implements MessageProcessedListener {
                 .put("type", "partner")
                 .put("adId", partnerAdId)
                 .put("adTitle", partnerTitle)
-                .put("subject", message.getHeaders().get("Subject"));
+                .put("subject", message.getCaseInsensitiveHeaders().get("Subject"));
 
         payload.set("buyer", createParticipant(partnerFromUserid, partnerBuyerName, "buyer"));
         payload.set("seller", createParticipant(partnerToUserid, partnerSellerName, "seller"));

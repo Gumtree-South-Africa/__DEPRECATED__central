@@ -51,7 +51,7 @@ public class GumtreeGeoIpLookupFilterTest {
         Mail mail = mock(Mail.class);
         Message message = mockMessage(MessageDirection.SELLER_TO_BUYER);
         Map<String, String> headers = ImmutableMap.of(GumtreeCustomHeaders.BUYER_IP.getHeaderValue(), UNKNOWN_IP);
-        when(message.getHeaders()).thenReturn(headers);
+        when(message.getCaseInsensitiveHeaders()).thenReturn(headers);
         MessageProcessingContext messageProcessingContext = getMessageProcessingContext(mail, message);
 
         List<FilterFeedback> feedbacks = filter.filter(messageProcessingContext);
@@ -64,7 +64,7 @@ public class GumtreeGeoIpLookupFilterTest {
         Message message = mockMessage(MessageDirection.BUYER_TO_SELLER);
         Map<String, String> headers = new HashMap<>();
         headers.put(GumtreeCustomHeaders.BUYER_IP.getHeaderValue(), null);
-        when(message.getHeaders()).thenReturn(headers);
+        when(message.getCaseInsensitiveHeaders()).thenReturn(headers);
         MessageProcessingContext messageProcessingContext = getMessageProcessingContext(mail, message);
 
         List<FilterFeedback> feedbacks = filter.filter(messageProcessingContext);
@@ -76,7 +76,7 @@ public class GumtreeGeoIpLookupFilterTest {
         Mail mail = mock(Mail.class);
         Message message = mockMessage(MessageDirection.BUYER_TO_SELLER);
         Map<String, String> headers = ImmutableMap.of(GumtreeCustomHeaders.BUYER_IP.getHeaderValue(), UNKNOWN_IP);
-        when(message.getHeaders()).thenReturn(headers);
+        when(message.getCaseInsensitiveHeaders()).thenReturn(headers);
         MessageProcessingContext messageProcessingContext = getMessageProcessingContext(mail, message);
 
         List<FilterFeedback> feedbacks = filter.filter(messageProcessingContext);
@@ -88,7 +88,7 @@ public class GumtreeGeoIpLookupFilterTest {
         Mail mail = mock(Mail.class);
         Message message = mockMessage(MessageDirection.BUYER_TO_SELLER);
         Map<String, String> headers = ImmutableMap.of(GumtreeCustomHeaders.BUYER_IP.getHeaderValue(), SAFFER_IP);
-        when(message.getHeaders()).thenReturn(headers);
+        when(message.getCaseInsensitiveHeaders()).thenReturn(headers);
         MessageProcessingContext messageProcessingContext = getMessageProcessingContext(mail, message);
 
         List<FilterFeedback> feedbacks = filter.filter(messageProcessingContext);
@@ -102,7 +102,7 @@ public class GumtreeGeoIpLookupFilterTest {
         Mail mail = mock(Mail.class);
         Message message = mockMessage(MessageDirection.BUYER_TO_SELLER);
         Map<String, String> headers = ImmutableMap.of(GumtreeCustomHeaders.BUYER_IP.getHeaderValue(), GERMAN_IP);
-        when(message.getHeaders()).thenReturn(headers);
+        when(message.getCaseInsensitiveHeaders()).thenReturn(headers);
         MessageProcessingContext messageProcessingContext = getMessageProcessingContext(mail, message);
 
         List<FilterFeedback> feedbacks = filter.filter(messageProcessingContext);
@@ -116,7 +116,7 @@ public class GumtreeGeoIpLookupFilterTest {
         Mail mail = mock(Mail.class);
         Message message = mockMessage(MessageDirection.BUYER_TO_SELLER);
         Map<String, String> headers = ImmutableMap.of(GumtreeCustomHeaders.BUYER_IP.getHeaderValue(), BANNED_COUNTRY_IP);
-        when(message.getHeaders()).thenReturn(headers);
+        when(message.getCaseInsensitiveHeaders()).thenReturn(headers);
         MessageProcessingContext messageProcessingContext = getMessageProcessingContext(mail, message);
 
         List<FilterFeedback> feedbacks = filter.filter(messageProcessingContext);

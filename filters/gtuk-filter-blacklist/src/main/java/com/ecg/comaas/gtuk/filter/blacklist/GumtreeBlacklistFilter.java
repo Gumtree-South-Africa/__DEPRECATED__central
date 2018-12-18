@@ -70,10 +70,10 @@ public class GumtreeBlacklistFilter implements com.ecg.replyts.core.api.pluginco
         Message message = messageContext.getMessage();
         Conversation conversation = messageContext.getConversation();
         Mail mail = messageContext.getMail().get();
-        String ipAddress = message.getHeaders().get(GumtreeCustomHeaders.BUYER_IP.getHeaderValue());
+        String ipAddress = message.getCaseInsensitiveHeaders().get(GumtreeCustomHeaders.BUYER_IP.getHeaderValue());
 
         // check for account holder
-        if (!isSenderProAccount(message.getHeaders(), message.getMessageDirection())) {
+        if (!isSenderProAccount(message.getCaseInsensitiveHeaders(), message.getMessageDirection())) {
             // check conversation sender on blacklist
             String senderEmail = getConversationSenderEmail(message, conversation);
             if (isBlacklisted(senderEmail)) {
@@ -116,7 +116,7 @@ public class GumtreeBlacklistFilter implements com.ecg.replyts.core.api.pluginco
     }
 
     private boolean isRecipientBlacklisted(Message message, String recipientEmail) {
-        return !isRecipientProAccount(message.getHeaders(), message.getMessageDirection())
+        return !isRecipientProAccount(message.getCaseInsensitiveHeaders(), message.getMessageDirection())
                 && isBlacklisted(recipientEmail);
     }
 

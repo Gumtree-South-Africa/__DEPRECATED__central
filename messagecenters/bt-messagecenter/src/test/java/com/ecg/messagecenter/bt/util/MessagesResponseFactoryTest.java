@@ -308,7 +308,7 @@ public class MessagesResponseFactoryTest {
 
         Map<String, String> map = new LinkedHashMap<String, String>();
         map.put("X-Reply-Channel", replyChannelInfo);
-        when(message.getHeaders()).thenReturn(map);
+        when(message.getCaseInsensitiveHeaders()).thenReturn(map);
 
         //when(message.getConversation()).thenReturn(conv);
 

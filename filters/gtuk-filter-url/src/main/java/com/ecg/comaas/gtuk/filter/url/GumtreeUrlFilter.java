@@ -211,15 +211,15 @@ public class GumtreeUrlFilter implements com.ecg.replyts.core.api.pluginconfigur
     }
 
     private Boolean getSellerIsPro(MessageProcessingContext messageContext) {
-        if (messageContext.getMessage().getHeaders().containsKey(GumtreeCustomHeaders.SELLER_IS_PRO.getHeaderValue())) {
-            return "true".equals(messageContext.getMessage().getHeaders().get(GumtreeCustomHeaders.SELLER_IS_PRO.getHeaderValue()));
+        if (messageContext.getMessage().getCaseInsensitiveHeaders().containsKey(GumtreeCustomHeaders.SELLER_IS_PRO.getHeaderValue())) {
+            return "true".equals(messageContext.getMessage().getCaseInsensitiveHeaders().get(GumtreeCustomHeaders.SELLER_IS_PRO.getHeaderValue()));
         } else {
             return PRO_USER_HEADER_VALUE.equals(getSellerGoodHeaderValue(messageContext));
         }
     }
 
     private String getSellerGoodHeaderValue(MessageProcessingContext messageContext) {
-        return messageContext.getMessage().getHeaders().get(GumtreeCustomHeaders.SELLER_GOOD.getHeaderValue());
+        return messageContext.getMessage().getCaseInsensitiveHeaders().get(GumtreeCustomHeaders.SELLER_GOOD.getHeaderValue());
     }
 
     GumtreeUrlFilter withPluginConfig(Filter pluginConfig) {

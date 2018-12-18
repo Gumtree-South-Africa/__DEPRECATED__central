@@ -80,7 +80,7 @@ public class SendToLastSellerAddressPostProcessor implements PostProcessor {
         String fromHeader = null;
         for (Message message : messages) {
             if (message.getMessageDirection() == MessageDirection.SELLER_TO_BUYER) {
-                fromHeader = message.getHeaders().get("From");
+                fromHeader = message.getCaseInsensitiveHeaders().get("From");
             }
         }
 

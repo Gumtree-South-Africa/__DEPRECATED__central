@@ -1,6 +1,5 @@
 package com.ecg.messagecenter.gtau.util;
 
-import com.ecg.messagecenter.gtau.util.MessagesResponseFactory;
 import com.ecg.messagecenter.gtau.webapi.responses.MessageResponse;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;
@@ -236,9 +235,9 @@ public class MessagesResponseFactoryTest {
         mapWithRobotHeader.put("X-Robot", "GTAU");
 
         if (isRobotMessage) {
-            when(message.getHeaders()).thenReturn(mapWithRobotHeader);
+            when(message.getCaseInsensitiveHeaders()).thenReturn(mapWithRobotHeader);
         } else {
-            when(message.getHeaders()).thenReturn(map);
+            when(message.getCaseInsensitiveHeaders()).thenReturn(map);
         }
 
         messages.add(message);

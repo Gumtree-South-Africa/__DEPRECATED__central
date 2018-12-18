@@ -82,8 +82,8 @@ public class GumtreeVolumeFilter implements com.ecg.replyts.core.api.pluginconfi
         Message message = context.getMessage();
 
         String emailAddress = conversation.getBuyerId();
-        String ipAddress = message.getHeaders().get(GumtreeCustomHeaders.BUYER_IP.getHeaderValue());
-        String cookieId = message.getHeaders().get(GumtreeCustomHeaders.BUYER_COOKIE.getHeaderValue());
+        String ipAddress = message.getCaseInsensitiveHeaders().get(GumtreeCustomHeaders.BUYER_IP.getHeaderValue());
+        String cookieId = message.getCaseInsensitiveHeaders().get(GumtreeCustomHeaders.BUYER_COOKIE.getHeaderValue());
         sharedBrain.markSeen(emailAddress, ipAddress, cookieId);
         context.getFilterContext().put(MARKED_SEEN_BY_VOLUME_FILTER, true);
     }
@@ -155,10 +155,10 @@ public class GumtreeVolumeFilter implements com.ecg.replyts.core.api.pluginconfi
                 value = conversation.getBuyerId();
                 break;
             case COOKIE:
-                value = message.getHeaders().get(GumtreeCustomHeaders.BUYER_COOKIE.getHeaderValue());
+                value = message.getCaseInsensitiveHeaders().get(GumtreeCustomHeaders.BUYER_COOKIE.getHeaderValue());
                 break;
             case IP_ADDRESS:
-                value = message.getHeaders().get(GumtreeCustomHeaders.BUYER_IP.getHeaderValue());
+                value = message.getCaseInsensitiveHeaders().get(GumtreeCustomHeaders.BUYER_IP.getHeaderValue());
                 break;
         }
 

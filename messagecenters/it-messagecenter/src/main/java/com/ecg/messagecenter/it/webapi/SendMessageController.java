@@ -148,7 +148,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
         if (conversation.getMessages().isEmpty()) {
             return "";
         }
-        String title = conversation.getMessages().get(0).getHeaders().get("Subject");
+        String title = conversation.getMessages().get(0).getCaseInsensitiveHeaders().get("Subject");
         if (StringUtil.isBlank(title)) {
             return "";
         }

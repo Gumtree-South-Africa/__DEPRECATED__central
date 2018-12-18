@@ -24,7 +24,7 @@ public class ImmutableMessageTest {
                 .withHeader(X_SOME_HEADER, HEADER_VALUE)
                 .build();
 
-        assertEquals(HEADER_VALUE, message.getHeaders().get(X_SOME_HEADER.toLowerCase()));
+        assertEquals(HEADER_VALUE, message.getCaseInsensitiveHeaders().get(X_SOME_HEADER.toLowerCase()));
     }
 
     @Test
@@ -35,7 +35,7 @@ public class ImmutableMessageTest {
                 .withHeaders(Collections.singletonMap(X_SOME_HEADER, HEADER_VALUE))
                 .build();
 
-        assertEquals(HEADER_VALUE, message.getHeaders().get(X_SOME_HEADER.toLowerCase()));
+        assertEquals(HEADER_VALUE, message.getCaseInsensitiveHeaders().get(X_SOME_HEADER.toLowerCase()));
     }
 
     private ImmutableMessage.Builder minimalValidMessageBuilder() {

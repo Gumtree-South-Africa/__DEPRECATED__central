@@ -83,8 +83,8 @@ public class DeDupeFilter implements Filter {
         if (isAllowedCategory(categorySet)) {
             String inMessage = message.getPlainTextBody();
 
-            String adId = message.getHeaders().get("X-Cust-Reply-Adid");
-            String ipAddr = message.getHeaders().get("X-Cust-Ip");
+            String adId = message.getCaseInsensitiveHeaders().get("X-Cust-Reply-Adid");
+            String ipAddr = message.getCaseInsensitiveHeaders().get("X-Cust-Ip");
             if (adId == null || ipAddr == null) {
                 return Collections.emptyList();
             }
@@ -94,8 +94,8 @@ public class DeDupeFilter implements Filter {
                     .map(this::retrieveMessage)
                     .flatMap(x -> x.entrySet().stream())
                     .filter(e -> {
-                        String rtsMsgAdId = e.getValue().getHeaders().get("X-Cust-Reply-Adid");
-                        String rtsMsgIp = e.getValue().getHeaders().get("X-Cust-Ip");
+                        String rtsMsgAdId = e.getValue().getCaseInsensitiveHeaders().get("X-Cust-Reply-Adid");
+                        String rtsMsgIp = e.getValue().getCaseInsensitiveHeaders().get("X-Cust-Ip");
 
                         return adId.equalsIgnoreCase(rtsMsgAdId) && ipAddr.equalsIgnoreCase(rtsMsgIp) && !isExceptCategory(getRtsMsgCatTree(e.getKey()));
                     })

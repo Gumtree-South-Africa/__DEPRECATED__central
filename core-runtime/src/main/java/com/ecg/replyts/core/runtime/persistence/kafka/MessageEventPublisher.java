@@ -2,13 +2,13 @@ package com.ecg.replyts.core.runtime.persistence.kafka;
 
 import com.ecg.replyts.app.ContentOverridingPostProcessorService;
 import com.ecg.replyts.core.api.model.conversation.*;
-import com.ecg.replyts.core.api.model.mail.MailAddress;
 import com.ecg.replyts.core.api.processing.ConversationEventService;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.ecg.replyts.core.api.util.ConversationEventConverter;
 import com.ecg.replyts.core.runtime.identifier.UserIdentifierService;
 import com.ecg.replyts.core.runtime.mailcloaking.AnonymizedMailConverter;
 import com.ecg.replyts.core.runtime.persistence.BlockUserRepository;
+import com.google.common.base.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -114,10 +114,13 @@ public class MessageEventPublisher {
      * headers or headers of SMTP clients.
      */
     private Map<String, String> getHeaders(Message message) {
-        String deliveredTo = message.getHeaders().get(DELIVERED_TO_HEADER);
-        return anonymizedMailConverter.isCloaked(new MailAddress(deliveredTo))
-                ? Collections.emptyMap()
-                : message.getHeaders();
+        return isDirectEmailReply(message) ? Collections.emptyMap() : message.getCaseInsensitiveHeaders();
+    }
+
+    private boolean isDirectEmailReply(Message message) {
+        String deliveredTo = message.getCaseInsensitiveHeaders().get(DELIVERED_TO_HEADER);
+        // If an addressee is a cloaked email then it's a direct email reply
+        return !Strings.isNullOrEmpty(deliveredTo) && anonymizedMailConverter.isCloaked(deliveredTo);
     }
 
     private List<String> getReceivingUsers(Conversation conversation, Message message, String senderId) {

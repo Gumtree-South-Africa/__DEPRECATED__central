@@ -64,7 +64,7 @@ class FsboFraudFilter implements Filter {
         String sellerType = messageProcessingContext.getConversation().getCustomValues().get("seller_type");
         LOG.trace("sellerType {}", sellerType);
         if (!StringUtils.hasText(sellerType)) {
-            sellerType = messageProcessingContext.getMessage().getHeaders().get("X-Cust-Seller_Type");
+            sellerType = messageProcessingContext.getMessage().getCaseInsensitiveHeaders().get("X-Cust-Seller_Type");
         }
         LOG.trace("sellerType {}", sellerType);
         return "FSBO".equals(sellerType);

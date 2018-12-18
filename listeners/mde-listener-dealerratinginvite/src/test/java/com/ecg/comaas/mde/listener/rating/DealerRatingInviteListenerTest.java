@@ -27,7 +27,7 @@ public final class DealerRatingInviteListenerTest {
     public void processIfInitial() {
         final Map<String, String> headers = Maps.newHashMap();
         headers.put("X-Cust-Seller_Type", "dealer");
-        when(message.getHeaders()).thenReturn(headers);
+        when(message.getCaseInsensitiveHeaders()).thenReturn(headers);
 
         listener.messageProcessed(conversation, message);
 
@@ -38,7 +38,7 @@ public final class DealerRatingInviteListenerTest {
     public void doNotProcessIfNotInitial() {
         final Map<String, String> headers = Maps.newHashMap();
         headers.put("X-Cust-Buyer_Type", "dealer");
-        when(message.getHeaders()).thenReturn(headers);
+        when(message.getCaseInsensitiveHeaders()).thenReturn(headers);
 
         listener.messageProcessed(conversation, message);
 

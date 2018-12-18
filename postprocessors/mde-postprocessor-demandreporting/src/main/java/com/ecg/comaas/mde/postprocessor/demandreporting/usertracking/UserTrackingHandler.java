@@ -100,7 +100,7 @@ public class UserTrackingHandler {
     }
 
     private String getCustomVariableFromMessageOrContext(String name, MessageProcessingContext context) {
-        String value = Optional.ofNullable(context.getMessage().getHeaders().get(String.format("X-Cust-%s", name.toUpperCase())))
+        String value = Optional.ofNullable(context.getMessage().getCaseInsensitiveHeaders().get(String.format("X-Cust-%s", name.toUpperCase())))
                 .orElse(context.getConversation().getCustomValues().get(name));
         return StringUtils.isNotBlank(value) ? value.trim() : null;
     }
@@ -114,7 +114,7 @@ public class UserTrackingHandler {
     }
 
     private String getTrackingHeaderFromMessage(String key, Message message) {
-        return message.getHeaders().get(String.format("X-Track-%s", key));
+        return message.getCaseInsensitiveHeaders().get(String.format("X-Track-%s", key));
     }
 
     public void handle(MessageProcessingContext context) {
@@ -132,7 +132,7 @@ public class UserTrackingHandler {
     }
 
     private static boolean reportDemand(MessageProcessingContext messageProcessingContext) {
-        String demand = messageProcessingContext.getMessage().getHeaders().get("X-Report-Demand");
+        String demand = messageProcessingContext.getMessage().getCaseInsensitiveHeaders().get("X-Report-Demand");
         return "true".equals(demand);
     }
 

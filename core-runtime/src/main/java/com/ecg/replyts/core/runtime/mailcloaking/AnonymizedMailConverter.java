@@ -80,10 +80,10 @@ public class AnonymizedMailConverter {
         throw new IllegalArgumentException("Mail Address " + mailAddress.getAddress() + " is not in the correct format");
     }
 
-    public boolean isCloaked(MailAddress mailAddress) {
+    public boolean isCloaked(String address) {
         for (String domain : this.domains) {
             Pattern mailFormatPattern = this.mailFormatPatterns.get(domain);
-            Matcher matcher = mailFormatPattern.matcher(mailAddress.getAddress());
+            Matcher matcher = mailFormatPattern.matcher(address);
             if (matcher.matches()) {
                 return true;
             }

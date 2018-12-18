@@ -42,7 +42,7 @@ class DemandReportingHandler {
     private static Long customerId(MessageProcessingContext messageProcessingContext) {
         String customerId = messageProcessingContext.getConversation().getCustomValues().get("customer_id");
         if (!StringUtils.hasText(customerId)) {
-            customerId = messageProcessingContext.getMessage().getHeaders().get("X-Cust-Customer_Id");
+            customerId = messageProcessingContext.getMessage().getCaseInsensitiveHeaders().get("X-Cust-Customer_Id");
         }
         return Utils.toLong(customerId);
     }
@@ -50,13 +50,13 @@ class DemandReportingHandler {
     private static String publisher(MessageProcessingContext messageProcessingContext) {
         String publisher = messageProcessingContext.getConversation().getCustomValues().get("publisher");
         if (!StringUtils.hasText(publisher)) {
-            publisher = messageProcessingContext.getMessage().getHeaders().get("X-Cust-Publisher");
+            publisher = messageProcessingContext.getMessage().getCaseInsensitiveHeaders().get("X-Cust-Publisher");
         }
         return publisher;
     }
 
     private static boolean reportDemand(MessageProcessingContext messageProcessingContext) {
-        String demand = messageProcessingContext.getMessage().getHeaders().get("X-Report-Demand");
+        String demand = messageProcessingContext.getMessage().getCaseInsensitiveHeaders().get("X-Report-Demand");
         return StringUtils.hasText(demand) && "true".equals(demand);
     }
 }

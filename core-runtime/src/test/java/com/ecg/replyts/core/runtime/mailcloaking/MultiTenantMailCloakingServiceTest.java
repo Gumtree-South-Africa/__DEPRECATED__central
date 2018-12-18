@@ -16,6 +16,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -49,7 +50,7 @@ public class MultiTenantMailCloakingServiceTest {
 
     @Test
     public void uncloaksValidNewMailAddress() {
-        when(anonymizedMailConverter.isCloaked(any(MailAddress.class))).thenReturn(true);
+        when(anonymizedMailConverter.isCloaked(anyString())).thenReturn(true);
         when(anonymizedMailConverter.toParticipantSecret(any(MailAddress.class))).thenReturn("foo");
         when(conversationRepository.getBySecret("foo")).thenReturn(conversation);
         when(conversation.getId()).thenReturn("123@456");
@@ -59,7 +60,7 @@ public class MultiTenantMailCloakingServiceTest {
 
     @Test
     public void failsToUncloakNewMailAddressForUnknownSecret() {
-        when(anonymizedMailConverter.isCloaked(any(MailAddress.class))).thenReturn(true);
+        when(anonymizedMailConverter.isCloaked(anyString())).thenReturn(true);
         when(anonymizedMailConverter.toParticipantSecret(any(MailAddress.class))).thenReturn("foo");
         assertFalse(mailCloakingService.resolveUser(new MailAddress("foo@bar")).isPresent());
     }
@@ -67,7 +68,7 @@ public class MultiTenantMailCloakingServiceTest {
 
     @Test
     public void emptyIfUserCantBeresolve() {
-        when(anonymizedMailConverter.isCloaked(any(MailAddress.class))).thenReturn(true);
+        when(anonymizedMailConverter.isCloaked(anyString())).thenReturn(true);
         when(anonymizedMailConverter.toParticipantSecret(any(MailAddress.class))).thenReturn("foo");
         when(conversationRepository.getBySecret("foo")).thenReturn(null);
 

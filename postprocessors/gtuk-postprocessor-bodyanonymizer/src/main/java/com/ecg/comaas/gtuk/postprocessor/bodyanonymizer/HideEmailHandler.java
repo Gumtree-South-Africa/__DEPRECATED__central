@@ -29,7 +29,7 @@ public class HideEmailHandler {
     }
 
     public void process(MessageProcessingContext context) {
-        if (shouldNotAnonymize(context.getMessage().getHeaders())) {
+        if (shouldNotAnonymize(context.getMessage().getCaseInsensitiveHeaders())) {
             LOG.trace("Anonymization is off. Skipping.");
             return;
         }

@@ -162,7 +162,7 @@ public class PushMessageOnUnreadConversationCallback implements SimplePostBoxIni
             return DEFAULT_LOCALE;
         }
 
-        final String locale = messages.get(0).getHeaders().get(BoxHeaders.LOCALE.getHeaderName());
+        final String locale = messages.get(0).getCaseInsensitiveHeaders().get(BoxHeaders.LOCALE.getHeaderName());
         return locale != null ? Locale.forLanguageTag(locale.replace('_', '-')) : DEFAULT_LOCALE; // X-Process-Locale does not pass a BCP 47-compliant language-country string, and needs to be modified
     }
 
@@ -188,7 +188,7 @@ public class PushMessageOnUnreadConversationCallback implements SimplePostBoxIni
     }
 
     private String senderName(final Message message, final Locale locale) {
-        final String from = message.getHeaders().get(FROM);
+        final String from = message.getCaseInsensitiveHeaders().get(FROM);
 
         if (senderHasNameAndEmailAddress(from)) {
             final String emailDisplayName = from.substring(0, from.lastIndexOf('<')).trim();

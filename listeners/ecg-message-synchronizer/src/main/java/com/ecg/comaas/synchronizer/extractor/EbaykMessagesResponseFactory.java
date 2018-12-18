@@ -171,14 +171,14 @@ public class EbaykMessagesResponseFactory {
     }
 
     private boolean comesFromMessageBoxClient(Message messageRts) {
-        return messageRts.getHeaders().containsKey("X-Reply-Channel") &&
-                (messageRts.getHeaders().get("X-Reply-Channel").contains("api_") ||
-                        messageRts.getHeaders().get("X-Reply-Channel").contains("desktop"));
+        return messageRts.getCaseInsensitiveHeaders().containsKey("X-Reply-Channel") &&
+                (messageRts.getCaseInsensitiveHeaders().get("X-Reply-Channel").contains("api_") ||
+                        messageRts.getCaseInsensitiveHeaders().get("X-Reply-Channel").contains("desktop"));
     }
 
     private boolean contactPosterForExistingConversation(Message messageRts) {
-        return messageRts.getHeaders().containsKey("X-Reply-Channel") &&
-                messageRts.getHeaders().get("X-Reply-Channel").startsWith("cp_");
+        return messageRts.getCaseInsensitiveHeaders().containsKey("X-Reply-Channel") &&
+                messageRts.getCaseInsensitiveHeaders().get("X-Reply-Channel").startsWith("cp_");
     }
 
     private TextDiffer.TextCleanerResult diff(DiffInput left, DiffInput right) {

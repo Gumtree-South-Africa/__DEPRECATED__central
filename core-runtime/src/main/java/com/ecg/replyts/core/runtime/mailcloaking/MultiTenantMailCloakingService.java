@@ -27,12 +27,12 @@ public class MultiTenantMailCloakingService implements MailCloakingService {
 
     @Override
     public boolean isCloaked(MailAddress mailAddress) {
-        return anonymizedMailConverter.isCloaked(mailAddress);
+        return anonymizedMailConverter.isCloaked(mailAddress.getAddress());
     }
 
     @Override
     public Optional<CloakedReceiverContext> resolveUser(MailAddress mailAddress) {
-        if (anonymizedMailConverter.isCloaked(mailAddress)) {
+        if (anonymizedMailConverter.isCloaked(mailAddress.getAddress())) {
 
             String secret = anonymizedMailConverter.toParticipantSecret(mailAddress);
             MutableConversation conv = conversationRepository.getBySecret(secret);

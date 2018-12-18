@@ -50,7 +50,7 @@ public class CaUserIdentifierServiceByUserIdHeaders extends UserIdentifierServic
     private static Optional<String> getRawHeader(Conversation conversation, String headerName) {
         String userId = null;
         for (Message message: conversation.getMessages()) {
-            userId = message.getHeaders().get(headerName);
+            userId = message.getCaseInsensitiveHeaders().get(headerName);
 
             if (userId != null) {
                 return Optional.of(userId);

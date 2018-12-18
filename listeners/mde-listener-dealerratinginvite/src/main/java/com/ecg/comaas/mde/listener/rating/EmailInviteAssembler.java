@@ -36,7 +36,7 @@ public final class EmailInviteAssembler {
         final EmailInviteEntity emailInviteEntity = new EmailInviteEntity();
         emailInviteEntity.setTriggerType(BY_CONTACT_MESSAGE);
 
-        final Map<String, String> headers = message.getHeaders();
+        final Map<String, String> headers = message.getCaseInsensitiveHeaders();
         getLongHeader(HEADER_AD_ID, headers).ifPresent(emailInviteEntity::setAdId);
         getLongHeader(HEADER_CUSTOMER_ID, headers).ifPresent(emailInviteEntity::setDealerId);
 

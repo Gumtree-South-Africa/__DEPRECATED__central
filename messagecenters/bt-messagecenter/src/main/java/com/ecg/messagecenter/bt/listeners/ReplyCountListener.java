@@ -83,7 +83,7 @@ public class ReplyCountListener implements MessageProcessedListener {
         }
 
         if (isReplyCountEnabled) {
-            Map<String, String> headers = message.getHeaders();
+            Map<String, String> headers = message.getCaseInsensitiveHeaders();
 
             String adId = headers.get("X-Cust-Reply-Adid");
             String convId = headers.get("X-Cust-Conversation_Id");

@@ -7,7 +7,7 @@ public interface IpFilter extends Filter {
     default String getIp(MessageProcessingContext context, String headerName) {
         return context.getMail()
                 .map(Mail::getUniqueHeaders)
-                .orElseGet(() -> context.getMessage().getHeaders())
+                .orElseGet(() -> context.getMessage().getCaseInsensitiveHeaders())
                 .get(headerName);
     }
 }
