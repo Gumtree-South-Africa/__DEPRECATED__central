@@ -3,7 +3,7 @@ docker_namespace: dock.es.ecg.tools/comaas
 http:
   count: 6
   memory: 4096
-  cpu: 1000
+  cpu: 500
   heap: 2G
   max_parallel: 1
 
@@ -15,6 +15,6 @@ newmsg:
   max_parallel: 1
 
 cronjob:
-  cpu: 500
+  cpu: 250
   memory: 8192
   heap: 6G

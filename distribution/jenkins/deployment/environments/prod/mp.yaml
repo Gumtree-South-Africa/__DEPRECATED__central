@@ -18,6 +18,6 @@ newmsg:
   max_parallel: 3
 
 cronjob:
-  cpu: 500
+  cpu: 100
   memory: 8192
   heap: 6G

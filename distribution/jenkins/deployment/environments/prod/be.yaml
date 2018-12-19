@@ -6,18 +6,18 @@ vault:
 http:
   count: 3
   memory: 4096
-  cpu: 2500
+  cpu: 250
   heap: 2G
   max_parallel: 3
 
 newmsg:
   count: 3
   memory: 4096
-  cpu: 500
+  cpu: 250
   heap: 3G
   max_parallel: 3
 
 cronjob:
-  cpu: 500
+  cpu: 250
   memory: 8192
   heap: 6G

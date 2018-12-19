@@ -10,7 +10,7 @@ http:
 newmsg:
   count: 3
   memory: 4096
-  cpu: 500
+  cpu: 250
   heap: 3G
   max_parallel: 1
 
