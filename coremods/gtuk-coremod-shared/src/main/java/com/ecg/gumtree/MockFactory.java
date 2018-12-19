@@ -32,7 +32,7 @@ public class MockFactory {
         if (sellerIsPro != null) {
             headers.put(GumtreeCustomHeaders.SELLER_IS_PRO.getHeaderValue(), sellerIsPro.toString());
         }
-        Mockito.when(message.getHeaders()).thenReturn(headers);
+        Mockito.when(message.getCaseInsensitiveHeaders()).thenReturn(headers);
         Mockito.when(message.getId()).thenReturn(messageId);
         return message;
     }

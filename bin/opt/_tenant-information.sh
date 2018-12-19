@@ -2,29 +2,32 @@
 
 set -o nounset
 
-# tenant env
+# env
 get_region () {
-    local ip=$(dig +short ${1}.${2}.comaas.cloud)
-    echo ${ip} | egrep -q '^10\.32\.24\.' && echo -n ams1 # fabio ams1
-    echo ${ip} | egrep -q '^10\.32\.25\.' && echo -n ams1 # traefik ams1
-    echo ${ip} | egrep -q '^10\.32\.56\.' && echo -n dus1 # fabio dus1
-    echo ${ip} | egrep -q '^10\.32\.57\.' && echo -n dus1 # traefik dus1
+    if [ ${env} == "lp" ]; then
+        echo "AMS1"
+    else
+        echo $(dig +short -t TXT ${1}.comaas.cloud | awk -F"=" '{print $2}' | awk -F'"' '{print $1}')
+    fi
+}
+
+
+# env dc
+get_dc_ip() {
+    echo $(dig +short dmz-vip.comaas-${1}.${2}.cloud)
 }
 
 # tenant env dc
 get_info () {
-    if [ ${2} == "lp" ]; then
-        uri=${1}.${2}.comaas.cloud/health
-    else
-        uri=${3}.${1}.${2}.comaas.cloud/health
-    fi
-    echo $(curl --max-time 1 --silent ${uri})
+    uri="https://${1}.${2}.comaas.cloud/health"
+    dc_id=$(get_dc_ip ${2} ${3})
+    echo $(curl --resolve ${1}.${2}.comaas.cloud:443:${dc_id} --max-time 1 --silent ${uri})
 }
 
 # tenant active_dc ams1_version ams1_mode dus1_version dus1_mode
 print_row () {
 #echo $@
-    printf '%-8s | %6s | %-12s | %-12s | %-4s\n' $1 $2 $3 $4 $5
+    printf '%-8s | %-12s | %-12s | %-4s\n' $1 $2 $3 $4
 }
 
 # key json
@@ -45,22 +48,21 @@ from_json () {
 }
 
 if [ $# == 0 ]; then
-    tenants="ar au ca ek it mo mp mvca mx sg uk za"
+    tenants="ar au be ca ek it mo mp mvca mx sg uk za"
 else
     tenants="${@}"
 fi
 
 for env in prod lp; do
-    print_row ${env} active ams1 dus1 same
-    print_row tenant dc version version vers
+    active_dc=$(get_region ${env})
+    echo ""
+    echo "${env} active dc = $active_dc"
+    echo ""
+    print_row ${env} ams1 dus1 same
+    print_row tenant version version vers
     echo "-------------------------------------------------------"
 
     for tenant in ${tenants}; do
-        active_dc=$(get_region ${tenant} ${env})
-        if [ -z ${active_dc} ]; then
-            active_dc="-"
-        fi
-
         info_ams1=$(get_info ${tenant} ${env} ams1)
         v_ams1=$(from_json version 0 ${info_ams1})
 
@@ -72,12 +74,12 @@ for env in prod lp; do
             v_dus1=$(from_json version 0 ${info_dus1})
         fi
 
-        equal="-"
+        equal="yes"
         if [ "${v_dus1}" != "n/a" ] && [ "${v_ams1}" != "${v_dus1}" ]; then
             equal="no"
         fi
 
-        print_row ${tenant} ${active_dc} ${v_ams1} ${v_dus1} ${equal}
+        print_row ${tenant} ${v_ams1} ${v_dus1} ${equal}
     done
     echo
 done

@@ -52,7 +52,7 @@ public class DescriptionBuilderTest  {
         when(mailCloakingService.createdCloakedMailAddress(Buyer, conversation)).thenReturn(new MailAddress("fraudster-anon@mail.marktplaats.nl"));
         when(message.getId()).thenReturn("message_1");
         when(message.getMessageDirection()).thenReturn(MessageDirection.BUYER_TO_SELLER);
-        when(message.getHeaders()).thenReturn(new HashMap<String, String>(){{
+        when(message.getCaseInsensitiveHeaders()).thenReturn(new HashMap<String, String>(){{
             put("Subject", "123456");
             put("From-Ip", "10.1.2.3");
             put("Reply-To", "f.r.audster@mail.com");
@@ -69,7 +69,7 @@ public class DescriptionBuilderTest  {
         when(mailCloakingService.createdCloakedMailAddress(Buyer, conversation)).thenReturn(new MailAddress("fraudster-anon@mail.marktplaats.nl"));
         when(message.getId()).thenReturn("message_1");
         when(message.getMessageDirection()).thenReturn(MessageDirection.BUYER_TO_SELLER);
-        when(message.getHeaders()).thenReturn(new HashMap<String, String>(){{
+        when(message.getCaseInsensitiveHeaders()).thenReturn(new HashMap<String, String>(){{
             put("Subject", "123456");
             put("X-Originating-Ip", "[10.1.2.3]");
             put("From", "f.r.audster@mail.com");
@@ -89,7 +89,7 @@ public class DescriptionBuilderTest  {
 
         when(message.getId()).thenReturn("message_1");
         when(message.getMessageDirection()).thenReturn(MessageDirection.SELLER_TO_BUYER);
-        when(message.getHeaders()).thenReturn(new HashMap<String, String>(){{
+        when(message.getCaseInsensitiveHeaders()).thenReturn(new HashMap<String, String>(){{
             put("Subject", "123456");
             put("Reply-To", "seller@mail.com");
         }});
@@ -130,7 +130,7 @@ public class DescriptionBuilderTest  {
 
         when(message.getId()).thenReturn("message_1");
         when(message.getMessageDirection()).thenReturn(MessageDirection.BUYER_TO_SELLER);
-        when(message.getHeaders()).thenReturn(new HashMap<String, String>(){{
+        when(message.getCaseInsensitiveHeaders()).thenReturn(new HashMap<String, String>(){{
             put("Subject", "123456");
             put("Reply-To", "buyer@mail.com");
         }});

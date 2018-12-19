@@ -15,4 +15,5 @@ public class UserNotificationRules {
     public boolean sellerShouldBeNotified(MessageState state, MessageDirection messageDirection) {
         return state == SENT && messageDirection == BUYER_TO_SELLER;
     }
+
 }

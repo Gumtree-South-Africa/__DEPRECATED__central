@@ -1,53 +1,51 @@
 package com.ecg.messagebox.resources;
 
-import com.datastax.driver.core.utils.UUIDs;
 import com.ecg.comaas.events.Conversation;
 import com.ecg.comaas.protobuf.MessageOuterClass;
 import com.ecg.comaas.protobuf.MessageOuterClass.Message;
-import com.ecg.comaas.protobuf.MessageOuterClass.Payload;
-import com.ecg.messagebox.resources.requests.CreateConversationRequest;
-import com.ecg.messagebox.resources.requests.PostMessageRequest;
-import com.ecg.messagebox.resources.responses.CreateConversationResponse;
 import com.ecg.messagebox.model.*;
 import com.ecg.messagebox.persistence.CassandraPostBoxRepository;
 import com.ecg.messagebox.resources.exceptions.ClientException;
+import com.ecg.messagebox.resources.requests.CreateConversationRequest;
+import com.ecg.messagebox.resources.requests.PostMessageRequest;
+import com.ecg.messagebox.resources.responses.CreateConversationResponse;
 import com.ecg.messagebox.resources.responses.ErrorResponse;
 import com.ecg.messagebox.resources.responses.PostMessageResponse;
+import com.ecg.replyts.app.ConversationEventListeners;
 import com.ecg.replyts.app.preprocessorchain.preprocessors.UniqueConversationSecret;
+import com.ecg.replyts.core.api.model.conversation.ConversationRole;
 import com.ecg.replyts.core.api.model.conversation.MutableConversation;
 import com.ecg.replyts.core.api.model.conversation.command.NewConversationCommand;
-import com.ecg.replyts.core.api.model.conversation.event.ConversationCreatedEvent;
 import com.ecg.replyts.core.api.persistence.ConversationIndexKey;
 import com.ecg.replyts.core.api.processing.ConversationEventService;
 import com.ecg.replyts.core.api.util.ConversationEventConverter;
 import com.ecg.replyts.core.runtime.cluster.Guids;
-import com.ecg.replyts.core.runtime.cluster.XidFactory;
 import com.ecg.replyts.core.runtime.identifier.UserIdentifierService;
+import com.ecg.replyts.core.runtime.mailcloaking.AnonymizedMailConverter;
+import com.ecg.replyts.core.runtime.persistence.conversation.DefaultMutableConversation;
 import com.ecg.replyts.core.runtime.persistence.conversation.MutableConversationRepository;
 import com.ecg.replyts.core.runtime.persistence.kafka.KafkaTopicService;
 import com.ecg.replyts.core.runtime.persistence.kafka.QueueService;
-import com.google.protobuf.ByteString;
-import com.google.protobuf.Timestamp;
 import io.swagger.annotations.*;
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.time.Instant;
 import java.util.*;
 
 import static com.ecg.messagebox.model.ParticipantRole.BUYER;
 import static com.ecg.messagebox.model.ParticipantRole.SELLER;
 import static com.ecg.replyts.core.api.model.conversation.command.NewConversationCommandBuilder.aNewConversationCommand;
 import static com.ecg.replyts.core.api.util.Constants.INTERRUPTED_WARNING;
-import static org.joda.time.DateTime.now;
 
 @RestController
 @Api(tags = "Conversations")
@@ -62,6 +60,10 @@ public class PostMessageResource {
     private final CassandraPostBoxRepository postBoxRepository;
     private final QueueService queueService;
     private final ConversationEventService conversationEventService;
+    private final AnonymizedMailConverter anonymizedMailConverter;
+    // As of now, in the end of the year 2018, it worth mentioning that the following object deals with the
+    // old style, replyts2 events, and has nothing to do with conversation_events of the new comaas architecture.
+    private final ConversationEventListeners conversationEventListeners;
 
     @Value("${replyts.tenant.short:${replyts.tenant}}")
     private String shortTenant;
@@ -73,13 +75,17 @@ public class PostMessageResource {
             UniqueConversationSecret uniqueConversationSecret,
             CassandraPostBoxRepository postBoxRepository,
             QueueService queueService,
-            ConversationEventService conversationEventService) {
+            ConversationEventService conversationEventService,
+            AnonymizedMailConverter anonymizedMailConverter,
+            ConversationEventListeners conversationEventListeners) {
         this.conversationRepository = conversationRepository;
         this.userIdentifierService = userIdentifierService;
         this.uniqueConversationSecret = uniqueConversationSecret;
         this.postBoxRepository = postBoxRepository;
         this.queueService = queueService;
         this.conversationEventService = conversationEventService;
+        this.anonymizedMailConverter = anonymizedMailConverter;
+        this.conversationEventListeners = conversationEventListeners;
     }
 
     @ApiOperation(
@@ -95,14 +101,15 @@ public class PostMessageResource {
     public CreateConversationResponse createConversation(
             @ApiParam(value = "User ID", required = true) @PathVariable("userId") String userId,
             @ApiParam(value = "Ad ID", required = true) @PathVariable("adId") String adId,
-            @ApiParam(value = "Conversation payload", required = true) @RequestBody CreateConversationRequest createConversationRequest) {
+            @ApiParam(value = "Message DateTime") @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)  DateTime createdAt,
+            @ApiParam(value = "Conversation payload", required = true)
+            @RequestBody CreateConversationRequest createConversationRequest) {
+
+        DateTime convCreatedAt = createdAt == null ? new DateTime(DateTimeZone.UTC) : createdAt;
+
         List<Participant> participants = createConversationRequest.participants;
         if (participants.isEmpty()) {
             throw new ClientException(HttpStatus.BAD_REQUEST, "Field 'participants' must not be empty");
-        }
-        String subject = createConversationRequest.subject;
-        if (subject.trim().isEmpty()) {
-            throw new ClientException(HttpStatus.BAD_REQUEST, "Field 'subject' must not be empty");
         }
         if (participants.stream().noneMatch(participant -> participant.getUserId().equals(userId))) {
             throw new ClientException(HttpStatus.BAD_REQUEST, "User ID should be one of the participants");
@@ -116,9 +123,6 @@ public class PostMessageResource {
         if (existingConversation.isPresent()) {
             return new CreateConversationResponse(true, existingConversation.get().getId());
         }
-
-        String title = createConversationRequest.title;
-        String imageUrl = createConversationRequest.imageUrl;
 
         Map<String, String> customValues = new HashMap<>();
         if (createConversationRequest.metadata != null) {
@@ -135,28 +139,37 @@ public class PostMessageResource {
                 .withBuyer(buyer.getEmail(), buyerSecret)
                 .withSeller(seller.getEmail(), sellerSecret)
                 .withCustomValues(customValues)
+                .withCreatedAt(convCreatedAt)
                 .build();
 
-        ConversationCreatedEvent conversationCreatedEvent = new ConversationCreatedEvent(newConversationBuilderCommand);
-
         String conversationId = newConversationBuilderCommand.getConversationId();
-        DateTime creationDate = now();
-        ConversationMetadata conversationMetadata = new ConversationMetadata(creationDate, subject, title, imageUrl);
+
+        ConversationMetadata conversationMetadata = new ConversationMetadata(
+                convCreatedAt,
+                createConversationRequest.subject,
+                createConversationRequest.title,
+                createConversationRequest.imageUrl
+        );
         ConversationThread conversationThread = new ConversationThread(conversationId, adId, userId, Visibility.ACTIVE,
                 MessageNotification.RECEIVE, participants, null, conversationMetadata);
 
         postBoxRepository.createEmptyConversation(buyer.getUserId(), conversationThread);
         postBoxRepository.createEmptyConversation(seller.getUserId(), conversationThread);
 
-        placeConversationCreatedEventOnQueue(adId, conversationId, customValues, participants, creationDate, buyerSecret, sellerSecret);
-        conversationRepository.commit(conversationId, Collections.singletonList(conversationCreatedEvent));
+        String buyerCloakedEmailAddress = anonymizedMailConverter.toCloakedEmailAddress(buyerSecret, ConversationRole.Buyer, newConversationBuilderCommand.getCustomValues());
+        String sellerCloakedEmailAddress = anonymizedMailConverter.toCloakedEmailAddress(sellerSecret, ConversationRole.Seller, newConversationBuilderCommand.getCustomValues());
+
+        placeConversationCreatedEventOnQueue(adId, conversationId, customValues, participants, convCreatedAt, buyerCloakedEmailAddress, sellerCloakedEmailAddress);
+        DefaultMutableConversation.create(newConversationBuilderCommand).commit(conversationRepository, conversationEventListeners);
+
+        LOG.debug("Created conversation id: {}, createdAt: {}", conversationId, convCreatedAt);
 
         return new CreateConversationResponse(false, conversationId);
     }
 
-    private void placeConversationCreatedEventOnQueue(String adId, String conversationId, Map<String, String> customValues, List<Participant> participants, DateTime creationDate, String buyerSecret, String sellerSecret) {
+    private void placeConversationCreatedEventOnQueue(String adId, String conversationId, Map<String, String> customValues, List<Participant> participants, DateTime creationDate, String buyerCloakedEmailAddress, String sellerCloakedEmailAddress) {
         try {
-            conversationEventService.sendConversationCreatedEvent(shortTenant, adId, conversationId, customValues, toConversationEventParticipants(participants, buyerSecret, sellerSecret), creationDate);
+            conversationEventService.sendConversationCreatedEvent(shortTenant, adId, conversationId, customValues, toConversationEventParticipants(participants, buyerCloakedEmailAddress, sellerCloakedEmailAddress), creationDate);
         } catch (InterruptedException e) {
             // we are not sure whether the message is now received by kafka or not. The caller should retry.
             LOG.warn("Aborting POST because thread is interrupted. conversation id: {}." + INTERRUPTED_WARNING, conversationId);
@@ -165,18 +178,18 @@ public class PostMessageResource {
         }
     }
 
-    private Set<Conversation.Participant> toConversationEventParticipants(List<Participant> participants, String buyerSecret, String sellerSecret) {
+    private Set<Conversation.Participant> toConversationEventParticipants(List<Participant> participants, String buyerCloakedEmailAddress, String sellerCloakedEmailAddress) {
         Set<Conversation.Participant> participantSet = new HashSet<>();
         for (Participant participant : participants) {
-            String secret =
+            String cloakedEmailAddress =
                     participant.getRole() == BUYER
-                            ? buyerSecret
+                            ? buyerCloakedEmailAddress
                             : participant.getRole() == SELLER
-                            ? sellerSecret
+                            ? sellerCloakedEmailAddress
                             : null;
 
             participantSet.add(ConversationEventConverter.createParticipant(participant.getUserId(), participant.getName(),
-                    participant.getEmail(), Conversation.Participant.Role.valueOf(participant.getRole().name()), secret));
+                    participant.getEmail(), Conversation.Participant.Role.valueOf(participant.getRole().name()), cloakedEmailAddress));
         }
 
         return participantSet;
@@ -195,11 +208,18 @@ public class PostMessageResource {
     public PostMessageResponse postMessage(
             @ApiParam(value = "User ID", required = true) @PathVariable("userId") String userId,
             @ApiParam(value = "Conversation ID", required = true) @PathVariable("conversationId") String conversationId,
-            @ApiParam(value = "Message payload", required = true) @RequestBody PostMessageRequest postMessageRequest,
+            @ApiParam(value = "Message payload", required = true) @RequestBody PostMessageRequest payload,
+            @ApiParam(value = "Message DateTime") @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)  DateTime createdAt,
             @RequestHeader(value = "X-Correlation-ID", required = false) String correlationIdHeader) {
-        Message.Builder kafkaMessage = buildMessage(userId, conversationId, postMessageRequest, correlationIdHeader);
 
-        placeMessageOnIncomingQueue(kafkaMessage.build());
+        MessageBuilder messageBuilder = new MessageBuilder(correlationIdHeader, createdAt);
+        messageBuilder = messageBuilder.setPayload(userId, conversationId, payload);
+        MessageOuterClass.Message kafkaMessage = messageBuilder.build();
+
+        placeMessageOnIncomingQueue(kafkaMessage);
+
+        LOG.debug("Posted message for conversation id: {}, with message id {}, correlation id: {}, timestamp: {}",
+                conversationId, kafkaMessage.getMessageId(), kafkaMessage.getCorrelationId(), kafkaMessage.getReceivedTime());
 
         return new PostMessageResponse(kafkaMessage.getMessageId());
     }
@@ -219,23 +239,19 @@ public class PostMessageResource {
     public PostMessageResponse postMessageWithAttachment(
             @ApiParam(value = "User ID", required = true) @PathVariable("userId") String userId,
             @ApiParam(value = "Conversation ID", required = true) @PathVariable("conversationId") String conversationId,
-            @ApiParam(value = "Message payload and metadata", required = true) @RequestPart(value = "message") PostMessageRequest postMessageRequest,
+            @ApiParam(value = "Message payload and metadata", required = true) @RequestPart(value = "message") PostMessageRequest payload,
             @ApiParam(value = "Attachment", required = true) @RequestPart(value = "attachment") MultipartFile attachment,
+            @ApiParam(value = "Message DateTime") @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)  DateTime createdAt,
             @RequestHeader(value = "X-Correlation-ID", required = false) String correlationIdHeader) throws IOException {
 
-        Message.Builder kafkaMessage = buildMessage(userId, conversationId, postMessageRequest, correlationIdHeader);
+        MessageBuilder messageBuilder = new MessageBuilder(correlationIdHeader, createdAt);
+        messageBuilder = messageBuilder.setPayload(userId, conversationId, payload).setAttachment(attachment);
+        MessageOuterClass.Message kafkaMessage = messageBuilder.build();
 
-        kafkaMessage
-                .addAttachments(MessageOuterClass.Attachment
-                        .newBuilder()
-                        .setFileName(attachment.getOriginalFilename())
-                        .setBody(ByteString.readFrom(attachment.getInputStream()))
-                );
+        placeMessageOnIncomingQueue(kafkaMessage);
 
-        placeMessageOnIncomingQueue(kafkaMessage.build());
-
-        LOG.debug("Posted message for conversation id: {}, with message id {}, correlation id: {}, attachment name :{}, attachment size: {} bytes",
-                conversationId, kafkaMessage.getMessageId(), kafkaMessage.getCorrelationId(), attachment.getOriginalFilename(), attachment.getSize());
+        LOG.debug("Posted message for conversation id: {}, with message id {}, correlation id: {}, attachment name :{}, attachment size: {} bytes, timestamp: {}",
+                conversationId, kafkaMessage.getMessageId(), kafkaMessage.getCorrelationId(), attachment.getOriginalFilename(), attachment.getSize(), kafkaMessage.getReceivedTime());
 
         return new PostMessageResponse(kafkaMessage.getMessageId());
     }
@@ -260,26 +276,5 @@ public class PostMessageResource {
         return ex.getMessage();
     }
 
-    private Message.Builder buildMessage(String userId, String conversationId, PostMessageRequest postMessageRequest, String correlationIdHeader) {
-        Instant now = Instant.now();
-        String correlationId = correlationIdHeader != null ? correlationIdHeader : XidFactory.nextXid();
-        String messageId = UUIDs.timeBased().toString();
 
-        return Message
-                .newBuilder()
-                .setMessageId(messageId)
-                .setReceivedTime(Timestamp
-                        .newBuilder()
-                        .setSeconds(now.getEpochSecond())
-                        .setNanos(now.getNano())
-                        .build())
-                .setCorrelationId(correlationId)
-                .setPayload(Payload
-                        .newBuilder()
-                        .setConversationId(conversationId)
-                        .setUserId(userId)
-                        .setMessage(postMessageRequest.message)
-                        .build())
-                .putAllMetadata(postMessageRequest.metadata);
-    }
 }

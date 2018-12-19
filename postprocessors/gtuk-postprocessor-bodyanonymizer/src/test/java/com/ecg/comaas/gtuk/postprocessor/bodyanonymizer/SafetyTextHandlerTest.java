@@ -288,7 +288,7 @@ public class SafetyTextHandlerTest {
         Map<String,String> headers = new HashMap();
         headers.put("X-Cust-Sellergood", "ACCOUNT_HOLDER");
         headers.put("X-Cust-Emailaddresscloak", "REVEAL");
-        when(sellerSentMessage.getHeaders()).thenReturn(headers);
+        when(sellerSentMessage.getCaseInsensitiveHeaders()).thenReturn(headers);
         // mock conversation to return the second message as sendable
         when(conversation.getMessages()).thenReturn(Arrays.asList(buyerSentMessage, sellerSentMessage));
         when(mutableContent.getMediaType()).thenReturn(MediaType.HTML_UTF_8);

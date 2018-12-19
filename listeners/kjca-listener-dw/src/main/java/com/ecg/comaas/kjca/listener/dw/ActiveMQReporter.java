@@ -22,12 +22,8 @@ import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.listener.MessageProcessedListener;
 import com.google.common.collect.ImmutableList;
 import org.joda.time.DateTime;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jms.JmsException;
 import org.springframework.jms.core.JmsTemplate;
-import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import java.util.List;
@@ -35,7 +31,6 @@ import java.util.Map;
 
 import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
 
-@Component
 /*
  * Listens for message-processed events and reports current conversation and message
  * states to the data warehouse queue, which is processed in Box's Batch runner.
@@ -55,13 +50,12 @@ public class ActiveMQReporter implements MessageProcessedListener {
     private List<MessageState> acceptableMessageStates = ImmutableList.of(MessageState.BLOCKED, MessageState.HELD, MessageState.SENT);
     private JsonTransformer<ReplyTSProcessedMessageEventDTO> transformer = new JsonTransformer<>(ReplyTSProcessedMessageEventDTO.class, false);
 
-    @Autowired
     public ActiveMQReporter(
-            @Qualifier("dwJmsTemplate") JmsTemplate jmsTemplate,
-            @Value("${mailcloaking.localized.buyer}") String buyerPrefix,
-            @Value("${mailcloaking.localized.seller}") String sellerPrefix,
-            @Value("${mailcloaking.seperator:.}") String mailCloakingSeparator // Do not ever change this, you will break replies to existing messages.
-    ) {
+            JmsTemplate jmsTemplate,
+            String buyerPrefix,
+            String sellerPrefix,
+            String mailCloakingSeparator) {
+
         this.jmsTemplate = jmsTemplate;
         this.buyerPrefix = buyerPrefix;
         this.sellerPrefix = sellerPrefix;
@@ -93,7 +87,7 @@ public class ActiveMQReporter implements MessageProcessedListener {
         final MessageState messageState = message.getState();
         final boolean droppedDueToBadEmail = isMessageBlockedDueToBadEmailAddress(message);
         final boolean droppedDueToBannedUser = isMessageBlockedDueToBadUser(message);
-        final Map<String, String> headers = message.getHeaders();
+        final Map<String, String> headers = message.getCaseInsensitiveHeaders();
         final String senderIpAddress = headers.get(BoxHeaders.SENDER_IP_ADDRESS.getHeaderName());
         final DateTime sentDate = messageState == MessageState.SENT ? conversation.getLastModifiedAt() : null;
         final DateTime approvedDate = message.getHumanResultState() == ModerationResultState.GOOD ? conversation.getLastModifiedAt() : null;
@@ -122,7 +116,7 @@ public class ActiveMQReporter implements MessageProcessedListener {
     }
 
     private ReplyTSConversationDTO buildReplyTSConversationDTO(Conversation conversation) {
-        Map<String, String> originalMsgHeaders = conversation.getMessages().get(0).getHeaders();
+        Map<String, String> originalMsgHeaders = conversation.getMessages().get(0).getCaseInsensitiveHeaders();
         String replierIdHeader = originalMsgHeaders.get(BoxHeaders.REPLIER_ID.getHeaderName());
         String posterIdHeader = originalMsgHeaders.get(BoxHeaders.POSTER_ID.getHeaderName());
         String buyerAnonID = buyerPrefix + mailCloakingSeparator + conversation.getBuyerSecret();

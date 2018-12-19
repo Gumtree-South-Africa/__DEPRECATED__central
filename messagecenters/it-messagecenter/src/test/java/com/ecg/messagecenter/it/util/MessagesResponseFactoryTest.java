@@ -348,9 +348,9 @@ public class MessagesResponseFactoryTest {
         mapWithRobotHeader.put("X-Robot", "GTAU");
 
         if (isRobotMessage) {
-            when(message.getHeaders()).thenReturn(mapWithRobotHeader);
+            when(message.getCaseInsensitiveHeaders()).thenReturn(mapWithRobotHeader);
         } else {
-            when(message.getHeaders()).thenReturn(map);
+            when(message.getCaseInsensitiveHeaders()).thenReturn(map);
         }
 
         addMessage(message);

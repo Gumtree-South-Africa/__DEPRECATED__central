@@ -7,16 +7,16 @@ import com.ecg.replyts.app.postprocessorchain.PostProcessorChain;
 import com.ecg.replyts.app.postprocessorchain.postprocessors.Cleaner;
 import com.ecg.replyts.app.postprocessorchain.postprocessors.MessageIdPreparator;
 import com.ecg.replyts.core.runtime.mailfixers.BrokenContentTypeFix;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.*;
 
 import java.util.Arrays;
+
+import static com.ecg.replyts.core.api.model.Tenants.*;
 
 // Will get picked up by the Application @ComponentScan (com.ecg.replyts.app.*)
 
 @Configuration
+@Profile({TENANT_KJCA, TENANT_MVCA})
 @Import({TextAnonymizer.class, BrokenContentTypeFix.class, Addresser.class, MessageBodyAnonymizer.class})
 public class AlternativePostProcessorChainConfiguration {
     @Bean

@@ -32,18 +32,17 @@ public class SendClient {
     private final Timer sendMessageTimer;
     private final Timer checkSubscriptionTimer;
 
-    @Autowired
     public SendClient(
-            @Value("${send.client.max.retries:0}") final Integer maxRetries,
-            @Value("${send.client.max.connections:16}") final Integer maxConnections,
-            @Value("${send.client.timeout.hystrix.ms:1000}") final Integer hystrixTimeout,
-            @Value("${send.client.timeout.socket.millis:1000}") final Integer socketTimeout,
-            @Value("${send.client.timeout.connect.millis:1000}") final Integer connectTimeout,
-            @Value("${send.client.timeout.connectionRequest.millis:1000}") final Integer connectionRequestTimeout,
-            @Value("${send.client.http.schema:http}") final String httpSchema,
-            @Value("${send.client.http.endpoint:send-api.clworker.qa10.kjdev.ca}") final String httpEndpoint,
-            @Value("${send.client.http.port:80}") final Integer httpPort
-    ) {
+            Integer maxRetries,
+            Integer maxConnections,
+            Integer hystrixTimeout,
+            Integer socketTimeout,
+            Integer connectTimeout,
+            Integer connectionRequestTimeout,
+            String httpSchema,
+            String httpEndpoint,
+            Integer httpPort) {
+
         this.hystrixTimeout = hystrixTimeout;
         this.httpClient = createPooledHttpClient(maxRetries, TimingReports.newCounter("send.client.general.retries"), maxConnections, socketTimeout, connectTimeout, connectionRequestTimeout);
         this.httpHost = new HttpHost(httpEndpoint, httpPort, httpSchema);

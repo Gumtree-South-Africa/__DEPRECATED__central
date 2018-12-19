@@ -24,10 +24,11 @@ import java.util.NoSuchElementException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_BE;
 import static com.ecg.replyts.core.api.model.Tenants.TENANT_MP;
 
 @ComaasPlugin
-@Profile(TENANT_MP)
+@Profile({TENANT_MP, TENANT_BE})
 @Component
 @Import(AnonymizeEmailPostProcessorConfig.class)
 public class AnonymizeEmailPostProcessor implements EmailPostProcessor {

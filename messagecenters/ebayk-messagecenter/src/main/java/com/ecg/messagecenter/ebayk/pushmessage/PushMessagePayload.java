@@ -1,7 +1,6 @@
 package com.ecg.messagecenter.ebayk.pushmessage;
 
-import com.fasterxml.uuid.Generators;
-import com.fasterxml.uuid.impl.TimeBasedGenerator;
+import com.datastax.driver.core.utils.UUIDs;
 import com.google.common.collect.ImmutableMap;
 import net.sf.json.JSONObject;
 
@@ -17,7 +16,6 @@ import java.util.Optional;
  */
 public class PushMessagePayload {
 
-    private static final TimeBasedGenerator uuidGenerator = Generators.timeBasedGenerator();
     private final String email;
     private final String message;
     private final String activity;
@@ -42,7 +40,7 @@ public class PushMessagePayload {
         this.activity = activity;
         this.alertCounter = alertCounter;
 
-        String pushNotificationId = uuidGenerator.generate().toString();
+        String pushNotificationId =  UUIDs.timeBased().toString();
 
         this.details = constructUtmDetails(detailsBuilder, pushNotificationId);
     }

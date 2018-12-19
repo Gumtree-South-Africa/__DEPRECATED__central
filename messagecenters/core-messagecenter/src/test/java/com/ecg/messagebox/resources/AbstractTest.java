@@ -12,6 +12,7 @@ import com.ecg.messagebox.model.Visibility;
 import com.ecg.messagebox.persistence.CassandraPostBoxRepository;
 import com.ecg.messagebox.persistence.ResponseDataRepository;
 import com.ecg.messagebox.service.PostBoxService;
+import com.ecg.replyts.app.ConversationEventListeners;
 import com.ecg.replyts.app.MessageProcessingCoordinator;
 import com.ecg.replyts.app.ProcessingContextFactory;
 import com.ecg.replyts.app.preprocessorchain.preprocessors.UniqueConversationSecret;
@@ -62,6 +63,11 @@ public abstract class AbstractTest {
     }
 
     public static class Configuration {
+
+        @Bean
+        ConversationEventListeners conversationEventListeners() {
+            return mock(ConversationEventListeners.class);
+        }
 
         @Bean
         PostBoxService postBoxService() {

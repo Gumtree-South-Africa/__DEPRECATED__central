@@ -73,7 +73,7 @@ public interface Message {
     /**
      * @return the most important headers of the message
      */
-    Map<String, String> getHeaders();
+    Map<String, String> getCaseInsensitiveHeaders();
 
     /**
      * @return the plain text body of the message

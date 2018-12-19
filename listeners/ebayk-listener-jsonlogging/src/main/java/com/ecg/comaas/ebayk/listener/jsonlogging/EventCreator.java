@@ -66,25 +66,25 @@ class EventCreator {
     }
 
     private void includeMessageBasedCustomHeaders(Conversation conversation, Message message, Builder builder) {
-        if (message.getHeaders().containsKey(MAILER_CLIENT_INFO_HEADER)) {
-            builder.attr("custuseragent", message.getHeaders().get(MAILER_CLIENT_INFO_HEADER));
+        if (message.getCaseInsensitiveHeaders().containsKey(MAILER_CLIENT_INFO_HEADER)) {
+            builder.attr("custuseragent", message.getCaseInsensitiveHeaders().get(MAILER_CLIENT_INFO_HEADER));
         } else {
-            if (message.getHeaders().containsKey(USER_AGENT)) {
-                builder.attr("custuseragent", message.getHeaders().get(USER_AGENT));
+            if (message.getCaseInsensitiveHeaders().containsKey(USER_AGENT)) {
+                builder.attr("custuseragent", message.getCaseInsensitiveHeaders().get(USER_AGENT));
             }
         }
 
         if (replyMessage(conversation, message)) {
 
-            if (message.getHeaders().containsKey(REPLY_CHANNEL_HEADER)) {
-                builder.attr("custreplychannel", message.getHeaders().get(REPLY_CHANNEL_HEADER));
+            if (message.getCaseInsensitiveHeaders().containsKey(REPLY_CHANNEL_HEADER)) {
+                builder.attr("custreplychannel", message.getCaseInsensitiveHeaders().get(REPLY_CHANNEL_HEADER));
             } else {
                 // nonexisting means it is a mail-client -> mail-clients do not pass our X-REPLY-CHANNEL header
                 builder.attr("custreplychannel", "mail");
             }
         }
 
-        builder.attr("custadapiuserid", message.getHeaders().containsKey(AD_API_USER_ID) ? message.getHeaders().get(AD_API_USER_ID) : null);
+        builder.attr("custadapiuserid", message.getCaseInsensitiveHeaders().containsKey(AD_API_USER_ID) ? message.getCaseInsensitiveHeaders().get(AD_API_USER_ID) : null);
     }
 
     private boolean replyMessage(Conversation conversation, Message message) {

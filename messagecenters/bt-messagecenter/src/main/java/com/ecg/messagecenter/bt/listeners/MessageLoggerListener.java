@@ -78,7 +78,7 @@ public class MessageLoggerListener implements MessageProcessedListener {
         DateTime replyDate = message.getReceivedAt();
         DateTimeFormatter fmt = DateTimeFormat.forPattern("dd/MM/yyyy");
 
-        Map<String, String> headers = message.getHeaders();
+        Map<String, String> headers = message.getCaseInsensitiveHeaders();
 
         final StringBuilder logBuf = new StringBuilder();
 

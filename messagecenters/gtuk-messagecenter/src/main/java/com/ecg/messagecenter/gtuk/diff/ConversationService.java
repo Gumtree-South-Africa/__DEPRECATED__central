@@ -6,7 +6,6 @@ import com.ecg.messagecenter.core.persistence.simple.SimplePostBoxRepository;
 import com.ecg.messagecenter.gtuk.persistence.ConversationThread;
 import com.ecg.messagecenter.gtuk.webapi.ConversationCustomValue;
 import com.ecg.messagecenter.gtuk.webapi.DeletedCustomValue;
-import com.ecg.messagecenter.gtuk.webapi.FlaggedCustomValue;
 import com.ecg.messagecenter.gtuk.webapi.responses.PostBoxSingleConversationThreadResponse;
 import com.ecg.replyts.app.ConversationEventListeners;
 import com.ecg.replyts.core.api.model.MailCloakingService;
@@ -19,8 +18,6 @@ import com.ecg.replyts.core.runtime.indexer.DocumentSink;
 import com.ecg.replyts.core.runtime.persistence.conversation.DefaultMutableConversation;
 import com.ecg.replyts.core.runtime.persistence.conversation.MutableConversationRepository;
 import com.ecg.replyts.core.webapi.screeningv2.converter.DomainObjectConverter;
-import com.gumtree.gumshield.api.client.GumshieldApi;
-import com.gumtree.gumshield.api.domain.user_message_report.ApiFlaggedConversation;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,7 +38,6 @@ public class ConversationService {
     private final MutableConversationRepository conversationRepository;
     private final DocumentSink searchIndexer;
     private final DomainObjectConverter converter;
-    private final GumshieldApi gumshieldApi;
     private final ConversationEventListeners conversationEventListeners;
 
     @Autowired
@@ -50,14 +46,12 @@ public class ConversationService {
             MutableConversationRepository conversationRepository,
             DocumentSink searchIndexer,
             MailCloakingService mailCloakingService,
-            GumshieldApi gumshieldApi,
             ConversationEventListeners conversationEventListeners) {
 
         this.conversationRepository = conversationRepository;
         this.postBoxRepository = postBoxRepository;
         this.searchIndexer = searchIndexer;
         this.converter = new DomainObjectConverter(conversationRepository, mailCloakingService);
-        this.gumshieldApi = gumshieldApi;
         this.conversationEventListeners = conversationEventListeners;
     }
 
@@ -88,31 +82,9 @@ public class ConversationService {
     }
 
     public Optional<Object> reportConversation(String email, String conversationId) {
-        MutableConversation conversation = conversationRepository.getById(conversationId);
-        ConversationRole buyerOrSeller = this.emailBelongsToBuyerOrSeller(conversation, email);
-        if (buyerOrSeller == null) {
-            return Optional.empty();
-        }
-
-        DateTime now = DateTime.now();
-        this.markConversation(conversation, new FlaggedCustomValue(buyerOrSeller, ConversationCustomValue.AT_POSTFIX, now.toString()));
-        this.markConversation(conversation, new FlaggedCustomValue(buyerOrSeller, ConversationCustomValue.DATE_POSTFIX, now.toLocalDate().toString()));
-
-        ((DefaultMutableConversation) conversation).commit(conversationRepository, conversationEventListeners);
-        searchIndexer.sink(conversation);
-
-        PostBox postBox = postBoxRepository.byId(PostBoxId.fromEmail(email));
-        this.markConversationAsRead(conversationId, postBox);
-
-        ConversationRts conversationRts = converter.convertConversation(conversation);
-
-        ApiFlaggedConversation flaggedConversation = new ApiFlaggedConversation();
-        flaggedConversation.setAdvertId(Long.valueOf(conversationRts.getAdId()));
-        flaggedConversation.setConversationId(conversationRts.getId());
-        flaggedConversation.setReportedByEmail(email);
-        flaggedConversation.setReportedDate(DateTime.parse(this.getFlaggedTime(conversationRts, email)));
-        flaggedConversation.setReportedForEmail(this.getOtherEmail(conversationRts, email));
-        gumshieldApi.conversationApi().flagConversation(flaggedConversation);
+        //
+        // TODO: PB: REMOVE - still some traffic on V1 but this endpoint is no longer used
+        //
         return Optional.of(SUCCESS);
     }
 
@@ -177,18 +149,5 @@ public class ConversationService {
                 break;
             }
         }
-    }
-
-    private String getOtherEmail(ConversationRts conversation, String email) {
-        return conversation.getBuyer().equalsIgnoreCase(email)
-                ? conversation.getSeller()
-                : conversation.getBuyer();
-    }
-
-    private String getFlaggedTime(ConversationRts conversation, String email) {
-        Map<String, String> conversationHeaders = conversation.getConversationHeaders();
-        return conversation.getBuyer().equalsIgnoreCase(email)
-                ? conversationHeaders.get("flagged-buyer-at")
-                : conversationHeaders.get("flagged-seller-at");
     }
 }

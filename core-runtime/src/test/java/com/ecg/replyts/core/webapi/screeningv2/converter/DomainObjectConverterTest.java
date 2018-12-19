@@ -223,7 +223,7 @@ public class DomainObjectConverterTest {
             when(message.getState()).thenReturn(MessageState.SENT);
             when(message.getFilterResultState()).thenReturn(FilterResultState.OK);
             when(message.getHumanResultState()).thenReturn(ModerationResultState.GOOD);
-            when(message.getHeaders()).thenReturn(dummyHeaderMap);
+            when(message.getCaseInsensitiveHeaders()).thenReturn(dummyHeaderMap);
             when(message.getPlainTextBody()).thenReturn("some message text");
             when(message.getMessageDirection()).thenReturn(MessageDirection.BUYER_TO_SELLER);
             when(message.getLastEditor()).thenReturn(Optional.empty());

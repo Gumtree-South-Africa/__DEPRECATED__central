@@ -28,9 +28,9 @@ public class RevealEmailHandler {
     public void process(Conversation conversation, Message message, Mail mail) {
 
         if (conversation != null) {
-            if (shouldRevealEmail(message.getHeaders())
+            if (shouldRevealEmail(message.getCaseInsensitiveHeaders())
                     && isInitialB2S(message, conversation)
-                    && isKnownGood(message.getHeaders(), message.getMessageDirection())) {
+                    && isKnownGood(message.getCaseInsensitiveHeaders(), message.getMessageDirection())) {
 
                 List<TypedContent<String>> typedContents = mail.getTextParts(false);
                 String formatText = messageBodyAnonymizerConfig.getKnownGoodInsertFooterFormat();

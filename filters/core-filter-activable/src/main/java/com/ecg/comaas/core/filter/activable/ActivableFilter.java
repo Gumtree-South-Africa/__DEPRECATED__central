@@ -27,7 +27,7 @@ public abstract class ActivableFilter implements Filter {
     @Override
     public List<FilterFeedback> filter(MessageProcessingContext context) {
 
-        Map<String, String> headers = context.getMessage().getHeaders();
+        Map<String, String> headers = context.getMessage().getCaseInsensitiveHeaders();
         Set<Integer> categories = getCategories(headers);
         String userType = headers.get(USER_TYPE.getHeaderName());
 

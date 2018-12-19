@@ -2,27 +2,11 @@
 
 library "commonFunctions@${ghprbSourceBranch}"
 
-runCoreTests = {
-    echo 'Running core tests'
+runBuild = { param ->
+    echo "Running $param"
     commonFunctions.forcefullyRemoveStaleDockerContainers()
     ansiColor('xterm') {
-        sh "cd ecg-comaas-central; bin/build.sh -3"
-    }
-}
-
-runIntegrationTests = { param ->
-    echo "Running integration tests (part $param)"
-    commonFunctions.forcefullyRemoveStaleDockerContainers()
-    ansiColor('xterm') {
-        sh "cd ecg-comaas-central; bin/build.sh -$param"
-    }
-}
-
-runTenantTests = { tenant ->
-    echo "Running tests for tenant $tenant"
-    commonFunctions.forcefullyRemoveStaleDockerContainers()
-    ansiColor('xterm') {
-        sh "cd ecg-comaas-central; bin/build.sh -R $tenant"
+        sh "cd ecg-comaas-central; bin/build.sh $param"
     }
 }
 
@@ -71,17 +55,12 @@ node('build') {
 
     buildSteps = ["failFast": false]
 
-    buildSteps += ["core-tests": commonFunctions.wrapWithStepDefinition(null, runCoreTests, ghprbActualCommit as String, "Core tests")]
-    buildSteps += [1, 2].collectEntries { testParam ->
-        [((String) "integration-tests-$testParam"): commonFunctions.wrapWithStepDefinition(testParam, runIntegrationTests, ghprbActualCommit as String, "Integration tests (part $testParam)")]
-    }
-    buildSteps += tenants.collectEntries { tenant ->
-        [((String) "$tenant-tests"): commonFunctions.wrapWithStepDefinition(tenant, runTenantTests, ghprbActualCommit as String, "Tests for $tenant")]
-    }
+    buildSteps += ["unit-tests": commonFunctions.wrapWithStepDefinition("-t", runBuild, ghprbActualCommit as String, "Unit tests")]
+    buildSteps += ["integration-tests": commonFunctions.wrapWithStepDefinition("-i", runBuild, ghprbActualCommit as String, "Integration tests")]
 
     wiringTenants = commonFunctions.activeTenants(configFile.tenants.wiring_disabled as List)
     buildSteps += wiringTenants.collectEntries { tenant ->
-        [((String) "$tenant-start-comaas"): commonFunctions.wrapWithStepDefinition(tenant, startComaasForTenant, ghprbActualCommit as String, "Start Comaas for $tenant")]
+        [((String) "wiring-test-$tenant"): commonFunctions.wrapWithStepDefinition(tenant, startComaasForTenant, ghprbActualCommit as String, "Start Comaas for $tenant")]
     }
 
     parallel buildSteps

@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Nonnull;
@@ -23,7 +24,11 @@ import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.Map;
 
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_KJCA;
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_MVCA;
+
 @Component
+@Profile({TENANT_KJCA, TENANT_MVCA})
 @ComaasPlugin
 public class TnsApiClient {
     private static final Logger LOG = LoggerFactory.getLogger(TnsApiClient.class);

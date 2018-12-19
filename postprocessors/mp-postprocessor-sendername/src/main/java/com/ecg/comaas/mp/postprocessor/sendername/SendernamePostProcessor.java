@@ -19,6 +19,7 @@ import org.springframework.util.Assert;
 import javax.mail.internet.InternetAddress;
 import java.io.UnsupportedEncodingException;
 
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_BE;
 import static com.ecg.replyts.core.api.model.Tenants.TENANT_MP;
 
 /**
@@ -38,7 +39,7 @@ import static com.ecg.replyts.core.api.model.Tenants.TENANT_MP;
  */
 // TODO akobiakov and this one as well
 @ComaasPlugin
-@Profile(TENANT_MP)
+@Profile({TENANT_MP, TENANT_BE})
 @Component
 public class SendernamePostProcessor implements EmailPostProcessor {
 

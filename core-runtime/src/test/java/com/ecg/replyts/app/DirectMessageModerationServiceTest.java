@@ -14,6 +14,8 @@ import com.ecg.replyts.core.runtime.listener.MessageProcessedListener;
 import com.ecg.replyts.core.runtime.mailparser.ParsingException;
 import com.ecg.replyts.core.runtime.persistence.conversation.DefaultMutableConversation;
 import com.ecg.replyts.core.runtime.persistence.conversation.MutableConversationRepository;
+import com.ecg.replyts.core.runtime.persistence.kafka.MessageEventPublisher;
+import com.ecg.replyts.core.runtime.persistence.kafka.MessageEventPublisherTest;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -59,6 +61,9 @@ public class DirectMessageModerationServiceTest {
     @MockBean
     private ProcessingContextFactory processingContextFactory;
 
+    @MockBean
+    private MessageEventPublisher messageEventPublisher;
+
     @Autowired
     private DirectMessageModerationService mms;
 
@@ -70,9 +75,11 @@ public class DirectMessageModerationServiceTest {
         when(conversationRepository.getById("1")).thenReturn(c);
         INBOUND_MAIL = "From: foo\nDelivered-To: bar\n\nhello".getBytes();
         when(heldMailRepository.read("1")).thenReturn(INBOUND_MAIL);
+        MessageProcessingContext context = new MessageProcessingContext(Mails.readMail(INBOUND_MAIL), "1", new ProcessingTimeGuard(300L));
         when(processingContextFactory.newContext((Mail) notNull(), eq("1"), (ProcessingTimeGuard) notNull()))
-                .thenReturn(new MessageProcessingContext(Mails.readMail(INBOUND_MAIL), "1", new ProcessingTimeGuard(300L)));
+                .thenReturn(context);
 
+        messageEventPublisher.publish(context, c, m);
         when(c.getId()).thenReturn("1");
         when(c.getMessageById("1")).thenReturn(m);
         when(m.getMessageDirection()).thenReturn(MessageDirection.BUYER_TO_SELLER);

@@ -75,7 +75,7 @@ public class PostBoxResponseBuilder {
             List<Message> normalMessages = Lists.newArrayList();
             // for this conversation only include sent messages that are non-robot
             for (Message message : conversation.getMessages()) {
-                if (message.getHeaders().get(Header.Robot.getValue()) == null && message.getState()
+                if (message.getCaseInsensitiveHeaders().get(Header.Robot.getValue()) == null && message.getState()
                                 .equals(MessageState.SENT)) {
                     normalMessages.add(message);
                 }

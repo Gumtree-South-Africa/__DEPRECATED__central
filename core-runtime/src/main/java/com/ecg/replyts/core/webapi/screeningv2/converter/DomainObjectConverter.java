@@ -112,7 +112,7 @@ public class DomainObjectConverter {
 
         messageRts.setAttachments(message.getAttachmentFilenames());
         messageRts.setId(message.getId());
-        messageRts.setMailHeaders(message.getHeaders());
+        messageRts.setMailHeaders(message.getCaseInsensitiveHeaders());
         messageRts.setText(message.getPlainTextBody());
         messageRts.setLastEditor(message.getLastEditor().orElse(null));
 

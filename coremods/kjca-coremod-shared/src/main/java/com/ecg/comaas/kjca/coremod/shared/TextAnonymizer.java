@@ -13,13 +13,11 @@ import org.springframework.util.StringUtils;
 /**
  * Mask the email addresses of a given conversation's participants in arbitrary text.
  */
-@Component
 public class TextAnonymizer {
     private final static Logger LOG = LoggerFactory.getLogger(TextAnonymizer.class);
 
     private final MailCloakingService cloakingDevice;
 
-    @Autowired
     public TextAnonymizer(MailCloakingService mailCloakingService) {
         cloakingDevice = mailCloakingService;
     }

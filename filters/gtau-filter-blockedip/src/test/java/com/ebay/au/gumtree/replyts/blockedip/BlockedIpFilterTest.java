@@ -44,14 +44,14 @@ public class BlockedIpFilterTest {
 
     @Before
     public void setup() {
-        when(messageMock.getHeaders()).thenReturn(HEADERS);
+        when(messageMock.getCaseInsensitiveHeaders()).thenReturn(HEADERS);
         when(contextMock.getMessage()).thenReturn(messageMock);
         blockedIpFilter = new BlockedIpFilter(jdbcTemplateMock);
     }
 
     @Test
     public void whenNoHeader_shouldReturnEmptyList() {
-        when(messageMock.getHeaders()).thenReturn(Collections.emptyMap());
+        when(messageMock.getCaseInsensitiveHeaders()).thenReturn(Collections.emptyMap());
 
         List<FilterFeedback> actualFeedback = blockedIpFilter.filter(contextMock);
 

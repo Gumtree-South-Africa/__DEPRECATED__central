@@ -40,7 +40,7 @@ public class Replyts2StatsNotifier implements MessageProcessedListener {
     }
 
     private Optional<String> getClientId(Message message) {
-        return Optional.ofNullable(message.getHeaders().get(CLIENT_ID.getHeaderValue()));
+        return Optional.ofNullable(message.getCaseInsensitiveHeaders().get(CLIENT_ID.getHeaderValue()));
     }
 
     private boolean isFirstMessage(Conversation conversation) {

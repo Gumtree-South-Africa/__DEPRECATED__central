@@ -31,7 +31,7 @@ public final class DealerRatingServiceTest {
         final Map<String, String> headers = new HashMap<>();
         headers.put("X-Cust-Publisher", "mob-ipad");
         headers.put("X-Cust-Customer_Id", valueOf(DEALER_ID));
-        when(message.getHeaders()).thenReturn(headers);
+        when(message.getCaseInsensitiveHeaders()).thenReturn(headers);
         when(message.getState()).thenReturn(SENT);
 
 
@@ -52,7 +52,7 @@ public final class DealerRatingServiceTest {
                 .forEach(state -> {
                     final Map<String, String> headers = new HashMap<>();
                     headers.put("X-Cust-Publisher", "mob-ipad");
-                    when(message.getHeaders()).thenReturn(headers);
+                    when(message.getCaseInsensitiveHeaders()).thenReturn(headers);
                     when(message.getState()).thenReturn(state);
 
                     instance.saveInvitation(message, CONVERSATION_ID);
@@ -67,7 +67,7 @@ public final class DealerRatingServiceTest {
 
         final Map<String, String> headers = new HashMap<>();
         headers.put("X-Cust-Publisher", "mob-ipad");
-        when(message.getHeaders()).thenReturn(headers);
+        when(message.getCaseInsensitiveHeaders()).thenReturn(headers);
         when(message.getState()).thenReturn(SENT);
 
         instance.saveInvitation(message, CONVERSATION_ID);

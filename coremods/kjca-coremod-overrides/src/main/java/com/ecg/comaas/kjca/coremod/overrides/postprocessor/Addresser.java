@@ -14,10 +14,13 @@ import org.apache.james.mime4j.field.address.AddressFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
-@Component
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_KJCA;
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_MVCA;
+
 /**
  * Sets the "To" and "From" headers.
  *
@@ -26,6 +29,8 @@ import org.springframework.util.StringUtils;
  * Also see {@link com.ecg.replyts.app.postprocessorchain.postprocessors.Anonymizer} for
  * the original implementation. Our version preserves the "name" part of the email.
  */
+@Component
+@Profile({TENANT_KJCA, TENANT_MVCA})
 public class Addresser implements PostProcessor {
     private static final Logger LOG = LoggerFactory.getLogger(Addresser.class);
 

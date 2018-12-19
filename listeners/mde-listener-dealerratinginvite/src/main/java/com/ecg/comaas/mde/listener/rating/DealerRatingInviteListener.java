@@ -37,8 +37,8 @@ public final class DealerRatingInviteListener implements MessageProcessedListene
      */
     private boolean isInitialDealerMessage(final Message message) {
         final String key = CUSTOM_HEADER_PREFIX + "Seller_Type";
-        return message.getHeaders().containsKey(key)
-                && message.getHeaders().get(key).equalsIgnoreCase("DEALER");
+        return message.getCaseInsensitiveHeaders().containsKey(key)
+                && message.getCaseInsensitiveHeaders().get(key).equalsIgnoreCase("DEALER");
     }
 
 }

@@ -12,10 +12,11 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_BE;
 import static com.ecg.replyts.core.api.model.Tenants.TENANT_MP;
 
 @ComaasPlugin
-@Profile(TENANT_MP)
+@Profile({TENANT_MP, TENANT_BE})
 @Component
 @Import(DescriptionBuilder.class)
 public class BankAccountFilterFactory implements FilterFactory {

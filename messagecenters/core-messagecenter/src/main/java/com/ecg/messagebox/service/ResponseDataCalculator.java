@@ -48,7 +48,7 @@ public class ResponseDataCalculator {
             // BR: only for conversations initiated by buyer
             if (rtsConversation.getMessages().size() == 1 && MessageDirection.BUYER_TO_SELLER == rtsNewMessage.getMessageDirection()) {
                 ResponseData initialResponseData = new ResponseData(userId, rtsConversation.getId(), rtsConversation.getCreatedAt(),
-                        MessageType.getWithEmailAsDefault(rtsNewMessage.getHeaders().get(X_MESSAGE_TYPE)));
+                        MessageType.getWithEmailAsDefault(rtsNewMessage.getCaseInsensitiveHeaders().get(X_MESSAGE_TYPE)));
                 responseDataRepository.addOrUpdateResponseDataAsync(initialResponseData);
             } else if (rtsConversation.getMessages().size() > 1 && MessageDirection.BUYER_TO_SELLER == rtsConversation.getMessages().get(0).getMessageDirection()) {
                 // BR: only consider the first response from seller
@@ -58,7 +58,7 @@ public class ResponseDataCalculator {
                     int responseSpeed = Minutes.minutesBetween(rtsConversation.getCreatedAt(), rtsNewMessage.getReceivedAt()).getMinutes();
                     // Only the response speed value is different from the initially created response data. The conversation type is the type of the first message.
                     ResponseData updatedResponseData = new ResponseData(userId, rtsConversation.getId(), rtsConversation.getCreatedAt(),
-                            MessageType.getWithEmailAsDefault(rtsConversation.getMessages().get(0).getHeaders().get(X_MESSAGE_TYPE)), responseSpeed);
+                            MessageType.getWithEmailAsDefault(rtsConversation.getMessages().get(0).getCaseInsensitiveHeaders().get(X_MESSAGE_TYPE)), responseSpeed);
                     responseDataRepository.addOrUpdateResponseDataAsync(updatedResponseData);
                 }
             }

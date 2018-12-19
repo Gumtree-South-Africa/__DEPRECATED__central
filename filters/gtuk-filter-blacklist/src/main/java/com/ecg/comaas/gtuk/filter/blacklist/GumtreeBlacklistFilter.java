@@ -1,6 +1,7 @@
 package com.ecg.comaas.gtuk.filter.blacklist;
 
 import com.codahale.metrics.Timer;
+import com.ecg.gumtree.comaas.common.filter.GumshieldClient;
 import com.ecg.gumtree.replyts2.common.message.GumtreeCustomHeaders;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.ConversationRole;
@@ -12,7 +13,6 @@ import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.gumtree.filters.comaas.Filter;
 import com.gumtree.filters.comaas.config.BlacklistFilterConfig;
-import com.gumtree.gumshield.api.client.GumshieldApi;
 import com.gumtree.gumshield.api.domain.checklist.ApiChecklistAttribute;
 import com.gumtree.gumshield.api.domain.checklist.ApiChecklistType;
 import org.apache.commons.lang3.StringUtils;
@@ -35,7 +35,7 @@ public class GumtreeBlacklistFilter implements com.ecg.replyts.core.api.pluginco
 
     private Filter pluginConfig;
     private BlacklistFilterConfig filterConfig;
-    private GumshieldApi gumshieldApi;
+    private GumshieldClient gumshieldClient;
 
     @Override
     public List<FilterFeedback> filter(MessageProcessingContext context) {
@@ -70,10 +70,10 @@ public class GumtreeBlacklistFilter implements com.ecg.replyts.core.api.pluginco
         Message message = messageContext.getMessage();
         Conversation conversation = messageContext.getConversation();
         Mail mail = messageContext.getMail().get();
-        String ipAddress = message.getHeaders().get(GumtreeCustomHeaders.BUYER_IP.getHeaderValue());
+        String ipAddress = message.getCaseInsensitiveHeaders().get(GumtreeCustomHeaders.BUYER_IP.getHeaderValue());
 
         // check for account holder
-        if (!isSenderProAccount(message.getHeaders(), message.getMessageDirection())) {
+        if (!isSenderProAccount(message.getCaseInsensitiveHeaders(), message.getMessageDirection())) {
             // check conversation sender on blacklist
             String senderEmail = getConversationSenderEmail(message, conversation);
             if (isBlacklisted(senderEmail)) {
@@ -102,12 +102,12 @@ public class GumtreeBlacklistFilter implements com.ecg.replyts.core.api.pluginco
     }
 
     private boolean isBlacklistedAttribute(String attribute, ApiChecklistAttribute checklistAttribute) {
-        if (gumshieldApi == null) {
+        if (gumshieldClient == null) {
             LOG.error("Gumshield API was null");
             return false;
         }
         try {
-            gumshieldApi.checklistApi().findEntryByValue(ApiChecklistType.BLACK, checklistAttribute, attribute);
+            gumshieldClient.checkByValue(ApiChecklistType.BLACK, checklistAttribute, attribute);
             return true;
         } catch (Exception e) {
             LOG.debug("Could not find blacklist entry for " + attribute + ": " + e.getMessage());
@@ -116,7 +116,7 @@ public class GumtreeBlacklistFilter implements com.ecg.replyts.core.api.pluginco
     }
 
     private boolean isRecipientBlacklisted(Message message, String recipientEmail) {
-        return !isRecipientProAccount(message.getHeaders(), message.getMessageDirection())
+        return !isRecipientProAccount(message.getCaseInsensitiveHeaders(), message.getMessageDirection())
                 && isBlacklisted(recipientEmail);
     }
 
@@ -168,8 +168,8 @@ public class GumtreeBlacklistFilter implements com.ecg.replyts.core.api.pluginco
         return this;
     }
 
-    public GumtreeBlacklistFilter withGumshieldApi(GumshieldApi gumshieldApi) {
-        this.gumshieldApi = gumshieldApi;
+    public GumtreeBlacklistFilter withGumshieldClient(GumshieldClient gumshieldClient) {
+        this.gumshieldClient = gumshieldClient;
         return this;
     }
 }

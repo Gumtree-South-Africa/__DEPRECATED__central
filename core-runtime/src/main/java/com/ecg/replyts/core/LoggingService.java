@@ -26,8 +26,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-import static com.ecg.replyts.core.runtime.logging.MDCConstants.APPLICATION;
-import static com.ecg.replyts.core.runtime.logging.MDCConstants.REVISION;
+import static com.ecg.replyts.core.runtime.logging.MDCConstants.APPLICATION_NAME;
+import static com.ecg.replyts.core.runtime.logging.MDCConstants.VERSION;
 import static com.ecg.replyts.core.runtime.logging.MDCConstants.TENANT;
 
 @Component
@@ -119,8 +119,8 @@ public class LoggingService {
         Thread.currentThread().setName("main");
 
         LOGGER_CONTEXT.putProperty(TENANT, System.getProperty("tenant", "unknown"));
-        LOGGER_CONTEXT.putProperty(APPLICATION, Application.class.getPackage().getImplementationTitle());
-        LOGGER_CONTEXT.putProperty(REVISION, Application.class.getPackage().getImplementationVersion());
+        LOGGER_CONTEXT.putProperty(APPLICATION_NAME, System.getenv("APPLICATION_NAME"));
+        LOGGER_CONTEXT.putProperty(VERSION, System.getenv("VERSION"));
 
         SLF4JBridgeHandler.removeHandlersForRootLogger();
         SLF4JBridgeHandler.install();

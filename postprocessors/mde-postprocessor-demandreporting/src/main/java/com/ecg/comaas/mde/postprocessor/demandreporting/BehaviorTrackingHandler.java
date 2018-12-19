@@ -83,12 +83,12 @@ public class BehaviorTrackingHandler {
     }
 
     private String getCustomVariableFromMessageOrContext(String name, MessageProcessingContext context) {
-        return Optional.ofNullable(context.getMessage().getHeaders().get(String.format("X-Cust-%s", name.toUpperCase())))
+        return Optional.ofNullable(context.getMessage().getCaseInsensitiveHeaders().get(String.format("X-Cust-%s", name.toUpperCase())))
                 .orElse(context.getConversation().getCustomValues().get(name));
     }
 
     private String getTrackingHeaderFromMessage(String key, Message message) {
-        return message.getHeaders().get(String.format("X-Track-%s", key));
+        return message.getCaseInsensitiveHeaders().get(String.format("X-Track-%s", key));
     }
 
     void handle(MessageProcessingContext context) {

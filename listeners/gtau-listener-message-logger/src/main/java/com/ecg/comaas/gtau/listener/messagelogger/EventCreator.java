@@ -40,15 +40,15 @@ public final class EventCreator {
         values.put("custip", conversation.getCustomValues().getOrDefault(HEADER_IP, EMPTY_VALUE));
         values.put("custuseragent", getCustomUserAgent(message));
         // non-existing means it is a mail-client -> mail-clients do not pass our X-REPLY-CHANNEL header
-        values.put("custreplychannel", message.getHeaders().getOrDefault(REPLY_CHANNEL_HEADER, DEFAULT_REPLY_CHANNEL));
+        values.put("custreplychannel", message.getCaseInsensitiveHeaders().getOrDefault(REPLY_CHANNEL_HEADER, DEFAULT_REPLY_CHANNEL));
         return values;
     }
 
     private static String getCustomUserAgent(Message message) {
-        if (message.getHeaders().containsKey(MAILER_CLIENT_INFO_HEADER)) {
-            return message.getHeaders().get(MAILER_CLIENT_INFO_HEADER);
-        } else if (message.getHeaders().containsKey(USER_AGENT)) {
-            return message.getHeaders().get(USER_AGENT);
+        if (message.getCaseInsensitiveHeaders().containsKey(MAILER_CLIENT_INFO_HEADER)) {
+            return message.getCaseInsensitiveHeaders().get(MAILER_CLIENT_INFO_HEADER);
+        } else if (message.getCaseInsensitiveHeaders().containsKey(USER_AGENT)) {
+            return message.getCaseInsensitiveHeaders().get(USER_AGENT);
         }
 
         return EMPTY_VALUE;

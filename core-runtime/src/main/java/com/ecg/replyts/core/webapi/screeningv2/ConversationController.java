@@ -23,6 +23,7 @@ import com.ecg.replyts.core.api.webapi.model.ConversationRts;
 import com.ecg.replyts.core.runtime.TimingReports;
 import com.ecg.replyts.core.runtime.identifier.UserIdentifierService;
 import com.ecg.replyts.core.runtime.indexer.DocumentSink;
+import com.ecg.replyts.core.runtime.mailcloaking.AnonymizedMailConverter;
 import com.ecg.replyts.core.runtime.persistence.conversation.DefaultMutableConversation;
 import com.ecg.replyts.core.runtime.persistence.conversation.MutableConversationRepository;
 import com.ecg.replyts.core.webapi.screeningv2.converter.DomainObjectConverter;
@@ -59,6 +60,7 @@ class ConversationController {
     private final UserIdentifierService userIdentifierService;
     private final Timer loadConversationTimer = TimingReports.newTimer("core-conversationController.loadConversation");
     private final ConversationEventService conversationEventService;
+    private final AnonymizedMailConverter anonymizedMailConverter;
 
     @Value("${replyts.tenant.short:${replyts.tenant}}")
     private String shortTenant;
@@ -70,7 +72,8 @@ class ConversationController {
                            DocumentSink documentSink,
                            ConversationEventListeners conversationEventListeners,
                            UserIdentifierService userIdentifierService,
-                           ConversationEventService conversationEventService) {
+                           ConversationEventService conversationEventService,
+                           AnonymizedMailConverter anonymizedMailConverter) {
         this.conversationRepository = conversationRepository;
         this.converter = converter;
         this.mailCloakingService = mailCloakingService;
@@ -78,6 +81,7 @@ class ConversationController {
         this.conversationEventListeners = conversationEventListeners;
         this.userIdentifierService = userIdentifierService;
         this.conversationEventService = conversationEventService;
+        this.anonymizedMailConverter = anonymizedMailConverter;
     }
 
     /**
@@ -108,6 +112,7 @@ class ConversationController {
 
         checkThatIssuerIsBuyerOrSeller(changeConversationStatePayload, conversation);
 
+        ConversationRole role = ConversationRole.getRole(changeConversationStatePayload.getIssuerEmail(), conversation);
         if (changeConversationStatePayload.isDeleteForIssuer()) {
             conversation.applyCommand(
                     new ConversationClosedAndDeletedForUserCommand(
@@ -121,7 +126,7 @@ class ConversationController {
             conversation.applyCommand(
                     new ConversationClosedCommand(
                             conversationId,
-                            ConversationRole.getRole(changeConversationStatePayload.getIssuerEmail(), conversation),
+                            role,
                             DateTime.now(DateTimeZone.UTC)
                     )
             );
@@ -129,10 +134,11 @@ class ConversationController {
 
         ((DefaultMutableConversation) conversation).commit(conversationRepository, conversationEventListeners);
 
-        Conversation.Participant.Role role = ConversationRole.getRole(changeConversationStatePayload.getIssuerEmail(), conversation).getParticipantRole();
-        String emailSecret = role == Conversation.Participant.Role.BUYER ? conversation.getBuyerSecret() :
-                role == Conversation.Participant.Role.SELLER ? conversation.getSellerSecret() : null;
-        Conversation.Participant participant = ConversationEventConverter.createParticipant(changeConversationStatePayload.getIssuerId(), null, changeConversationStatePayload.getIssuerEmail(), role, emailSecret);
+        Conversation.Participant.Role participantRole = role.getParticipantRole();
+        String emailSecret = participantRole == Conversation.Participant.Role.BUYER ? conversation.getBuyerSecret() :
+                participantRole == Conversation.Participant.Role.SELLER ? conversation.getSellerSecret() : null;
+        String cloakedEmailAddress = anonymizedMailConverter.toCloakedEmailAddress(emailSecret, role, conversation.getCustomValues());
+        Conversation.Participant participant = ConversationEventConverter.createParticipant(changeConversationStatePayload.getIssuerId(), null, changeConversationStatePayload.getIssuerEmail(), participantRole, cloakedEmailAddress);
 
         return placeDeleteEventOnQueue(conversationId, participant);
     }

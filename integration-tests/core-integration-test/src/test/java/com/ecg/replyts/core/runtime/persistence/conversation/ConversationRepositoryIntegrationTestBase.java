@@ -93,7 +93,7 @@ abstract public class ConversationRepositoryIntegrationTestBase<R extends Mutabl
         assertThat(m.getId(), is("9277"));
         assertThat(m.getMessageDirection(), is(MessageDirection.SELLER_TO_BUYER));
         assertThat(m.getReceivedAt().toDateTime(DateTimeZone.UTC), is(new DateTime(2012, 2, 10, 10, 10, 0).toDateTime(DateTimeZone.UTC)));
-        assertThat(m.getHeaders().get("To"), is("9y3k9x6cvm8dp@platform.ebay.com"));
+        assertThat(m.getCaseInsensitiveHeaders().get("To"), is("9y3k9x6cvm8dp@platform.ebay.com"));
         assertThat(m.getFilterResultState(), is(FilterResultState.HELD));
         assertThat(m.getHumanResultState(), is(ModerationResultState.BAD));
         assertThat(m.getLastModifiedAt().toDateTime(DateTimeZone.UTC), is(new DateTime(2012, 2, 10, 10, 30, 0).toDateTime(DateTimeZone.UTC)));

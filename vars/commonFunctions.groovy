@@ -4,7 +4,7 @@ import groovy.json.JsonSlurper
 
 import java.text.SimpleDateFormat
 
-static def allTenants() { ["ebayk", "gtau", "gtuk", "it", "kjca", "mde", "mp", "ar", "mx", "sg", "za", "mvca"] }
+static def allTenants() { ["ebayk", "gtau", "gtuk", "it", "kjca", "mde", "mp", "ar", "mx", "sg", "za", "mvca", "be"] }
 
 static def activeTenants(List disabled_tenants) {
     def all = allTenants()
@@ -26,6 +26,7 @@ static def tenantAliases() {
             'sg'     : 'sg',
             'za'     : 'za',
             'mvca'   : 'mvca',
+            'be'     : 'be',
     ]
 }
 
@@ -61,8 +62,12 @@ def checkoutComaasCentralRepo(String gitHash) {
 
 String getCurrentlyDeployedVersion(String tenantLongName, String dc, String environmentShort) {
     String tenant = getAlias(tenantLongName)
+    String dc_ip = sh(
+            script: "dig +short dmz-vip.comaas-${environmentShort}.${dc}.cloud",
+            returnStdout: true
+    ).trim()
     String version = sh(
-            script: "curl -s ${dc}.${tenant}.${environmentShort}.comaas.cloud/health | jq -r .version",
+            script: "curl -s --resolve ${tenant}.${environmentShort}.comaas.cloud:443:${dc_ip} https://${dc}.${tenant}.${environmentShort}.comaas.cloud/health | jq -r .version",
             returnStdout: true
     ).trim()
     return version

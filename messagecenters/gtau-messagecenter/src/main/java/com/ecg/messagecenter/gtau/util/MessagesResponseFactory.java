@@ -167,14 +167,14 @@ public final class MessagesResponseFactory {
     }
 
     private static boolean comesFromMessageBoxClient(Message messageRts) {
-        return messageRts.getHeaders().containsKey(REPLY_CHANNEL) &&
-                (messageRts.getHeaders().get(REPLY_CHANNEL).contains("api") ||
-                        messageRts.getHeaders().get(REPLY_CHANNEL).contains("desktop"));
+        return messageRts.getCaseInsensitiveHeaders().containsKey(REPLY_CHANNEL) &&
+                (messageRts.getCaseInsensitiveHeaders().get(REPLY_CHANNEL).contains("api") ||
+                        messageRts.getCaseInsensitiveHeaders().get(REPLY_CHANNEL).contains("desktop"));
     }
 
     private static boolean contactPosterForExistingConversation(Message messageRts) {
-        return messageRts.getHeaders().containsKey(REPLY_CHANNEL) &&
-                messageRts.getHeaders().get(REPLY_CHANNEL).startsWith("cp_");
+        return messageRts.getCaseInsensitiveHeaders().containsKey(REPLY_CHANNEL) &&
+                messageRts.getCaseInsensitiveHeaders().get(REPLY_CHANNEL).startsWith("cp_");
     }
 
     private static String cleanupFirstMessage(String firstMessage) {

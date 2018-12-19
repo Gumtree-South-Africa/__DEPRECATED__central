@@ -18,7 +18,7 @@ public final class NewConversationCommandBuilder {
     private String sellerSecret;
     private DateTime createdAt = new DateTime();
     private ConversationState state = ConversationState.ACTIVE;
-    private Map<String, String> customValues = new HashMap<String, String>();
+    private Map<String, String> customValues = new HashMap<>();
 
     private NewConversationCommandBuilder() {
     }

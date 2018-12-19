@@ -91,13 +91,13 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
     @Value("${persistence.cassandra.conversation.class}")
     private String conversationThreadClass;
 
-    @Value("${replyts.cleanup.conversation.streaming.queue.size:500}")
+    @Value("${replyts.cleanup.postbox.streaming.queue.size:500}")
     private int workQueueSize;
 
-    @Value("${replyts.cleanup.conversation.streaming.threadcount:4}")
+    @Value("${replyts.cleanup.postbox.streaming.threadcount:4}")
     private int threadCount;
 
-    @Value("${replyts.cleanup.conversation.streaming.batch.size:3000}")
+    @Value("${replyts.cleanup.postbox.streaming.batch.size:3000}")
     private int batchSize;
 
     @Value("${comaas.cleanup.postbox.fetchSize:5000}")

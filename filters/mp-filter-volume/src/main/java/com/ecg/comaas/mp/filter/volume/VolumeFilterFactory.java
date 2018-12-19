@@ -11,10 +11,11 @@ import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_BE;
 import static com.ecg.replyts.core.api.model.Tenants.TENANT_MP;
 
 @ComaasPlugin
-@Profile(TENANT_MP)
+@Profile({TENANT_MP, TENANT_BE})
 @Component
 @Import({ CassandraVolumeFilterEventRepository.class, VolumeFilterConfigParser.class })
 public class VolumeFilterFactory implements FilterFactory {

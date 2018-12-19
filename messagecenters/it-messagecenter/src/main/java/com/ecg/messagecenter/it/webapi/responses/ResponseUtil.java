@@ -44,9 +44,9 @@ public class ResponseUtil {
         for (Message message : messages) {
             try {
                 String field = direction == message.getMessageDirection() ? "From" : "To";
-                Map<String, String> headers = message.getHeaders();
+                Map<String, String> headers = message.getCaseInsensitiveHeaders();
                 if (headers != null && headers.get(field) != null) {
-                    String name = new InternetAddress(message.getHeaders().get(field))
+                    String name = new InternetAddress(message.getCaseInsensitiveHeaders().get(field))
                                     .getPersonal();
                     if (hasName(name)) {
                         return name;

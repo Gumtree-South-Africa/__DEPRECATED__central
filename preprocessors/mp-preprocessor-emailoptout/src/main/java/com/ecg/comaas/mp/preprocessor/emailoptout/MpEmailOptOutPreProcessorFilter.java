@@ -7,6 +7,7 @@ import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_BE;
 import static com.ecg.replyts.core.api.model.Tenants.TENANT_MP;
 
 /**
@@ -14,7 +15,7 @@ import static com.ecg.replyts.core.api.model.Tenants.TENANT_MP;
  * so must skip email opt out logic for emails belonging to klussen ads.
  */
 @ComaasPlugin
-@Profile(TENANT_MP)
+@Profile({TENANT_MP, TENANT_BE})
 @Component
 public class MpEmailOptOutPreProcessorFilter implements EmailOptOutPreProcessorFilter {
 

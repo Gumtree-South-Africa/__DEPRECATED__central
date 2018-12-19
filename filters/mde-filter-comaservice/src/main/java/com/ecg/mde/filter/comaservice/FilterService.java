@@ -84,12 +84,12 @@ public class FilterService implements Filter {
     }
 
     private boolean isDealerBuyer(MessageProcessingContext context) {
-        String buyerType = context.getMessage().getHeaders().get(CUSTOM_HEADER_BUYER_TYPE);
+        String buyerType = context.getMessage().getCaseInsensitiveHeaders().get(CUSTOM_HEADER_BUYER_TYPE);
         return DEALER.equals(buyerType);
     }
 
     private boolean isConversationMessage(MessageProcessingContext context) {
-        return MESSAGE_TYPE_CONVERSATION.equalsIgnoreCase(context.getMessage().getHeaders().get(CUSTOM_HEADER_MESSAGE_TYPE));
+        return MESSAGE_TYPE_CONVERSATION.equalsIgnoreCase(context.getMessage().getCaseInsensitiveHeaders().get(CUSTOM_HEADER_MESSAGE_TYPE));
     }
 
 }

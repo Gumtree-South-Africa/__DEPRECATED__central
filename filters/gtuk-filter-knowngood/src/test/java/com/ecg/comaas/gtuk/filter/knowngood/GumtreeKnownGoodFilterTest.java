@@ -1,5 +1,6 @@
 package com.ecg.comaas.gtuk.filter.knowngood;
 
+import com.ecg.gumtree.comaas.common.filter.GumshieldClient;
 import com.ecg.gumtree.replyts2.common.message.GumtreeCustomHeaders;
 import com.ecg.replyts.core.api.model.conversation.FilterResultState;
 import com.ecg.replyts.core.api.model.conversation.Message;
@@ -15,7 +16,6 @@ import com.gumtree.filters.comaas.Filter;
 import com.gumtree.filters.comaas.config.KnownGoodFilterConfig;
 import com.gumtree.filters.comaas.config.Result;
 import com.gumtree.filters.comaas.config.State;
-import com.gumtree.gumshield.api.client.spec.UserApi;
 import com.gumtree.gumshield.api.domain.known_good.KnownGoodResponse;
 import com.gumtree.gumshield.api.domain.known_good.KnownGoodStatus;
 import org.junit.Test;
@@ -59,7 +59,7 @@ public class GumtreeKnownGoodFilterTest {
     @Test
     public void testKnownGoodBuyerFirstMessage() {
         Message message = mockMessage(MessageDirection.BUYER_TO_SELLER);
-        message.getHeaders().put(GumtreeCustomHeaders.BUYER_ID.getHeaderValue(), "42");
+        message.getCaseInsensitiveHeaders().put(GumtreeCustomHeaders.BUYER_ID.getHeaderValue(), "42");
         MessageProcessingContext messageProcessingContext = getMessageProcessingContext(message, null);
 
         List<FilterFeedback> feedbacks = filter.filter(messageProcessingContext);
@@ -79,7 +79,7 @@ public class GumtreeKnownGoodFilterTest {
     @Test
     public void testKnownGoodSellerFirstReply() {
         Message message = mockMessage(MessageDirection.SELLER_TO_BUYER);
-        message.getHeaders().put(GumtreeCustomHeaders.SELLER_ID.getHeaderValue(), "23");
+        message.getCaseInsensitiveHeaders().put(GumtreeCustomHeaders.SELLER_ID.getHeaderValue(), "23");
         MessageProcessingContext messageProcessingContext = getMessageProcessingContext(message, null);
 
         List<FilterFeedback> feedbacks = filter.filter(messageProcessingContext);
@@ -124,7 +124,7 @@ public class GumtreeKnownGoodFilterTest {
 
         @Bean
         public GumtreeKnownGoodFilter filter(KnownGoodFilterConfig filterConfig) {
-            UserApi userApi = mock(UserApi.class);
+            GumshieldClient userApi = mock(GumshieldClient.class);
             when(userApi.knownGood(eq(42L))).thenReturn(new KnownGoodResponse(42L, KnownGoodStatus.GOOD));
             when(userApi.knownGood(eq(23L))).thenReturn(new KnownGoodResponse(23L, KnownGoodStatus.GOOD));
             return new GumtreeKnownGoodFilter()

@@ -17,7 +17,7 @@ public class ContactMessageAssembler {
 
         message.setConversationId(context.getConversation().getId());
 
-        ofNullable(context.getMessage().getHeaders().get(FilterService.CUSTOM_HEADER_FROM_USERID))
+        ofNullable(context.getMessage().getCaseInsensitiveHeaders().get(FilterService.CUSTOM_HEADER_FROM_USERID))
                 .ifPresent(message::setFromUserId);
 
         message.setBuyerMailAddress(context.getConversation()
@@ -58,16 +58,16 @@ public class ContactMessageAssembler {
     }
 
     private String getSiteId(MessageProcessingContext context) {
-        return context.getMessage().getHeaders().get(FilterService.CUSTOM_HEADER_PREFIX + "Seller_Site_Id");
+        return context.getMessage().getCaseInsensitiveHeaders().get(FilterService.CUSTOM_HEADER_PREFIX + "Seller_Site_Id");
     }
 
     private String getSellerType(MessageProcessingContext context) {
-        return context.getMessage().getHeaders().get(FilterService.CUSTOM_HEADER_PREFIX + "Seller_Type");
+        return context.getMessage().getCaseInsensitiveHeaders().get(FilterService.CUSTOM_HEADER_PREFIX + "Seller_Type");
     }
 
     private PhoneNumber getPhoneNumber(MessageProcessingContext context) {
-        String countryCode = context.getMessage().getHeaders().get(FilterService.CUSTOM_HEADER_PREFIX + "Phone_Number_Country_Code");
-        String displayNumber = context.getMessage().getHeaders().get(FilterService.CUSTOM_HEADER_PREFIX + "Phone_Number_Display_Number");
+        String countryCode = context.getMessage().getCaseInsensitiveHeaders().get(FilterService.CUSTOM_HEADER_PREFIX + "Phone_Number_Country_Code");
+        String displayNumber = context.getMessage().getCaseInsensitiveHeaders().get(FilterService.CUSTOM_HEADER_PREFIX + "Phone_Number_Display_Number");
         if (countryCode == null || displayNumber == null) {
             return null;
         }
@@ -76,6 +76,6 @@ public class ContactMessageAssembler {
     }
 
     private String getIpAddressV4V6(MessageProcessingContext context) {
-        return context.getMessage().getHeaders().get(FilterService.CUSTOM_HEADER_PREFIX + "Ip_Address_V4V6");
+        return context.getMessage().getCaseInsensitiveHeaders().get(FilterService.CUSTOM_HEADER_PREFIX + "Ip_Address_V4V6");
     }
 }

@@ -8,18 +8,18 @@ import com.ecg.replyts.core.api.model.conversation.Message;
  */
 public class MessageType {
     public static boolean isRobot(Message message) {
-        return message.getHeaders().containsKey(Header.Robot.getValue());
+        return message.getCaseInsensitiveHeaders().containsKey(Header.Robot.getValue());
     }
 
     public static boolean isOffer(Message message) {
-        return message.getHeaders().containsKey(Header.OfferId.getValue());
+        return message.getCaseInsensitiveHeaders().containsKey(Header.OfferId.getValue());
     }
 
     public static String getRobot(Message message) {
-        return message.getHeaders().get(Header.Robot.getValue());
+        return message.getCaseInsensitiveHeaders().get(Header.Robot.getValue());
     }
 
     public static String getOffer(Message message) {
-        return message.getHeaders().get(Header.OfferId.getValue());
+        return message.getCaseInsensitiveHeaders().get(Header.OfferId.getValue());
     }
 }

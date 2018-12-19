@@ -58,7 +58,7 @@ public class MessageAddedEventProcessor {
     }
 
     private EventPublisher.Event constructEvent(Conversation conv, Message msg, String msgText, UserUnreadCounts unreadCounts) {
-        Map<String, String> headers = new HashMap<>(msg.getHeaders());
+        Map<String, String> headers = new HashMap<>(msg.getCaseInsensitiveHeaders());
         headers.put(USER_MESSAGE_HEADER, msgText);
 
         final MessageAddedEvent messageAddedEvent = new MessageAddedEvent(

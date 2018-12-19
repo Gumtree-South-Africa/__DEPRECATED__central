@@ -38,7 +38,8 @@ def tenantAliases() {
             'sg': 'sg',
             'mx': 'mx',
             'za': 'za',
-            'mvca': 'mvca'
+            'mvca': 'mvca',
+            'be': 'be'
     ]
 }
 

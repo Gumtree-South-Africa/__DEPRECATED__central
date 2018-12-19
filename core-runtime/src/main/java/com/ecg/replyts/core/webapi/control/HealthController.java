@@ -26,11 +26,12 @@ import java.util.concurrent.ExecutionException;
 public class HealthController {
     private static final Logger LOG = LoggerFactory.getLogger(HealthController.class);
 
-    private String version = getClass().getPackage().getImplementationVersion();
-
     private String hostname;
 
     private String searchClusterVersion;
+
+    @Value("${VERSION:UNKNOWN}")
+    private String version;
 
     @Value("${active.dc:unknown}")
     private String activeDc;

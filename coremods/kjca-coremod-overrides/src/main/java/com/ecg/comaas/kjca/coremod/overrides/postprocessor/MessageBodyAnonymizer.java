@@ -10,11 +10,14 @@ import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-@Component
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_KJCA;
+import static com.ecg.replyts.core.api.model.Tenants.TENANT_MVCA;
+
 /**
  * Examines the body of the message and replaces all instances of seller and
  * buyer email addresses with their anonymized equivalents. Buyer's email is
@@ -22,6 +25,8 @@ import java.util.List;
  *
  * Does not do anything if anonymization is disabled. See {@link Addresser}.
  */
+@Component
+@Profile({TENANT_KJCA, TENANT_MVCA})
 public class MessageBodyAnonymizer implements PostProcessor {
     private static final Logger LOG = LoggerFactory.getLogger(MessageBodyAnonymizer.class);
 

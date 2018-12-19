@@ -42,9 +42,9 @@ public class DefaultMessagesResponseFactory implements MessagesResponseFactory {
     private String getUserMessage(Message message) {
         String userMessageFromHeader;
         String userMessage;
-        if ((userMessageFromHeader = message.getHeaders().get("X-Contact-Poster-User-Message")) != null) {
+        if ((userMessageFromHeader = message.getCaseInsensitiveHeaders().get("X-Contact-Poster-User-Message")) != null) {
             userMessage = unfold(userMessageFromHeader);
-        } else if ((userMessageFromHeader = message.getHeaders().get("X-User-Message")) != null) {
+        } else if ((userMessageFromHeader = message.getCaseInsensitiveHeaders().get("X-User-Message")) != null) {
             userMessage = unfold(userMessageFromHeader);
         } else {
             userMessage = message.getPlainTextBody();
@@ -53,19 +53,19 @@ public class DefaultMessagesResponseFactory implements MessagesResponseFactory {
     }
 
     private boolean comesFromMessageBoxClient(Message messageRts) {
-        return messageRts.getHeaders().containsKey("X-Reply-Channel") &&
-                (messageRts.getHeaders().get("X-Reply-Channel").contains("api_") ||
-                        messageRts.getHeaders().get("X-Reply-Channel").contains("desktop"));
+        return messageRts.getCaseInsensitiveHeaders().containsKey("X-Reply-Channel") &&
+                (messageRts.getCaseInsensitiveHeaders().get("X-Reply-Channel").contains("api_") ||
+                        messageRts.getCaseInsensitiveHeaders().get("X-Reply-Channel").contains("desktop"));
     }
 
     private boolean contactPosterForExistingConversation(Message messageRts) {
-        return messageRts.getHeaders().containsKey("X-Reply-Channel") &&
-                messageRts.getHeaders().get("X-Reply-Channel").startsWith("cp_");
+        return messageRts.getCaseInsensitiveHeaders().containsKey("X-Reply-Channel") &&
+                messageRts.getCaseInsensitiveHeaders().get("X-Reply-Channel").startsWith("cp_");
     }
 
     private boolean messageBodyMarkedByNonPrintableCharacters(Message messageRts) {
-        return messageRts.getHeaders().containsKey("X-Cust-Msg-Body-Mark") &&
-                messageRts.getHeaders().get("X-Cust-Msg-Body-Mark").contains("non-printable-chars");
+        return messageRts.getCaseInsensitiveHeaders().containsKey("X-Cust-Msg-Body-Mark") &&
+                messageRts.getCaseInsensitiveHeaders().get("X-Cust-Msg-Body-Mark").contains("non-printable-chars");
     }
 
     static String extractBodyMarkedByNonPrintableChars(String message) {

@@ -12,7 +12,7 @@ public class MDCConstants {
         throw new AssertionError();
     }
 
-    public static final String APPLICATION = "application";
+    public static final String APPLICATION_NAME = "application";
     public static final String CONVERSATION_ID = "conversation_id";
     public static final String CORRELATION_ID = "correlation_id";
     public static final String FILENAME = "filename";
@@ -22,7 +22,7 @@ public class MDCConstants {
     public static final String MAIL_TO = "mail_to";
     public static final String MAIL_DIRECTION = "mail_direction";
     public static final String MESSAGE_ID = "message_id";
-    public static final String REVISION = "revision";
+    public static final String VERSION = "version";
     public static final String TASK_NAME = "task_name";
     public static final String TENANT = "tenant";
     public static final String IS_SSL = "is_ssl";

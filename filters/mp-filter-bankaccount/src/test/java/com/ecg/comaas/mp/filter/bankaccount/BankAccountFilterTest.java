@@ -54,7 +54,7 @@ public class BankAccountFilterTest {
         when(message.getId()).thenReturn("msg" + index);
         when(message.getMessageDirection()).thenReturn(direction);
         when(message.getTextParts()).thenReturn(Arrays.asList(plainTextPart));
-        when(message.getHeaders()).thenReturn(Collections.singletonMap("Subject", subject));
+        when(message.getCaseInsensitiveHeaders()).thenReturn(Collections.singletonMap("Subject", subject));
         return message;
     }
 

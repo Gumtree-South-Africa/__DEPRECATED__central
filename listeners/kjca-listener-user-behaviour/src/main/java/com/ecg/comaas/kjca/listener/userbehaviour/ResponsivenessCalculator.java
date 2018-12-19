@@ -88,7 +88,7 @@ public class ResponsivenessCalculator {
         String headerNameForUserId = directionOfCurrentMessage == MessageDirection.BUYER_TO_SELLER
                 ? BoxHeaders.REPLIER_ID.getHeaderName()
                 : BoxHeaders.POSTER_ID.getHeaderName();
-        return firstMessageInConversation.getHeaders().get(headerNameForUserId);
+        return firstMessageInConversation.getCaseInsensitiveHeaders().get(headerNameForUserId);
     }
 
     private Message findMessageBeingRespondedTo(Message ourMessage, List<Message> messages) {

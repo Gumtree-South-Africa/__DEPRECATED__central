@@ -46,7 +46,7 @@ public class GumtreeGeoIpFilter implements com.ecg.replyts.core.api.pluginconfig
             LOG.trace("Origin is {}", country);
 
             if (filterConfig.getCountrySet().contains(country)) {
-                String ip = context.getMessage().getHeaders().get(GumtreeCustomHeaders.BUYER_IP.getHeaderValue());
+                String ip = context.getMessage().getCaseInsensitiveHeaders().get(GumtreeCustomHeaders.BUYER_IP.getHeaderValue());
                 String shortDescription = "Filtered country " + country;
                 String description = longDescription(this.getClass(), pluginConfig.getInstanceId(), filterConfig.getVersion(), shortDescription);
 

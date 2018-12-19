@@ -4,10 +4,6 @@ import com.ecg.messagecenter.core.persistence.simple.PostBox;
 import com.ecg.messagecenter.it.cleanup.TextCleaner;
 import com.ecg.messagecenter.it.persistence.ConversationThread;
 import com.ecg.messagecenter.it.persistence.Header;
-import com.ecg.messagecenter.it.pushmessage.AdInfoLookup;
-import com.ecg.messagecenter.it.pushmessage.PushMessageOnUnreadConversationCallback;
-import com.ecg.messagecenter.it.pushmessage.PushMessagePayload;
-import com.ecg.messagecenter.it.pushmessage.PushService;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;
@@ -142,7 +138,7 @@ public class PushMessageOnUnreadConversationCallbackTest {
     @Test public void sendPushMessageIfFromRobot() {
         Map<String, String> messageHeaders = new HashMap<String, String>();
         messageHeaders.put(Header.Robot.getValue(), "GTAU");
-        when(message.getHeaders()).thenReturn(messageHeaders);
+        when(message.getCaseInsensitiveHeaders()).thenReturn(messageHeaders);
         when(message.getMessageDirection()).thenReturn(MessageDirection.SELLER_TO_BUYER);
 
         listener.success(postBox.getEmail(), new Long(postBox.getUnreadConversations().size()), true);

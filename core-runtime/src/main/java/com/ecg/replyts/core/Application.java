@@ -1,25 +1,29 @@
 package com.ecg.replyts.core;
 
+import com.ecg.replyts.app.postprocessorchain.PostProcessor;
+import com.ecg.replyts.app.preprocessorchain.PreProcessor;
 import com.ecg.replyts.core.api.pluginconfiguration.ComaasPlugin;
+import com.ecg.replyts.core.api.pluginconfiguration.filter.Filter;
 import com.ecg.replyts.core.runtime.HttpServerFactory;
 import com.ecg.replyts.core.runtime.StartupExperience;
+import com.ecg.replyts.core.runtime.listener.MessageProcessedListener;
+import com.ecg.replyts.core.runtime.persistence.ObjectMapperConfigurer;
 import com.ecg.replyts.core.runtime.prometheus.PrometheusExporter;
 import com.ecg.replyts.core.webapi.SpringContextProvider;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.hazelcast.config.Config;
 import com.hazelcast.config.DiscoveryStrategyConfig;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
+import net.logstash.logback.argument.StructuredArguments;
 import org.bitsofinfo.hazelcast.discovery.consul.ConsulDiscoveryStrategy;
 import org.bitsofinfo.hazelcast.discovery.consul.DoNothingRegistrator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.ImportResource;
+import org.springframework.context.annotation.*;
 import org.springframework.context.support.AbstractRefreshableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
@@ -31,7 +35,18 @@ import static com.ecg.replyts.core.api.model.Tenants.TENANT;
 import static java.lang.String.format;
 
 @Configuration
-@ComponentScan({ "com.ecg.replyts.app", "com.ecg.replyts.core.runtime" })
+@ComponentScan({
+        "com.ecg.replyts.app",
+        "com.ecg.replyts.core.runtime",
+        "com.ecg.comaas.kjca.coremod", // KJCA hacks
+        /*
+        "com.ecg.gumtree", // Gumtree UK hacks
+        "com.ecg.comaas.bt.coremode", // Bolt Hacks (there's no typo in the package name)
+        "com.ebay.ecg.bolt", // Also Bolt Hack, but different
+        "com.ecg.replyts.autogatemaildelivery", // Gumtree Australia hacks
+        "com.ecg.replyts.core.runtime.mailparser" // More Gumtree Australia hacks
+        */
+})
 @ComponentScan(value = { "com.ecg", "com.ebay" }, useDefaultFilters = false, includeFilters = @ComponentScan.Filter(ComaasPlugin.class))
 @ImportResource("classpath*:/plugin-inf/*.xml")
 public class Application {
@@ -51,9 +66,9 @@ public class Application {
     public Config hazelcastConfiguration(
             @Value("${replyts.tenant}") String tenant,
             @Value("${service.discovery.hostname:localhost}") String discoveryHostname,
-            @Value("${service.discovery.port:8500}") int discoveryPort,
+            @Value("${service.discovery.port:8599}") int discoveryPort,
             @Value("${hazelcast.password}") String hazelcastPassword,
-            @Value("${hazelcast.ip}") String hazelcastIp,
+            @Value("${hazelcast.ip:127.0.0.1}") String hazelcastIp,
             @Value("${hazelcast.port:5701}") int hazelcastPort,
             @Value("${hazelcast.port.increment:false}") boolean hazelcastPortIncrement) {
         Config config = new Config();
@@ -159,8 +174,32 @@ public class Application {
             context.getBean(StartupExperience.class).running(context.getBean(HttpServerFactory.class).getPort());
 
             context.publishEvent(new ApplicationReadyEvent(context));
+
+            logRegisteredComponents(context);
         } catch (Exception e) {
             LOG.error("Unable to start Comaas", e);
         }
+    }
+
+    private static void logRegisteredComponents(AbstractRefreshableApplicationContext context) {
+        ArrayNode filters = ObjectMapperConfigurer.arrayBuilder();
+        context.getBeansOfType(Filter.class).values().stream().forEach(comp -> filters.add(comp.getClass().getName()));
+
+        ArrayNode preProcessors = ObjectMapperConfigurer.arrayBuilder();
+        context.getBeansOfType(PreProcessor.class).values().stream().forEach(comp -> preProcessors.add(comp.getClass().getName()));
+
+        ArrayNode postProcessors = ObjectMapperConfigurer.arrayBuilder();
+        context.getBeansOfType(PostProcessor.class).values().stream().forEach(comp -> postProcessors.add(comp.getClass().getName()));
+
+        ArrayNode listeners = ObjectMapperConfigurer.arrayBuilder();
+        context.getBeansOfType(MessageProcessedListener.class).values().stream().forEach(comp -> listeners.add(comp.getClass().getName()));
+
+        ObjectNode components = ObjectMapperConfigurer.objectBuilder();
+        components.set("pre_processors", preProcessors);
+        components.set("filters", filters);
+        components.set("post_processors", postProcessors);
+        components.set("listeners", listeners);
+
+        LOG.info("Registration Completed", StructuredArguments.raw("components", components.toString()));
     }
 }

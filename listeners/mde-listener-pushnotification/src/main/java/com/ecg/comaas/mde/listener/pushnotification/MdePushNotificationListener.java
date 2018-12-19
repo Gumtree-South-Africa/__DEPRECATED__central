@@ -29,8 +29,8 @@ public class MdePushNotificationListener implements MessageProcessedListener {
     @Override
     public void messageProcessed(Conversation conversation, Message message) {
         LOG.trace("processing conversation {}", conversation.getId());
-        final String senderId = message.getHeaders().get(X_CUST_FROM_USERID);
-        final String recipientId = message.getHeaders().get(X_CUST_TO_USERID);
+        final String senderId = message.getCaseInsensitiveHeaders().get(X_CUST_FROM_USERID);
+        final String recipientId = message.getCaseInsensitiveHeaders().get(X_CUST_TO_USERID);
 
         if (isAnonymousId(recipientId)) {
             LOG.trace("skip push notification - anonymous recipient {}", recipientId);
@@ -73,9 +73,9 @@ public class MdePushNotificationListener implements MessageProcessedListener {
 
     private String getTitle(Conversation conversation) {
         return conversation.getMessages().stream()
-                .filter(m -> m.getHeaders().containsKey(HEADER_TITLE))
+                .filter(m -> m.getCaseInsensitiveHeaders().containsKey(HEADER_TITLE))
                 .findFirst()
-                .map(m -> m.getHeaders().get(HEADER_TITLE))
+                .map(m -> m.getCaseInsensitiveHeaders().get(HEADER_TITLE))
                 .orElse("");
     }
 }

@@ -19,6 +19,7 @@ import com.ecg.replyts.core.api.processing.ConversationEventService;
 import com.ecg.replyts.core.api.util.ConversationEventConverter;
 import com.ecg.replyts.core.api.webapi.envelope.RequestState;
 import com.ecg.replyts.core.api.webapi.envelope.ResponseObject;
+import com.ecg.replyts.core.runtime.mailcloaking.AnonymizedMailConverter;
 import com.ecg.replyts.core.runtime.persistence.conversation.DefaultMutableConversation;
 import com.ecg.replyts.core.runtime.persistence.conversation.MutableConversationRepository;
 import org.joda.time.DateTime;
@@ -63,6 +64,9 @@ public class ConversationThreadController {
     @Autowired
     private ConversationEventService conversationEventService;
 
+    @Autowired
+    private AnonymizedMailConverter anonymizedMailConverter;
+
     @Value("${replyts.tenant.short:${replyts.tenant}}")
     private String shortTenant;
 
@@ -103,7 +107,8 @@ public class ConversationThreadController {
 
         String id = conversation.isClosedBy(ConversationRole.Buyer) ? conversation.getBuyerId() : conversation.getSellerId();
         String secret = conversation.isClosedBy(ConversationRole.Buyer) ? conversation.getBuyerSecret() : conversation.getSellerSecret();
-        Participant participant = ConversationEventConverter.createParticipant(id, null, email, role.getParticipantRole(), secret);
+        String cloakedEmailAddress = anonymizedMailConverter.toCloakedEmailAddress(secret, role, conversation.getCustomValues());
+        Participant participant = ConversationEventConverter.createParticipant(id, null, email, role.getParticipantRole(), cloakedEmailAddress);
 
         return placeDeleteEventOnQueue(conversationId, participant);
     }

@@ -1,8 +1,5 @@
 package com.ecg.comaas.core.filter.activable;
 
-import com.ecg.comaas.core.filter.activable.ActivableFilter;
-import com.ecg.comaas.core.filter.activable.Activation;
-import com.ecg.comaas.core.filter.activable.MailHeader;
 import com.ecg.replyts.core.api.model.conversation.FilterResultState;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
@@ -51,7 +48,7 @@ public class ActivableFilterTest {
 
     @Test
     public void whenCategoryAndUserTypeAreCovered_thenFilterIsInvoked() {
-        when(messageMock.getHeaders()).thenReturn(createHeaders("DEALER", "10, 11"));
+        when(messageMock.getCaseInsensitiveHeaders()).thenReturn(createHeaders("DEALER", "10, 11"));
 
         List<FilterFeedback> actualFeedback = objectUnderTest.filter(messageContextMock);
 
@@ -60,7 +57,7 @@ public class ActivableFilterTest {
 
     @Test
     public void whenCategoryAndUserTypeAreNotCovered_thenFilterIsSkipped() {
-        when(messageMock.getHeaders()).thenReturn(createHeaders("DEALER", "112, 135"));
+        when(messageMock.getCaseInsensitiveHeaders()).thenReturn(createHeaders("DEALER", "112, 135"));
 
         List<FilterFeedback> actualFeedback = objectUnderTest.filter(messageContextMock);
 
@@ -69,7 +66,7 @@ public class ActivableFilterTest {
 
     @Test
     public void whenCategoryIsNotCovered_thenFilterIsSkipped() {
-        when(messageMock.getHeaders()).thenReturn(createHeaders("FSBO", "112, 135"));
+        when(messageMock.getCaseInsensitiveHeaders()).thenReturn(createHeaders("FSBO", "112, 135"));
 
         List<FilterFeedback> actualFeedback = objectUnderTest.filter(messageContextMock);
 
@@ -78,7 +75,7 @@ public class ActivableFilterTest {
 
     @Test
     public void whenUserTypeIsNotCovered_thenFilterIsSkipped() {
-        when(messageMock.getHeaders()).thenReturn(createHeaders("FSBO", "10, 11"));
+        when(messageMock.getCaseInsensitiveHeaders()).thenReturn(createHeaders("FSBO", "10, 11"));
 
         List<FilterFeedback> actualFeedback = objectUnderTest.filter(messageContextMock);
 
@@ -87,7 +84,7 @@ public class ActivableFilterTest {
 
     @Test
     public void whenCategoryIsExcepted_thenFilterIsSkipped() {
-        when(messageMock.getHeaders()).thenReturn(createHeaders("DEALER", "10, 14"));
+        when(messageMock.getCaseInsensitiveHeaders()).thenReturn(createHeaders("DEALER", "10, 14"));
 
         List<FilterFeedback> actualFeedback = objectUnderTest.filter(messageContextMock);
 
@@ -97,7 +94,7 @@ public class ActivableFilterTest {
     @Test
     public void whenRunForNotConfigured_thenFilterIsInvoked() {
         objectUnderTest = createFilter(JsonObjects.parse("{ state: \"ENABLED\"}"));
-        when(messageMock.getHeaders()).thenReturn(createHeaders("DEALER", "10, 14"));
+        when(messageMock.getCaseInsensitiveHeaders()).thenReturn(createHeaders("DEALER", "10, 14"));
 
         List<FilterFeedback> actualFeedback = objectUnderTest.filter(messageContextMock);
 
@@ -114,7 +111,7 @@ public class ActivableFilterTest {
                 "    }" +
                 "}");
         objectUnderTest = createFilter(jsonNode);
-        when(messageMock.getHeaders()).thenReturn(createHeaders("DEALER", "15, 30"));
+        when(messageMock.getCaseInsensitiveHeaders()).thenReturn(createHeaders("DEALER", "15, 30"));
 
         List<FilterFeedback> actualFeedback = objectUnderTest.filter(messageContextMock);
 
@@ -131,7 +128,7 @@ public class ActivableFilterTest {
                 "    }" +
                 "}");
         objectUnderTest = createFilter(jsonNode);
-        when(messageMock.getHeaders()).thenReturn(createHeaders("FSBO", "15, 30"));
+        when(messageMock.getCaseInsensitiveHeaders()).thenReturn(createHeaders("FSBO", "15, 30"));
 
         List<FilterFeedback> actualFeedback = objectUnderTest.filter(messageContextMock);
 

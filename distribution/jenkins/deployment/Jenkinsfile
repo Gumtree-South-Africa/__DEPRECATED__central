@@ -38,7 +38,10 @@ void deploymentFailed(final String tenant, final String version, final String dc
 }
 
 void sendToSlack(final String colour, final String channel, final String message, final String environmentShort) {
-    final String c = environmentShort == 'lp' ? 'jenkins' : channel
+    String c = environmentShort == 'lp' ? 'jenkins' : channel
+    if ( channel == 'mvca' ) {
+        c = 'move'
+    }
     commonFunctions.sendToSlack(colour, c, message)
     if (environmentShort == 'prod') {
         commonFunctions.sendToSlackProdChannel(colour, message)
@@ -126,22 +129,10 @@ void deployNomad(final String tenant, final String environment, final String ver
             ]
     ]
     wrap([$class: 'VaultBuildWrapper', vaultSecrets: secrets]) {
-        // Remove after https://jira.corp.ebay.com/browse/COMAAS-950 is fixed
-        urlprefixes = ""
-        if (tenantShort == 'au') {
-            if (environment == 'lp') {
-                urlprefixes += ",\"urlprefix-au-comaas.dro.ops.qa.au.ecg.so:8006/\""
-            }
-            if (environment == 'prod') {
-                urlprefixes += ",\"urlprefix-au-rts2-api:8080/\",\"urlprefix-au-rts2-api.intern.gumtree.com.au:8080/\""
-            }
-        }
-
         final String hazelcastGroupName = UUID.randomUUID().toString()
 
         final String vars = "-var-file=/deployment/environments/${environment}/${tenantShort}.yaml " +
                 "-var='version=${version}' " +
-                "-var='urlprefixes=${urlprefixes}' " +
                 "-var='swift_username=${SWIFT_USERNAME}' " +
                 "-var='swift_password=${SWIFT_PASSWORD}' " +
                 "-var='docker_username=${DOCKER_USERNAME}' " +
@@ -153,7 +144,7 @@ void deployNomad(final String tenant, final String environment, final String ver
                 "-var='environment=${environment}' " +
                 "-var='region=${dc}' " +
                 "-var='hazelcast_group_name=${hazelcastGroupName}'"
-        final String levantCmd = "docker run --network host --rm -v \$(pwd)/distribution/jenkins/deployment/:/deployment:ro jrasell/levant:0.0.4 levant"
+        final String levantCmd = "docker run --network host --rm -v \$(pwd)/distribution/jenkins/deployment/:/deployment:ro jrasell/levant:0.2.5 levant"
 
         sh "$levantCmd render ${vars} /deployment/comaas.nomad"
         sh "$levantCmd deploy ${vars} -force-count=true -log-level=debug -address='http://http.nomad.service.consul:4646' /deployment/comaas.nomad"

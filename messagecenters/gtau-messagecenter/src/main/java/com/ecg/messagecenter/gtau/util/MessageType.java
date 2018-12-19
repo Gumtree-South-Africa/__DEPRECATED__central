@@ -14,20 +14,20 @@ import java.util.Optional;
 
 public class MessageType {
     public static boolean isRobot(Message message) {
-        return message.getHeaders().containsKey(Header.Robot.getValue());
+        return message.getCaseInsensitiveHeaders().containsKey(Header.Robot.getValue());
     }
     public static boolean isOffer(Message message) {
-        return message.getHeaders().containsKey(Header.OfferId.getValue());
+        return message.getCaseInsensitiveHeaders().containsKey(Header.OfferId.getValue());
     }
     public static boolean hasLinks(Message message) {
-        return message.getHeaders().containsKey(Header.MessageLinks.getValue());
+        return message.getCaseInsensitiveHeaders().containsKey(Header.MessageLinks.getValue());
     }
     public static String getRobot(Message message) {
-        return message.getHeaders().get(Header.Robot.getValue());
+        return message.getCaseInsensitiveHeaders().get(Header.Robot.getValue());
     }
 
     public static String getOffer(Message message) {
-        return message.getHeaders().get(Header.OfferId.getValue());
+        return message.getCaseInsensitiveHeaders().get(Header.OfferId.getValue());
     }
 
     public static List<MessageResponse.MessageLink> getLinks(Message message) {
@@ -57,7 +57,7 @@ public class MessageType {
     }
 
     public static boolean isAutogate(Message message) {
-        return message.getHeaders().containsKey(Header.Autogate.getValue());
+        return message.getCaseInsensitiveHeaders().containsKey(Header.Autogate.getValue());
     }
 
     public static Optional<RobotMessageResponse> getRobotDetails(Message message) {
@@ -123,10 +123,10 @@ public class MessageType {
     }
 
     private static boolean hasHeader(Message message, Header header) {
-        return message.getHeaders().containsKey(header.getValue());
+        return message.getCaseInsensitiveHeaders().containsKey(header.getValue());
     }
 
     private static String getHeader(Message message, Header header) {
-        return message.getHeaders().get(header.getValue());
+        return message.getCaseInsensitiveHeaders().get(header.getValue());
     }
 }

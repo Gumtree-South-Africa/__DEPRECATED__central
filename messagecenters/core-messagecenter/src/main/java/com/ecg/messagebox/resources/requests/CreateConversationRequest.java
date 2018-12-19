@@ -13,7 +13,6 @@ import java.util.Map;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class CreateConversationRequest {
 
-    @NotNull(message = "Conversation subject text cannot be empty")
     public String subject;
 
     @NotNull(message = "List of participants cannot be empty")

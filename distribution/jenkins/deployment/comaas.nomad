@@ -5,7 +5,7 @@ job "comaas-[[ .tenant_short ]]" {
   type = "service"
 
   meta {
-    docker_image = "[[ .docker_namespace ]]/comaas-[[ .tenant ]]:[[ .version ]]"
+    docker_image = "[[ .docker_namespace ]]/comaas:[[ .version ]]"
     version = "[[ .version ]]"
   }
 
@@ -35,7 +35,7 @@ job "comaas-[[ .tenant_short ]]" {
       driver = "docker"
 
       config {
-        image = "[[ .docker_namespace ]]/comaas-[[ .tenant ]]:[[ .version ]]"
+        image = "[[ .docker_namespace ]]/comaas:[[ .version ]]"
         network_mode = "host"
 
         auth {
@@ -43,8 +43,6 @@ job "comaas-[[ .tenant_short ]]" {
           password = "[[ .docker_password ]]"
         }
       }
-      
-      shutdown_delay = "5s"
 
       env {
         HEAP_SIZE = "[[ .newmsg.heap ]]"
@@ -57,12 +55,13 @@ job "comaas-[[ .tenant_short ]]" {
         SWIFT_KEYSTONE = "https://keystone.[[ .region ]].cloud.ecg.so/v2.0"
         ESAAS_USERNAME = "[[ .esaas_username ]]"
         ESAAS_PASSWORD = "[[ .esaas_password ]]"
+        VERSION = "[[ .version ]]"
+        APPLICATION_NAME = "comaas-newmsg"
       }
 
       service {
         name = "${JOB}"
         tags = [
-          "version-[[ .version ]]",
           "newmsg"
         ]
       }
@@ -120,8 +119,10 @@ job "comaas-[[ .tenant_short ]]" {
     task "http" {
       driver = "docker"
 
+      shutdown_delay = "5s"
+
       config {
-        image = "[[ .docker_namespace ]]/comaas-[[ .tenant ]]:[[ .version ]]"
+        image = "[[ .docker_namespace ]]/comaas:[[ .version ]]"
         network_mode = "host"
 
         auth {
@@ -140,19 +141,18 @@ job "comaas-[[ .tenant_short ]]" {
         SWIFT_KEYSTONE = "https://keystone.[[ .region ]].cloud.ecg.so/v2.0"
         ESAAS_USERNAME = "[[ .esaas_username ]]"
         ESAAS_PASSWORD = "[[ .esaas_password ]]"
+        VERSION = "[[ .version ]]"
+        APPLICATION_NAME = "comaas-http"
       }
 
       service {
         name = "${JOB}"
         port = "http"
         tags = [
-          "version-[[.version]]",
           "http",
           "traefik.enable=true",
-          "traefik.frontend.rule=Host:[[ .tenant_short ]].[[ .environment ]].comaas.cloud",
-          "urlprefix-[[ .tenant_short ]].[[ .environment ]].comaas.cloud/",
-          "urlprefix-[[ .region ]].[[ .tenant_short ]].[[ .environment ]].comaas.cloud/"
-          [[ .urlprefixes ]]
+          "traefik.backend.loadbalancer.method=drr",
+          "traefik.frontend.rule=Host:[[ .tenant_short ]].[[ .environment ]].comaas.cloud"
         ]
         check {
           type     = "http"
@@ -210,7 +210,7 @@ job "comaas-[[ .tenant_short ]]" {
       driver = "docker"
 
       config {
-        image = "[[ .docker_namespace ]]/comaas-[[ .tenant ]]:[[ .version ]]"
+        image = "[[ .docker_namespace ]]/comaas:[[ .version ]]"
         network_mode = "host"
 
         auth {
@@ -230,13 +230,14 @@ job "comaas-[[ .tenant_short ]]" {
         SWIFT_KEYSTONE = "https://keystone.[[ .region ]].cloud.ecg.so/v2.0"
         ESAAS_USERNAME = "[[ .esaas_username ]]"
         ESAAS_PASSWORD = "[[ .esaas_password ]]"
+        VERSION = "[[ .version ]]"
+        APPLICATION_NAME = "comaas-cronjob"
       }
 
       service {
         name = "${JOB}"
         port = "http"
         tags = [
-          "version-[[.version]]",
           "cronjob"
         ]
       }

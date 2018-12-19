@@ -36,7 +36,7 @@ public class SafetyTextHandler {
                 LOG.trace("Format text is required for message {}", message.getId());
                 String formatText = messageBodyAnonymizerConfig.getSafetyTextFormat();
 
-                Map<String, String> headers = message.getHeaders();
+                Map<String, String> headers = message.getCaseInsensitiveHeaders();
 
                 LOG.trace("Conversation headers: {}", headers);
 

@@ -32,7 +32,7 @@ public class BlockedIpFilter implements Filter {
 
     @Override
     public List<FilterFeedback> filter(MessageProcessingContext messageProcessingContext) {
-        String ip = messageProcessingContext.getMessage().getHeaders().get(IP_ADDR_HEADER);
+        String ip = messageProcessingContext.getMessage().getCaseInsensitiveHeaders().get(IP_ADDR_HEADER);
         if (Strings.isNullOrEmpty(ip)) {
             LOG.trace("IP Header not found");
             return OK_OUTCOME_NO_SCORE;

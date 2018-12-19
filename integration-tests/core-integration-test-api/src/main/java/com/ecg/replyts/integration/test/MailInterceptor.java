@@ -144,7 +144,7 @@ public class MailInterceptor implements BeanPostProcessor {
         if (mail == null) {
             LOG.warn("No mail with messageId={} was found", messageId);
         } else {
-            String uniqueMessageKey = mail.getMessage().getHeaders()
+            String uniqueMessageKey = mail.getMessage().getCaseInsensitiveHeaders()
                     .get(MailBuilder.UNIQUE_IDENTIFIER_HEADER);
             LOG.info("Marking uniqueKey={} as processed", uniqueMessageKey);
             uniqueKeyToProcessedEmail.put(uniqueMessageKey, mail);

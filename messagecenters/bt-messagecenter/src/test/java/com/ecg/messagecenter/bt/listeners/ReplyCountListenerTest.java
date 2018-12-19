@@ -64,7 +64,7 @@ public class ReplyCountListenerTest {
 
     private void mockMessage() {
         when(message.getState()).thenReturn(MessageState.SENT);
-        when(message.getHeaders()).thenReturn(mockHeaders);
+        when(message.getCaseInsensitiveHeaders()).thenReturn(mockHeaders);
         when(mockHeaders.get("X-Cust-Reply-Adid")).thenReturn("1234567890");
         when(mockHeaders.get("X-Cust-Conversation_Id")).thenReturn(null);
         when(mockHeaders.get("X-Cust-Locale")).thenReturn("es_MX_VNS");

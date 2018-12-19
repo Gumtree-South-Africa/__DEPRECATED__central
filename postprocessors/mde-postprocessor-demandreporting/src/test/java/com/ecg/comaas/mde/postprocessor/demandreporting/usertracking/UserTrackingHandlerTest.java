@@ -65,7 +65,7 @@ public class UserTrackingHandlerTest {
         public void setup() throws Exception {
             mail = mock(Mail.class);
             message = mock(Message.class);
-            when(message.getHeaders()).thenReturn(headers);
+            when(message.getCaseInsensitiveHeaders()).thenReturn(headers);
             context = new MessageProcessingContext(mail, "messageId", new ProcessingTimeGuard(10));
             when(mail.getAdId()).thenReturn("1");
             when(mail.getFrom()).thenReturn("from@mail.de");

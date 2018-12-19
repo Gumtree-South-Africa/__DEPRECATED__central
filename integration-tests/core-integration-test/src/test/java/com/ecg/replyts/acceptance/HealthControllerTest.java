@@ -55,7 +55,7 @@ public class HealthControllerTest {
         RestAssured
           .expect()
           .statusCode(200)
-          .body("version", equalTo(HealthController.class.getPackage().getImplementationVersion()))
+          .body("version", equalTo("UNKNOWN"))
           .body("cassandraHosts[0]", equalTo("fuzzy-cats"))
           .body("hostname", not(equalTo(null)))
           .when()

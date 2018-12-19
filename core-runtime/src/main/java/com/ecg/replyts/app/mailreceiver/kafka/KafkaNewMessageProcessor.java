@@ -137,8 +137,10 @@ public class KafkaNewMessageProcessor extends KafkaMessageProcessor {
             Collection<Attachment> attachments = kafkaMessage.getAttachmentsList().stream()
                     .map(a -> new Attachment(a.getFileName(), a.getBody().toByteArray()))
                     .collect(Collectors.toSet());
+
             MessageProcessingContext context = createContext(kafkaMessage.getPayload().getUserId(), kafkaMessage.getMessageId(), conversation, attachments);
             context.setTransport(MessageTransport.CHAT);
+
             context.setOriginTenant(kafkaMessage.getOrigin());
             context.addCommand(
                     createAddMessageCommand(kafkaMessage.getPayload().getMessage(), conversation.getId(), context,
@@ -188,6 +190,7 @@ public class KafkaNewMessageProcessor extends KafkaMessageProcessor {
 
     private AddMessageCommand createAddMessageCommand(String message, String conversationId,
                                                       MessageProcessingContext context, Map<String, String> metadata) {
+
         return anAddMessageCommand(conversationId, context.getMessageId())
                 .withMessageDirection(context.getMessageDirection())
                 .withSenderMessageIdHeader(context.getMessageId())
