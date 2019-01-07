@@ -1,7 +1,8 @@
-package com.ecg.replyts.core.api.persistence;
+package com.ecg.replyts.core.webapi.configv2;
 
 import com.ecg.replyts.core.api.configadmin.ConfigurationId;
 import com.ecg.replyts.core.api.configadmin.PluginConfiguration;
+import com.ecg.replyts.core.api.persistence.ConfigurationRepository;
 import com.ecg.replyts.core.api.pluginconfiguration.PluginState;
 import com.ecg.replyts.core.api.util.JsonObjects;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -20,23 +21,19 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
-public class ConfigurationRepositoryTest {
-    @Spy
-    private TestRepository repository;
-
-    @Before
-    public void setup() {
-        PluginConfiguration pluginConfiguration = new PluginConfiguration(
-                new ConfigurationId("filterFactory", "fooinstance"),
-                222L, PluginState.ENABLED, 12L, JsonObjects.parse("{foo: 322}")
-        );
-        List<PluginConfiguration> configList = Collections.singletonList(pluginConfiguration);
-        when(repository.getConfigurations()).thenReturn(configList);
-    }
+public class ConfigApiJsonMapperTest {
 
     @Test
-    public void listsExistingConfigurations() {
-        ObjectNode listConfigurations = repository.getConfigurationsAsJson();
+    public void properlyMapsModelToJson() {
+        List<PluginConfiguration> configList = Collections.singletonList(
+                new PluginConfiguration(
+                        new ConfigurationId("filterFactory", "fooinstance"),
+                        222L, PluginState.ENABLED, 12L, JsonObjects.parse("{foo: 322}")
+                )
+        );
+
+        // execute SUT
+        ObjectNode listConfigurations = ConfigApiJsonMapper.Model.toJson(configList);
 
         ArrayNode configs = (ArrayNode) listConfigurations.get("configs");
         ObjectNode firstConfig = (ObjectNode) configs.get(0);

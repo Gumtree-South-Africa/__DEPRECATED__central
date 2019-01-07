@@ -31,21 +31,4 @@ public interface ConfigurationRepository {
 
     void replaceConfigurations(List<PluginConfiguration> pluginConfigurations, String remoteAddress);
 
-    /**
-     * configurations as a json object
-     */
-    default ObjectNode getConfigurationsAsJson() {
-        ArrayNode arrayNode = JsonObjects.newJsonArray();
-        for (PluginConfiguration pluginConfiguration : getConfigurations()) {
-            JsonObjects.Builder config = JsonObjects.builder()
-                    .attr("pluginFactory", pluginConfiguration.getId().getPluginFactory())
-                    .attr("instanceId", pluginConfiguration.getId().getInstanceId())
-                    .attr("priority", pluginConfiguration.getPriority())
-                    .attr("state", pluginConfiguration.getState().name())
-                    .attr("version", pluginConfiguration.getVersion())
-                    .attr("configuration", pluginConfiguration.getConfiguration());
-            arrayNode.add(config.build());
-        }
-        return JsonObjects.builder().attr("configs", arrayNode).build();
-    }
 }
