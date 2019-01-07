@@ -1,6 +1,6 @@
 package com.ecg.replyts.core.runtime.configadmin;
 
-import com.ecg.replyts.core.api.configadmin.ConfigurationId;
+import com.ecg.replyts.core.api.configadmin.ConfigurationLabel;
 import com.ecg.replyts.core.api.configadmin.PluginConfiguration;
 import com.ecg.replyts.core.api.pluginconfiguration.BasePluginFactory;
 import com.ecg.replyts.core.api.pluginconfiguration.PluginState;
@@ -66,7 +66,7 @@ public class ConfigurationAdminTest {
 
     @Test
     public void createsNewConfiguration() throws Exception {
-        PluginConfiguration baseConf = new PluginConfiguration(new ConfigurationId(FACTORY1, "inst1"), 100, PluginState.ENABLED, 1L, JsonObjects.newJsonObject());
+        PluginConfiguration baseConf = PluginConfiguration.createNewPluginConfiguration(new ConfigurationLabel(FACTORY1, "inst1"), 100, PluginState.ENABLED, 1L, JsonObjects.newJsonObject());
         admin.putConfiguration(baseConf);
 
         assertEquals("Factory1{}", admin.getRunningServices().get(0).getCreatedService());
@@ -74,9 +74,9 @@ public class ConfigurationAdminTest {
 
     @Test
     public void overridesConfiguration() {
-        PluginConfiguration baseConf = new PluginConfiguration(new ConfigurationId(FACTORY1, "inst1"), 100, PluginState.ENABLED, 1L, JsonObjects.newJsonObject());
+        PluginConfiguration baseConf = PluginConfiguration.createNewPluginConfiguration(new ConfigurationLabel(FACTORY1, "inst1"), 100, PluginState.ENABLED, 1L, JsonObjects.newJsonObject());
         admin.putConfiguration(baseConf);
-        PluginConfiguration newConf = new PluginConfiguration(new ConfigurationId(FACTORY1, "inst1"), 100, PluginState.ENABLED, 1L, JsonObjects.newJsonObject());
+        PluginConfiguration newConf = PluginConfiguration.createNewPluginConfiguration(new ConfigurationLabel(FACTORY1, "inst1"), 100, PluginState.ENABLED, 1L, JsonObjects.newJsonObject());
         admin.putConfiguration(newConf);
 
         assertEquals("Factory1{}", admin.getRunningServices().get(0).getCreatedService());
@@ -84,9 +84,9 @@ public class ConfigurationAdminTest {
 
     @Test
     public void mergesConfiguration() {
-        PluginConfiguration baseConf = new PluginConfiguration(new ConfigurationId(FACTORY1, "inst1"), 100, PluginState.ENABLED, 1L, JsonObjects.newJsonObject());
+        PluginConfiguration baseConf = PluginConfiguration.createNewPluginConfiguration(new ConfigurationLabel(FACTORY1, "inst1"), 100, PluginState.ENABLED, 1L, JsonObjects.newJsonObject());
         admin.putConfiguration(baseConf);
-        PluginConfiguration newConf = new PluginConfiguration(new ConfigurationId(FACTORY2, "inst1"), 200, PluginState.ENABLED, 1L, JsonObjects.newJsonObject());
+        PluginConfiguration newConf = PluginConfiguration.createNewPluginConfiguration(new ConfigurationLabel(FACTORY2, "inst1"), 200, PluginState.ENABLED, 1L, JsonObjects.newJsonObject());
         admin.putConfiguration(newConf);
 
         assertEquals("Factory2{}", admin.getRunningServices().get(0).getCreatedService());
@@ -95,15 +95,15 @@ public class ConfigurationAdminTest {
 
     @Test
     public void removesConfiguration() {
-        PluginConfiguration baseConf = new PluginConfiguration(new ConfigurationId(FACTORY1, "inst1"), 100, PluginState.ENABLED, 1L, JsonObjects.newJsonObject());
+        PluginConfiguration baseConf = PluginConfiguration.createNewPluginConfiguration(new ConfigurationLabel(FACTORY1, "inst1"), 100, PluginState.ENABLED, 1L, JsonObjects.newJsonObject());
         admin.putConfiguration(baseConf);
-        admin.deleteConfiguration(baseConf.getId());
+        admin.deleteConfiguration(baseConf.getLabel());
         assertTrue(admin.getRunningServices().isEmpty());
     }
 
     @Test
     public void informsBusOnDeleteConfiguration() {
-        admin.deleteConfiguration(new ConfigurationId(FACTORY1, "inst1"));
+        admin.deleteConfiguration(new ConfigurationLabel(FACTORY1, "inst1"));
         verify(clusterRefreshPublisher).publish();
     }
 

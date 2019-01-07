@@ -1,6 +1,5 @@
 package com.ecg.replyts.core.webapi.configv2;
 
-import com.ecg.replyts.core.api.configadmin.ConfigurationId;
 import com.ecg.replyts.core.api.configadmin.ConfigurationUpdateNotifier;
 import com.ecg.replyts.core.api.configadmin.PluginConfiguration;
 import com.ecg.replyts.core.api.persistence.ConfigurationRepository;
@@ -9,12 +8,12 @@ import com.ecg.replyts.core.api.util.JsonObjects;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.node.TextNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,8 +22,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpServletRequest;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static java.lang.String.format;
 
@@ -94,7 +93,25 @@ public class ConfigCrudController {
     @ResponseBody
     @RequestMapping(value = "/", method = RequestMethod.GET)
     public ObjectNode listConfigurations() {
-        return ConfigApiJsonMapper.Model.toJson(configRepository.getConfigurations());
+        return ConfigApiJsonMapper.Model.toJsonPluginConfigurationList(configRepository.getConfigurations());
+    }
+
+    /**
+     * This is used by the externalized Filter, which does not get access to Cassandra directly.
+     */
+    @ResponseBody
+    @RequestMapping(value = "/filter/{uuid}", method = RequestMethod.GET)
+    public Object getConfiguration(@PathVariable String uuid) {
+        Optional<ObjectNode> json = configRepository.getConfigurations().stream()
+                .filter(c -> c.getUuid().toString().equals(uuid))
+                .findFirst()
+                .map(ConfigApiJsonMapper.Model::toJsonPluginConfiguration);
+
+        if (!json.isPresent()) {
+            return new ResponseEntity(HttpStatus.NOT_FOUND);
+        }
+
+        return json;
     }
 
     @ResponseBody
@@ -110,7 +127,7 @@ public class ConfigCrudController {
         if (!configUpdateNotifier.validateConfiguration(config)) {
             throw new RuntimeException("Plugin validation has failed: " + pluginFactory);
         }
-        LOG.info("Saving Config update {}", config.getId());
+        LOG.info("Saving Config update {}", config.getLabel());
         configRepository.persistConfiguration(config, request.getRemoteAddr());
         configUpdateNotifier.confirmConfigurationUpdate();
 
@@ -127,10 +144,10 @@ public class ConfigCrudController {
 
         newConfigurations.stream().forEach(config -> {
             if (!configUpdateNotifier.validateConfiguration(config)) {
-                throw new IllegalArgumentException(format("PluginFactory %s not found",  config.getId().getPluginFactory()));
+                throw new IllegalArgumentException(format("PluginFactory %s not found", config.getLabel().getPluginFactory()));
             }
         });
-        
+
         configRepository.replaceConfigurations(newConfigurations, request.getRemoteAddr());
 
         configUpdateNotifier.confirmConfigurationUpdate();

@@ -1,6 +1,6 @@
 package com.ecg.replyts.app.filterchain;
 
-import com.ecg.replyts.core.api.configadmin.ConfigurationId;
+import com.ecg.replyts.core.api.configadmin.ConfigurationLabel;
 import com.ecg.replyts.core.api.configadmin.PluginConfiguration;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.ConversationState;
@@ -122,7 +122,7 @@ public class FilterChainTest {
         when(mail.getMessageId()).thenReturn(MESSAGE_ID);
 
         when(filterRef.getConfiguration()).thenReturn(pluginConfiguration);
-        when(pluginConfiguration.getId()).thenReturn(new ConfigurationId(ExampleFilterFactory.IDENTIFIER, "instance"));
+        when(pluginConfiguration.getLabel()).thenReturn(new ConfigurationLabel(ExampleFilterFactory.IDENTIFIER, "instance"));
 
         testMessageProcessingContext = new TestMessageProcessingContext(mail);
         testMessageProcessingContext.setConversation(conversation);

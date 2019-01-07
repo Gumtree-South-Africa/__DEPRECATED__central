@@ -54,7 +54,7 @@
 //        String anonymizedSeller = replyMail.getFrom()[0].toString();
 //
 //
-//        String conversationId = testRule.deliver(aNewMail().from("buyer1@buyer.com").to(anonymizedSeller).plainBody("re-reply for buyer.")).getConversation().getId();
+//        String conversationId = testRule.deliver(aNewMail().from("buyer1@buyer.com").to(anonymizedSeller).plainBody("re-reply for buyer.")).getConversation().getLabel();
 //        testRule.waitForMail();
 //
 //        // now we have a conversation with three messages
@@ -81,7 +81,7 @@
 //                        .to("seller1@seller.com")
 //                        .adId("232323")
 //                        .plainBody("First contact from buyer.")
-//        ).getConversation().getId();
+//        ).getConversation().getLabel();
 //
 //        testRule.waitForMail();
 //
@@ -106,7 +106,7 @@
 //                        .to("seller1@seller.com")
 //                        .adId("232323")
 //                        .plainBody("First contact from first buyer.")
-//        ).getConversation().getId();
+//        ).getConversation().getLabel();
 //        testRule.waitForMail();
 //        testRule.deliver(
 //                aNewMail()
@@ -114,7 +114,7 @@
 //                        .to("seller1@seller.com")
 //                        .adId("424242")
 //                        .plainBody("First contact from second buyer.")
-//        ).getConversation().getId();
+//        ).getConversation().getLabel();
 //        testRule.waitForMail();
 //
 //        RestAssured.given()

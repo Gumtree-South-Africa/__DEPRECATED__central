@@ -2,7 +2,7 @@ package com.ecg.replyts.core.runtime.persistence.conversation;
 
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.Session;
-import com.ecg.replyts.core.api.configadmin.ConfigurationId;
+import com.ecg.replyts.core.api.configadmin.ConfigurationLabel;
 import com.ecg.replyts.core.api.configadmin.PluginConfiguration;
 import com.ecg.replyts.core.api.pluginconfiguration.BasePluginFactory;
 import com.ecg.replyts.core.api.pluginconfiguration.PluginState;
@@ -39,8 +39,8 @@ public class CassandraConfigurationRepositoryIntegrationTest {
 
     @Test
     public void shouldInsertAndReadConfiguration() {
-        ConfigurationId id = new ConfigurationId(DummyFactory.IDENTIFIER, "id1");
-        PluginConfiguration configuration = new PluginConfiguration(id, 1, PluginState.ENABLED, 1, new TextNode("some_json"));
+        ConfigurationLabel label = new ConfigurationLabel(DummyFactory.IDENTIFIER, "id1");
+        PluginConfiguration configuration = PluginConfiguration.createNewPluginConfiguration(label, 1, PluginState.ENABLED, 1, new TextNode("some_json"));
         configurationRepository.persistConfiguration(configuration, "127.0.0.1");
 
         List<PluginConfiguration> configurations = configurationRepository.getConfigurations();
@@ -48,7 +48,7 @@ public class CassandraConfigurationRepositoryIntegrationTest {
         assertEquals(configurations.size(), 1);
         PluginConfiguration pluginConfiguration = configurations.get(0);
 
-        assertEquals(pluginConfiguration.getId().getInstanceId(), "id1");
+        assertEquals(pluginConfiguration.getLabel().getInstanceId(), "id1");
         assertEquals(pluginConfiguration.getPriority(), 1);
         assertEquals(pluginConfiguration.getState(), PluginState.ENABLED);
         assertEquals(pluginConfiguration.getConfiguration().asText(), "some_json");
@@ -56,12 +56,12 @@ public class CassandraConfigurationRepositoryIntegrationTest {
 
     @Test
     public void shouldUpdateConfiguration() {
-        ConfigurationId id = new ConfigurationId(DummyFactory.IDENTIFIER, "id1");
-        PluginConfiguration configuration = new PluginConfiguration(id, 1, PluginState.ENABLED, 1, new TextNode("some_json"));
+        ConfigurationLabel label = new ConfigurationLabel(DummyFactory.IDENTIFIER, "id1");
+        PluginConfiguration configuration = PluginConfiguration.createNewPluginConfiguration(label, 1, PluginState.ENABLED, 1, new TextNode("some_json"));
         configurationRepository.persistConfiguration(configuration, "127.0.0.1");
 
-        ConfigurationId sameId = new ConfigurationId(DummyFactory.IDENTIFIER, "id1");
-        PluginConfiguration configuration2 = new PluginConfiguration(sameId, 2, PluginState.DISABLED, 2, new TextNode("other_json"));
+        ConfigurationLabel sameLabel = new ConfigurationLabel(DummyFactory.IDENTIFIER, "id1");
+        PluginConfiguration configuration2 = PluginConfiguration.createNewPluginConfiguration(sameLabel, 2, PluginState.DISABLED, 2, new TextNode("other_json"));
         configurationRepository.persistConfiguration(configuration2, "127.0.0.1");
 
         List<PluginConfiguration> configurations = configurationRepository.getConfigurations();
@@ -69,7 +69,7 @@ public class CassandraConfigurationRepositoryIntegrationTest {
         assertEquals(configurations.size(), 1);
         PluginConfiguration pluginConfiguration = configurations.get(0);
 
-        assertEquals(pluginConfiguration.getId().getInstanceId(), "id1");
+        assertEquals(pluginConfiguration.getLabel().getInstanceId(), "id1");
         assertEquals(pluginConfiguration.getPriority(), 2);
         assertEquals(pluginConfiguration.getState(), PluginState.DISABLED);
         assertEquals(pluginConfiguration.getConfiguration().asText(), "other_json");
@@ -78,8 +78,8 @@ public class CassandraConfigurationRepositoryIntegrationTest {
 
     @Test
     public void shouldDeleteConfiguration() {
-        ConfigurationId id = new ConfigurationId(DummyFactory.IDENTIFIER, "id1");
-        PluginConfiguration configuration = new PluginConfiguration(id, 1, PluginState.ENABLED, 1, new TextNode("some_json"));
+        ConfigurationLabel label = new ConfigurationLabel(DummyFactory.IDENTIFIER, "id1");
+        PluginConfiguration configuration = PluginConfiguration.createNewPluginConfiguration(label, 1, PluginState.ENABLED, 1, new TextNode("some_json"));
         configurationRepository.persistConfiguration(configuration, "127.0.0.1");
 
         List<PluginConfiguration> configurations = configurationRepository.getConfigurations();

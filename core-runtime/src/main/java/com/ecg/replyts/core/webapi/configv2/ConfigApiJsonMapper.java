@@ -1,6 +1,6 @@
 package com.ecg.replyts.core.webapi.configv2;
 
-import com.ecg.replyts.core.api.configadmin.ConfigurationId;
+import com.ecg.replyts.core.api.configadmin.ConfigurationLabel;
 import com.ecg.replyts.core.api.configadmin.PluginConfiguration;
 import com.ecg.replyts.core.api.pluginconfiguration.PluginState;
 import com.ecg.replyts.core.api.util.JsonObjects;
@@ -22,19 +22,23 @@ public class ConfigApiJsonMapper {
         /**
          * configurations as a json object
          */
-        public static ObjectNode toJson(List<PluginConfiguration> configList) {
+        public static ObjectNode toJsonPluginConfigurationList(List<PluginConfiguration> configList) {
             ArrayNode arrayNode = JsonObjects.newJsonArray();
             for (PluginConfiguration pluginConfiguration : configList) {
-                JsonObjects.Builder config = JsonObjects.builder()
-                        .attr("pluginFactory", pluginConfiguration.getId().getPluginFactory())
-                        .attr("instanceId", pluginConfiguration.getId().getInstanceId())
-                        .attr("priority", pluginConfiguration.getPriority())
-                        .attr("state", pluginConfiguration.getState().name())
-                        .attr("version", pluginConfiguration.getVersion())
-                        .attr("configuration", pluginConfiguration.getConfiguration());
-                arrayNode.add(config.build());
+                ObjectNode config = toJsonPluginConfiguration(pluginConfiguration);
+                arrayNode.add(config);
             }
             return JsonObjects.builder().attr("configs", arrayNode).build();
+        }
+        public static ObjectNode toJsonPluginConfiguration(PluginConfiguration pluginConfiguration){
+            return JsonObjects.builder()
+                    .attr("pluginFactory", pluginConfiguration.getLabel().getPluginFactory())
+                    .attr("instanceId", pluginConfiguration.getLabel().getInstanceId())
+                    .attr("priority", pluginConfiguration.getPriority())
+                    .attr("state", pluginConfiguration.getState().name())
+                    .attr("version", pluginConfiguration.getVersion())
+                    .attr("configuration", pluginConfiguration.getConfiguration())
+                    .build();
         }
 
     }
@@ -66,7 +70,7 @@ public class ConfigApiJsonMapper {
             Long priority = Long.valueOf(getContent(body, "priority", "0"));
             PluginState state = PluginState.valueOf(getContent(body, "state", PluginState.ENABLED.name()));
 
-            return new PluginConfiguration(new ConfigurationId(pluginFactory, instanceId), priority, state, 1L, configuration);
+            return PluginConfiguration.createNewPluginConfiguration(new ConfigurationLabel(pluginFactory, instanceId), priority, state, 1L, configuration);
         }
 
         private static String getContent(JsonNode body, String fieldname, String alternative) {

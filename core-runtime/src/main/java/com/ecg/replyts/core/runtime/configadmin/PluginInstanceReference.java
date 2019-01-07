@@ -1,6 +1,6 @@
 package com.ecg.replyts.core.runtime.configadmin;
 
-import com.ecg.replyts.core.api.configadmin.ConfigurationId;
+import com.ecg.replyts.core.api.configadmin.ConfigurationLabel;
 import com.ecg.replyts.core.api.configadmin.PluginConfiguration;
 import com.ecg.replyts.core.api.pluginconfiguration.PluginState;
 
@@ -29,8 +29,8 @@ public class PluginInstanceReference<T> {
                 return priority;
             }
 
-            ConfigurationId firstId = o1.config.getId();
-            ConfigurationId secondId = o2.config.getId();
+            ConfigurationLabel firstId = o1.config.getLabel();
+            ConfigurationLabel secondId = o2.config.getLabel();
 
             if (!firstId.getPluginFactory().equals(secondId.getPluginFactory())) {
                 return firstId.getPluginFactory().compareTo(secondId.getPluginFactory());
@@ -61,6 +61,6 @@ public class PluginInstanceReference<T> {
     }
 
     public String toString() {
-        return config.getId().toString();
+        return config.getLabel().toString();
     }
 }

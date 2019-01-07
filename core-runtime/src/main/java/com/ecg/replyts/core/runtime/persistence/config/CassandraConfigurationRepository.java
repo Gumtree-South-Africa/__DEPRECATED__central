@@ -3,7 +3,7 @@ package com.ecg.replyts.core.runtime.persistence.config;
 import com.codahale.metrics.Timer;
 import com.datastax.driver.core.*;
 import com.datastax.driver.core.utils.UUIDs;
-import com.ecg.replyts.core.api.configadmin.ConfigurationId;
+import com.ecg.replyts.core.api.configadmin.ConfigurationLabel;
 import com.ecg.replyts.core.api.configadmin.PluginConfiguration;
 import com.ecg.replyts.core.api.persistence.ConfigurationRepository;
 import com.ecg.replyts.core.runtime.TimingReports;
@@ -57,14 +57,14 @@ public class CassandraConfigurationRepository implements ConfigurationRepository
     public void persistConfiguration(PluginConfiguration configuration, String remoteAddress) {
         ConfigurationObject obj = new ConfigurationObject(System.currentTimeMillis(), configuration);
         Configurations mergedConfigurations = fetchConfigurations().addOrUpdate(obj);
-        persistConfigurations(configuration.getId().toString(), mergedConfigurations, remoteAddress);
+        persistConfigurations("Failed to persist " + configuration.getLabel().toString(), mergedConfigurations, remoteAddress);
     }
 
     @Override
     public void deleteConfiguration(String pluginFactory, String instanceId, String remoteAddress) {
-        final ConfigurationId configurationId = new ConfigurationId(pluginFactory, instanceId);
-        Configurations mergedConfigurations = fetchConfigurations().delete(configurationId);
-        persistConfigurations("Could not delete configuration identified by " + configurationId, mergedConfigurations, remoteAddress);
+        final ConfigurationLabel configurationLabel = new ConfigurationLabel(pluginFactory, instanceId);
+        Configurations remainingConfigurations = fetchConfigurations().delete(configurationLabel);
+        persistConfigurations("Failed to delete " + configurationLabel, remainingConfigurations, remoteAddress);
     }
 
     @Override
@@ -72,7 +72,7 @@ public class CassandraConfigurationRepository implements ConfigurationRepository
         long currentTimeMillis = System.currentTimeMillis();
         List<ConfigurationObject> configurationObjects = Lists.transform(pluginConfigurations, c -> new ConfigurationObject(currentTimeMillis, c));
         Configurations configurations = new Configurations(configurationObjects);
-        persistConfigurations("Could not store configurations", configurations, remoteAddress);
+        persistConfigurations("Failed to replace ", configurations, remoteAddress);
     }
 
     private Configurations fetchConfigurations() {
@@ -86,7 +86,7 @@ public class CassandraConfigurationRepository implements ConfigurationRepository
                             Configurations.KEY);
                     return Configurations.EMPTY_CONFIG_SET;
                 }
-                return ConfigurationJsonSerializer.toDomain(row.getString("configuration"));
+                return ConfigurationCassandraMapper.toDomain(row.getString("configuration"));
             });
         }
     }
@@ -99,11 +99,11 @@ public class CassandraConfigurationRepository implements ConfigurationRepository
         UUID logId = row.getUUID("log_id");
         Statement stmt = Statements.SELECT_LOG_RECORD.bind(this, logId);
         return Optional.ofNullable(session.execute(stmt).one())
-                .map(r -> ConfigurationJsonSerializer.toDomain(r.getString("configuration")));
+                .map(r -> ConfigurationCassandraMapper.toDomain(r.getString("configuration")));
     }
 
-    private void persistConfigurations(final String configurationId, final Configurations mergedConfigurations, final String remoteAddress) {
-        String json = ConfigurationJsonSerializer.fromDomain(mergedConfigurations);
+    private void persistConfigurations(final String errorMessage, final Configurations mergedConfigurations, final String remoteAddress) {
+        String json = ConfigurationCassandraMapper.fromDomain(mergedConfigurations);
         sizeConstraint.validate("Configurations as JSON", json.length());
 
         try (Timer.Context ignored = persistTimer.time()) {
@@ -118,7 +118,7 @@ public class CassandraConfigurationRepository implements ConfigurationRepository
             );
             LOG.info("current configuration logId is now {}", logId);
         } catch (Exception e) {
-            throw new PersistenceException("Could not store configuration identified by " + configurationId, e);
+            throw new PersistenceException("Could not store configuration identified by " + errorMessage, e);
         }
     }
 

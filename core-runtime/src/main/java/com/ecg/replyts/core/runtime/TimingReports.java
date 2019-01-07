@@ -5,7 +5,7 @@ import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
-import com.ecg.replyts.core.api.configadmin.ConfigurationId;
+import com.ecg.replyts.core.api.configadmin.ConfigurationLabel;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -49,7 +49,7 @@ public final class TimingReports {
         return hostName;
     }
 
-    private static final Map<ConfigurationId, Timer> PLUGIN_TIMERS = Maps.newConcurrentMap();
+    private static final Map<ConfigurationLabel, Timer> PLUGIN_TIMERS = Maps.newConcurrentMap();
 
 
     /**
@@ -79,7 +79,7 @@ public final class TimingReports {
         }
     }
 
-    public static Timer newOrExistingTimerFor(ConfigurationId plugin) {
+    public static Timer newOrExistingTimerFor(ConfigurationLabel plugin) {
         if (!PLUGIN_TIMERS.containsKey(plugin)) {
             synchronized (PLUGIN_TIMERS) {
                 if (!PLUGIN_TIMERS.containsKey(plugin)) { // NOSONAR

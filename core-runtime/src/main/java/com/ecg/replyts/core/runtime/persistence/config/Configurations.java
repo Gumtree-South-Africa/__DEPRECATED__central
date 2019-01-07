@@ -1,6 +1,6 @@
 package com.ecg.replyts.core.runtime.persistence.config;
 
-import com.ecg.replyts.core.api.configadmin.ConfigurationId;
+import com.ecg.replyts.core.api.configadmin.ConfigurationLabel;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
@@ -39,10 +39,10 @@ class Configurations {
         return configurationObjects;
     }
 
-    public Configurations delete(ConfigurationId configurationId) {
+    public Configurations delete(ConfigurationLabel configurationLabel) {
         ImmutableList.Builder<ConfigurationObject> bdr = ImmutableList.builder();
         for (ConfigurationObject configurationObject : configurationObjects) {
-            boolean isConfigIdToRemove = configurationObject.getPluginConfiguration().getId().equals(configurationId);
+            boolean isConfigIdToRemove = configurationObject.getPluginConfiguration().getLabel().equals(configurationLabel);
             if (!isConfigIdToRemove) {
                 bdr.add(configurationObject);
             }
@@ -55,13 +55,13 @@ class Configurations {
     Configurations addOrUpdate(ConfigurationObject toUpdate) {
         ImmutableList.Builder<ConfigurationObject> bdr = ImmutableList.builder();
 
-        ConfigurationId updatedConfigurationsId = toUpdate.getPluginConfiguration().getId();
+        ConfigurationLabel updatedConfigurationsId = toUpdate.getPluginConfiguration().getLabel();
 
         boolean configurationWasUpdated = false;
 
         for (ConfigurationObject existingConfig : configurationObjects) {
-            ConfigurationId currentConfigurationId = existingConfig.getPluginConfiguration().getId();
-            boolean replaceThisWithNewVersion = currentConfigurationId.equals(updatedConfigurationsId);
+            ConfigurationLabel currentConfigurationLabel = existingConfig.getPluginConfiguration().getLabel();
+            boolean replaceThisWithNewVersion = currentConfigurationLabel.equals(updatedConfigurationsId);
 
             if (replaceThisWithNewVersion) {
                 configurationWasUpdated = true;

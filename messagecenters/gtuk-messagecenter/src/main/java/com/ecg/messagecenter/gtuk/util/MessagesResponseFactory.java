@@ -132,14 +132,14 @@ public class MessagesResponseFactory {
             } else {
                 /*
                 MessagesDiffer.DiffInput left = new MessagesDiffer.DiffInput(lookupMessageToBeDiffedWith(messageRts, i).getPlainTextBody(),
-                    conv.getId(), lookupMessageToBeDiffedWith(messageRts, i).getId());
-                MessagesDiffer.DiffInput right = new MessagesDiffer.DiffInput(messageRts.get(i).getPlainTextBody(), conv.getId(),
-                    messageRts.get(i).getId());
+                    conv.getLabel(), lookupMessageToBeDiffedWith(messageRts, i).getLabel());
+                MessagesDiffer.DiffInput right = new MessagesDiffer.DiffInput(messageRts.get(i).getPlainTextBody(), conv.getLabel(),
+                    messageRts.get(i).getLabel());
 
                 int textSize = left.getText().length() + right.getText().length();
                 TEXT_SIZE_MESSAGES.update(textSize);
                 if (textSize > 200000) {
-                    LOG.info("Large message-diff text-set KB: '{}', conv #{}", textSize, conv.getId());
+                    LOG.info("Large message-diff text-set KB: '{}', conv #{}", textSize, conv.getLabel());
                 }
 
                 TextDiffer.TextCleanerResult cleanupResult = differ.diff(left, right);

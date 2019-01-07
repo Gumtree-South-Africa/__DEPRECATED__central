@@ -1,6 +1,6 @@
 package com.ecg.replyts.app.filterchain;
 
-import com.ecg.replyts.core.api.configadmin.ConfigurationId;
+import com.ecg.replyts.core.api.configadmin.ConfigurationLabel;
 import com.ecg.replyts.core.api.configadmin.PluginConfiguration;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.FilterResultState;
@@ -46,7 +46,7 @@ public class FilterListProcessorTest {
     @MockBean
     private PluginConfiguration filterConfig;
 
-    private ConfigurationId configId = new ConfigurationId("pluginFactory", "instance");
+    private ConfigurationLabel configId = new ConfigurationLabel("pluginFactory", "instance");
 
     @MockBean
     private FilterListMetrics metrics;
@@ -73,7 +73,7 @@ public class FilterListProcessorTest {
 
     @Before
     public void setUp() {
-        when(filterConfig.getId()).thenReturn(configId);
+        when(filterConfig.getLabel()).thenReturn(configId);
 
         when(reference1.getConfiguration()).thenReturn(filterConfig);
         when(reference2.getConfiguration()).thenReturn(filterConfig);

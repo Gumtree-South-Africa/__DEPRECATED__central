@@ -1,7 +1,7 @@
 package com.ecg.replyts.app.filterchain;
 
 import com.codahale.metrics.Timer;
-import com.ecg.replyts.core.api.configadmin.ConfigurationId;
+import com.ecg.replyts.core.api.configadmin.ConfigurationLabel;
 import com.ecg.replyts.core.api.model.conversation.FilterResultState;
 import com.ecg.replyts.core.api.model.conversation.ImmutableProcessingFeedback;
 import com.ecg.replyts.core.api.model.conversation.ProcessingFeedback;
@@ -50,7 +50,7 @@ class FilterListProcessor {
 
             LOG.trace("Applying Filter {}", filterReference);
             Filter filter = filterReference.getCreatedService();
-            ConfigurationId filterId = filterReference.getConfiguration().getId();
+            ConfigurationLabel filterId = filterReference.getConfiguration().getLabel();
             try (Timer.Context ignore = metrics.newOrExistingTimerFor(filterId)) {
                 List<FilterFeedback> filterFeedbackList = filter.filter(context);
                 if (filterFeedbackList != null) {
@@ -59,11 +59,11 @@ class FilterListProcessor {
                         return allFeedback;
                     }
 
-                    ConfigurationId configurationId = filterReference.getConfiguration().getId();
+                    ConfigurationLabel configurationLabel = filterReference.getConfiguration().getLabel();
                     boolean evaluation = filterReference.getState() == PluginState.EVALUATION;
                     for (FilterFeedback filterFeedback : filterFeedbackList) {
                         ProcessingFeedback processingFeedback = adaptToPluginState(
-                            configurationId,
+                                configurationLabel,
                             evaluation,
                             filterFeedback);
                         allFeedback.add(processingFeedback);
@@ -90,9 +90,9 @@ class FilterListProcessor {
         return false;
     }
 
-    private ProcessingFeedback adaptToPluginState(ConfigurationId configurationId, boolean evaluation,
-            FilterFeedback filterFeedback) {
-        return new ImmutableProcessingFeedback(configurationId.getPluginFactory(), configurationId.getInstanceId(),
+    private ProcessingFeedback adaptToPluginState(ConfigurationLabel configurationLabel, boolean evaluation,
+                                                  FilterFeedback filterFeedback) {
+        return new ImmutableProcessingFeedback(configurationLabel.getPluginFactory(), configurationLabel.getInstanceId(),
                 filterFeedback.getUiHint(), filterFeedback.getDescription(), filterFeedback.getScore(),
                 filterFeedback.getResultState(), evaluation);
     }

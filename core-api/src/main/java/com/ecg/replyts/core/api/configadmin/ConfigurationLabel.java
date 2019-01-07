@@ -7,15 +7,23 @@ import javax.annotation.Nonnull;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * Uniquely identifies a plugin instance from a particular service factory.
+ *
+ * @{link ConfigurationLabel} refers to a particular {@link PluginConfiguration} in the set of filters a tenant configured.
+ *
+ * The *tenant* identifies a {@link PluginConfiguration} by referring to the {@link ConfigurationLabel}. However, it can update
+ * the {@link PluginConfiguration} (e.g. change the json part of that config), while keeping the {@link ConfigurationLabel} stable
+ * over time. That is, the tenant has a mutable perspective on the {@link PluginConfiguration}s.
+ *
+ * However, internally in Comaas, we consider configuration immutable. That means if a {@link PluginConfiguration} is
+ * updated, it will be a new thing, with a new UUID: See {@link PluginConfiguration#getUuid()}
  *
  * @author mhuttar
  */
-public class ConfigurationId {
+public class ConfigurationLabel {
     private final String pluginFactory;
     private final String instanceId;
 
-    public ConfigurationId(@Nonnull String pluginFactory, @Nonnull String instanceId) {
+    public ConfigurationLabel(@Nonnull String pluginFactory, @Nonnull String instanceId) {
         this.pluginFactory = checkNotNull(pluginFactory, "pluginFactory");
         this.instanceId = checkNotNull(instanceId, "instanceId");
     }
@@ -32,7 +40,7 @@ public class ConfigurationId {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        ConfigurationId that = (ConfigurationId) o;
+        ConfigurationLabel that = (ConfigurationLabel) o;
         return Objects.equal(pluginFactory, that.pluginFactory) &&
                 Objects.equal(instanceId, that.instanceId);
     }
@@ -44,7 +52,7 @@ public class ConfigurationId {
 
     @Override
     public String toString() {
-        return String.format("ConfigurationId(%s:%s)", pluginFactory, instanceId);
+        return String.format("ConfigurationLabel(%s:%s)", pluginFactory, instanceId);
     }
 
 }

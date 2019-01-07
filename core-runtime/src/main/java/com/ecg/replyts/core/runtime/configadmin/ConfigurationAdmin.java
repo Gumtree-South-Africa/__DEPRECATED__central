@@ -1,6 +1,6 @@
 package com.ecg.replyts.core.runtime.configadmin;
 
-import com.ecg.replyts.core.api.configadmin.ConfigurationId;
+import com.ecg.replyts.core.api.configadmin.ConfigurationLabel;
 import com.ecg.replyts.core.api.configadmin.PluginConfiguration;
 import com.ecg.replyts.core.api.pluginconfiguration.BasePluginFactory;
 import org.slf4j.Logger;
@@ -33,7 +33,7 @@ public class ConfigurationAdmin<T> {
     @Autowired
     private ClusterRefreshPublisher clusterRefreshPublisher;
 
-    private Map<ConfigurationId, PluginInstanceReference<T>> knownServices = new HashMap<>();
+    private Map<ConfigurationLabel, PluginInstanceReference<T>> knownServices = new HashMap<>();
 
     private AtomicReference<List<PluginInstanceReference<T>>> runningServices = new AtomicReference<>(new ArrayList<>());
 
@@ -64,7 +64,7 @@ public class ConfigurationAdmin<T> {
         if (configuration == null) {
             throw new IllegalArgumentException("configuration required");
         }
-        ConfigurationId id = configuration.getId();
+        ConfigurationLabel id = configuration.getLabel();
         T createdService = createPluginInstance(configuration);
 
         PluginInstanceReference<T> sr = new PluginInstanceReference<>(configuration, createdService);
@@ -81,7 +81,7 @@ public class ConfigurationAdmin<T> {
      *
      * @return <code>true</code> if this instance has a reference to the plugin factory this configuration is for.
      */
-    boolean handlesConfiguration(ConfigurationId configId) {
+    boolean handlesConfiguration(ConfigurationLabel configId) {
         return getPluginFactory(configId).isPresent();
     }
 
@@ -91,7 +91,7 @@ public class ConfigurationAdmin<T> {
      * @param config configuration id to check for
      * @return <code>true</code> if this configuration exists and is alive.
      */
-    public boolean isRunning(ConfigurationId config) {
+    public boolean isRunning(ConfigurationLabel config) {
         synchronized (this) {
             return knownServices.containsKey(config);
         }
@@ -103,7 +103,7 @@ public class ConfigurationAdmin<T> {
      */
     @SuppressWarnings("unchecked")
     T createPluginInstance(PluginConfiguration configuration) {
-        ConfigurationId configId = configuration.getId();
+        ConfigurationLabel configId = configuration.getLabel();
 
         BasePluginFactory<?> pluginFactory = getPluginFactory(configId)
             .orElseThrow(() -> new IllegalStateException(String.format(
@@ -113,20 +113,20 @@ public class ConfigurationAdmin<T> {
         return (T) pluginFactory.createPlugin(configId.getInstanceId(), configuration.getConfiguration());
     }
 
-    private Optional<BasePluginFactory<?>> getPluginFactory(ConfigurationId configId) {
+    private Optional<BasePluginFactory<?>> getPluginFactory(ConfigurationLabel configId) {
         return Optional.ofNullable(factories.get(configId.getPluginFactory()));
     }
 
     /**
      * removes a service from the list of services and disposes it.
      *
-     * @param configurationId service to be removed.
+     * @param configurationLabel service to be removed.
      */
-    public void deleteConfiguration(ConfigurationId configurationId) {
+    public void deleteConfiguration(ConfigurationLabel configurationLabel) {
         synchronized (this) {
-            if (knownServices.containsKey(configurationId)) {
-                knownServices.remove(configurationId);
-                LOG.info(": {}", configurationId);
+            if (knownServices.containsKey(configurationLabel)) {
+                knownServices.remove(configurationLabel);
+                LOG.info(": {}", configurationLabel);
                 updateConfiguration();
             }
         }

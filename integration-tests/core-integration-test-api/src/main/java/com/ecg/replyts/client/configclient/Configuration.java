@@ -18,7 +18,7 @@ public class Configuration {
      * creates a new configuration
      *
      * @param configurationId identifies the plugin this configuration applies for. Consists of a plugin factory and an
-     *                        instance name (plugin factories can have many instances). Every ConfigurationId object is
+     *                        instance name (plugin factories can have many instances). Every ConfigurationLabel object is
      *                        a unique identifier for a plugin.
      * @param state           describes the state of the plugin
      * @param priority        all plugins are ordered by their priority. Normally priorities should not really matter, use
