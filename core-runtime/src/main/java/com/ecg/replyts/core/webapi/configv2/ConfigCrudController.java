@@ -94,7 +94,9 @@ public class ConfigCrudController {
     @ResponseBody
     @RequestMapping(value = "/", method = RequestMethod.GET)
     public ObjectNode listConfigurations() {
-        return configRepository.getConfigurationsAsJson();
+        List<PluginConfiguration> configurations = configRepository.getConfigurations();
+        return  ConfigApiJsonMapper.Model.toJson(configurations);
+
     }
 
     @ResponseBody
@@ -105,7 +107,7 @@ public class ConfigCrudController {
             throw new RuntimeException("InstanceId is required");
         }
 
-        PluginConfiguration config = extract(pluginFactory, instanceId, body, body.get("configuration"));
+        PluginConfiguration config = ConfigApiJsonMapper.Json.toPluginConfiguration(pluginFactory, instanceId, body, body.get("configuration"));
 
         if (!configUpdateNotifier.validateConfiguration(config)) {
             throw new RuntimeException("Plugin validation has failed: " + pluginFactory);
@@ -123,7 +125,14 @@ public class ConfigCrudController {
     @ResponseBody
     @RequestMapping(value = "/", method = RequestMethod.PUT, consumes = "*/*")
     public ObjectNode replaceConfigurations(HttpServletRequest request, @RequestBody ArrayNode body) throws Exception {
-        List<PluginConfiguration> newConfigurations = verifyConfigurations(body);
+        List<PluginConfiguration> newConfigurations = ConfigApiJsonMapper.Json.toPluginConfigurationList(body);
+
+        newConfigurations.stream().forEach(config -> {
+            if (!configUpdateNotifier.validateConfiguration(config)) {
+                throw new IllegalArgumentException(format("PluginFactory %s not found",  config.getId().getPluginFactory()));
+            }
+        });
+        
         configRepository.replaceConfigurations(newConfigurations, request.getRemoteAddr());
 
         configUpdateNotifier.confirmConfigurationUpdate();
@@ -140,55 +149,5 @@ public class ConfigCrudController {
 
     }
 
-    private List<PluginConfiguration> verifyConfigurations(ArrayNode body) throws Exception {
-        List<PluginConfiguration> pluginConfigurations = new ArrayList<>();
 
-        for (JsonNode node : body) {
-            assertArrayElement(node, "pluginFactory", TextNode.class);
-            assertArrayElement(node, "instanceId", TextNode.class);
-
-            String pluginFactory = node.get("pluginFactory").textValue();
-            String instanceId = node.get("instanceId").textValue();
-            JsonNode configuration = node.get("configuration");
-
-            PluginConfiguration config = extract(pluginFactory, instanceId, configuration, configuration);
-            if (!configUpdateNotifier.validateConfiguration(config)) {
-                throw new IllegalArgumentException(format("PluginFactory %s not found", pluginFactory));
-            }
-            pluginConfigurations.add(config);
-        }
-        return pluginConfigurations;
-    }
-
-    private void assertArrayElement(JsonNode element, String fieldName, Class<? extends JsonNode> clazz) {
-        if (!(element instanceof ObjectNode)) {
-            throw new IllegalArgumentException("Array element is not an Object");
-        }
-
-        JsonNode field = element.get(fieldName);
-
-        if (!field.getClass().equals(clazz)) {
-            throw new IllegalArgumentException(format("Array element's contents does not contain %s as a %s class", fieldName, clazz));
-        }
-
-        if (field instanceof TextNode && !StringUtils.hasText(field.textValue())) {
-            throw new IllegalArgumentException(format("Array element's contents contains field %s but it contains an empty value", fieldName));
-        }
-    }
-
-    private PluginConfiguration extract(String pluginFactory, String instanceId, JsonNode body, JsonNode configuration) throws IllegalArgumentException, ClassNotFoundException {
-        if (configuration == null) {
-            throw new IllegalArgumentException("payload needs a configuration node where the filter configuration is in");
-        }
-
-        Long priority = Long.valueOf(getContent(body, "priority", "0"));
-        PluginState state = PluginState.valueOf(getContent(body, "state", PluginState.ENABLED.name()));
-
-        return new PluginConfiguration(new ConfigurationId(pluginFactory, instanceId), priority, state, 1L, configuration);
-    }
-
-    private static String getContent(JsonNode body, String fieldname, String alternative) {
-        JsonNode fn = body.get(fieldname);
-        return fn == null ? alternative : fn.asText();
-    }
 }
