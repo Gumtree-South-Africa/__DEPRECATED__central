@@ -1,6 +1,6 @@
 package com.ecg.replyts.core.runtime.persistence.config;
 
-import com.ecg.replyts.core.api.configadmin.ConfigurationId;
+import com.ecg.replyts.core.api.configadmin.ConfigurationLabel;
 import com.ecg.replyts.core.api.configadmin.PluginConfiguration;
 import com.ecg.replyts.core.api.pluginconfiguration.PluginState;
 import com.ecg.replyts.core.api.util.JsonObjects;
@@ -19,8 +19,8 @@ public abstract class ConfigurationJsonSerializer {
             PluginConfiguration pluginConfiguration = configurationObject.getPluginConfiguration();
             ObjectNode serializedConfig = JsonObjects.builder()
                     .attr("config", pluginConfiguration.getConfiguration())
-                    .attr("pluginFactory", pluginConfiguration.getId().getPluginFactory())
-                    .attr("instanceId", pluginConfiguration.getId().getInstanceId())
+                    .attr("pluginFactory", pluginConfiguration.getLabel().getPluginFactory())
+                    .attr("instanceId", pluginConfiguration.getLabel().getInstanceId())
                     .attr("priority", pluginConfiguration.getPriority())
                     .attr("version", configurationObject.getTimestamp())
                     .attr("state", pluginConfiguration.getState().name())
@@ -46,7 +46,7 @@ public abstract class ConfigurationJsonSerializer {
     }
 
     private static ConfigurationObject loadPluginConfiguration(JsonNode configNode) {
-        ConfigurationId configId = extractConfigurationId(configNode);
+        ConfigurationLabel configId = extractConfigurationId(configNode);
         String priority = configNode.get("priority").toString();
         String version = configNode.get("version").toString();
         String state = configNode.get("state").textValue();
@@ -60,10 +60,10 @@ public abstract class ConfigurationJsonSerializer {
         return new ConfigurationObject(timestamp, pluginConfiguration);
     }
 
-    private static ConfigurationId extractConfigurationId(JsonNode node) {
+    private static ConfigurationLabel extractConfigurationId(JsonNode node) {
         String instanceId = node.get("instanceId").asText();
         String pluginFactoryType = node.get("pluginFactory").asText()
                 .replace("com.ecg.de.ebayk.messagecenter.filters", "com.ecg.messagecenter.filters");
-        return new ConfigurationId(pluginFactoryType, instanceId);
+        return new ConfigurationLabel(pluginFactoryType, instanceId);
     }
 }

@@ -3,7 +3,7 @@ package com.ecg.replyts.core.runtime.persistence.config;
 import com.codahale.metrics.Timer;
 import com.datastax.driver.core.*;
 import com.datastax.driver.core.utils.UUIDs;
-import com.ecg.replyts.core.api.configadmin.ConfigurationId;
+import com.ecg.replyts.core.api.configadmin.ConfigurationLabel;
 import com.ecg.replyts.core.api.configadmin.PluginConfiguration;
 import com.ecg.replyts.core.api.persistence.ConfigurationRepository;
 import com.ecg.replyts.core.runtime.TimingReports;
@@ -57,14 +57,14 @@ public class CassandraConfigurationRepository implements ConfigurationRepository
     public void persistConfiguration(PluginConfiguration configuration, String remoteAddress) {
         ConfigurationObject obj = new ConfigurationObject(System.currentTimeMillis(), configuration);
         Configurations mergedConfigurations = fetchConfigurations().addOrUpdate(obj);
-        persistConfigurations(configuration.getId().toString(), mergedConfigurations, remoteAddress);
+        persistConfigurations(configuration.getLabel().toString(), mergedConfigurations, remoteAddress);
     }
 
     @Override
     public void deleteConfiguration(String pluginFactory, String instanceId, String remoteAddress) {
-        final ConfigurationId configurationId = new ConfigurationId(pluginFactory, instanceId);
-        Configurations mergedConfigurations = fetchConfigurations().delete(configurationId);
-        persistConfigurations("Could not delete configuration identified by " + configurationId, mergedConfigurations, remoteAddress);
+        final ConfigurationLabel configurationLabel = new ConfigurationLabel(pluginFactory, instanceId);
+        Configurations mergedConfigurations = fetchConfigurations().delete(configurationLabel);
+        persistConfigurations("Could not delete configuration identified by " + configurationLabel, mergedConfigurations, remoteAddress);
     }
 
     @Override

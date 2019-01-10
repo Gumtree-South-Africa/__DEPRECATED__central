@@ -4,22 +4,22 @@ import com.ecg.replyts.core.api.pluginconfiguration.PluginState;
 import com.fasterxml.jackson.databind.JsonNode;
 
 public class PluginConfiguration {
-    private final ConfigurationId id;
+    private final ConfigurationLabel label;
     private final long version;
     private final long priority;
     private final PluginState state;
     private final JsonNode configuration;
 
-    public PluginConfiguration(ConfigurationId id, long priority, PluginState state, long version, JsonNode configuration) {
-        this.id = id;
+    public PluginConfiguration(ConfigurationLabel label, long priority, PluginState state, long version, JsonNode configuration) {
+        this.label = label;
         this.priority = priority;
         this.version = version;
         this.state = state;
         this.configuration = configuration;
     }
 
-    public ConfigurationId getId() {
-        return id;
+    public ConfigurationLabel getLabel() {
+        return label;
     }
 
     public long getPriority() {

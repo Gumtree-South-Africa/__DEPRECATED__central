@@ -1,10 +1,7 @@
 package com.ecg.replyts.core.api.persistence;
 
-import com.ecg.replyts.core.api.configadmin.ConfigurationId;
+import com.ecg.replyts.core.api.configadmin.ConfigurationLabel;
 import com.ecg.replyts.core.api.configadmin.PluginConfiguration;
-import com.ecg.replyts.core.api.util.JsonObjects;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import java.util.List;
 
@@ -20,12 +17,12 @@ public interface ConfigurationRepository {
 
     /**
      * creates/updates a configuration. Whether to create or to update a configuration depends on the Configuration's
-     * {@link ConfigurationId}
+     * {@link ConfigurationLabel}
      */
     void persistConfiguration(PluginConfiguration configuration, String remoteAddress);
 
     /**
-     * deletes the configuration identified by this {@link ConfigurationId}.
+     * deletes the configuration identified by this {@link ConfigurationLabel}.
      */
     void deleteConfiguration(String pluginFactory, String instanceId, String remoteAddress);
 

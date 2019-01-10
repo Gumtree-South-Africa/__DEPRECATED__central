@@ -32,7 +32,7 @@ public class RemoteFilterConfigurations {
     }
 
     public Optional<URL> getRemoteEndpoint(PluginConfiguration pluginConf) {
-        String factoryName = pluginConf.getId().getPluginFactory();
+        String factoryName = pluginConf.getLabel().getPluginFactory();
         if (remotelyValidatedFilterTypes.contains(factoryName)) {
             return Optional.of(remoteEndpoint);
         }

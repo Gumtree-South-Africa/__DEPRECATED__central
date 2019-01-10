@@ -18,7 +18,7 @@ public class ConfigurationValidatorImp implements ConfigurationUpdateNotifier {
     @Override
     public boolean validateConfiguration(PluginConfiguration configuration) {
         for (ConfigurationAdmin<?> a : configAdmins) {
-            if (a.handlesConfiguration(configuration.getId())) {
+            if (a.handlesConfiguration(configuration.getLabel())) {
                 // Test configuration
                 a.createPluginInstance(configuration);
                 return true;

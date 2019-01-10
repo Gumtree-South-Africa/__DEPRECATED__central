@@ -1,6 +1,6 @@
 package com.ecg.replyts.core.runtime.configadmin;
 
-import com.ecg.replyts.core.api.configadmin.ConfigurationId;
+import com.ecg.replyts.core.api.configadmin.ConfigurationLabel;
 import com.ecg.replyts.core.api.configadmin.PluginConfiguration;
 import com.ecg.replyts.core.api.pluginconfiguration.BasePluginFactory;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -30,8 +30,8 @@ public class ServiceReferenceTest {
 
     @Test
     public void doesAscendingOrder() throws Exception {
-        PluginInstanceReference<Object> higherPrio = new PluginInstanceReference<>(new PluginConfiguration(new ConfigurationId(ConfigurationTest.IDENTIFIER, "ins1"), 400, null, 1l, null), null);
-        PluginInstanceReference<Object> lowerPrio = new PluginInstanceReference<>(new PluginConfiguration(new ConfigurationId(ConfigurationTest.IDENTIFIER, "ins1"), 200, null, 1l, null), null);
+        PluginInstanceReference<Object> higherPrio = new PluginInstanceReference<>(new PluginConfiguration(new ConfigurationLabel(ConfigurationTest.IDENTIFIER, "ins1"), 400, null, 1l, null), null);
+        PluginInstanceReference<Object> lowerPrio = new PluginInstanceReference<>(new PluginConfiguration(new ConfigurationLabel(ConfigurationTest.IDENTIFIER, "ins1"), 200, null, 1l, null), null);
 
         List<PluginInstanceReference<Object>> l = Arrays.asList(lowerPrio, higherPrio);
         Collections.sort(l, PluginInstanceReference.PLUGIN_REF_ORDERING_COMPARATOR);

@@ -1,6 +1,5 @@
 package com.ecg.replyts.core.webapi.configv2;
 
-import com.ecg.replyts.core.api.configadmin.ConfigurationId;
 import com.ecg.replyts.core.api.configadmin.ConfigurationUpdateNotifier;
 import com.ecg.replyts.core.api.configadmin.PluginConfiguration;
 import com.ecg.replyts.core.api.persistence.ConfigurationRepository;
@@ -9,12 +8,10 @@ import com.ecg.replyts.core.api.util.JsonObjects;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.node.TextNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,7 +20,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpServletRequest;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import static java.lang.String.format;
@@ -112,7 +108,7 @@ public class ConfigCrudController {
         if (!configUpdateNotifier.validateConfiguration(config)) {
             throw new RuntimeException("Plugin validation has failed: " + pluginFactory);
         }
-        LOG.info("Saving Config update {}", config.getId());
+        LOG.info("Saving Config update {}", config.getLabel());
         configRepository.persistConfiguration(config, request.getRemoteAddr());
         configUpdateNotifier.confirmConfigurationUpdate();
 
@@ -129,7 +125,7 @@ public class ConfigCrudController {
 
         newConfigurations.stream().forEach(config -> {
             if (!configUpdateNotifier.validateConfiguration(config)) {
-                throw new IllegalArgumentException(format("PluginFactory %s not found",  config.getId().getPluginFactory()));
+                throw new IllegalArgumentException(format("PluginFactory %s not found",  config.getLabel().getPluginFactory()));
             }
         });
         

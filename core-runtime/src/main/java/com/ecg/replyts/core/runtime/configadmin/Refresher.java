@@ -1,6 +1,6 @@
 package com.ecg.replyts.core.runtime.configadmin;
 
-import com.ecg.replyts.core.api.configadmin.ConfigurationId;
+import com.ecg.replyts.core.api.configadmin.ConfigurationLabel;
 import com.ecg.replyts.core.api.configadmin.PluginConfiguration;
 import com.ecg.replyts.core.api.persistence.ConfigurationRepository;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -75,14 +75,14 @@ public class Refresher {
     }
 
     public void updateConfigurations() {
-        Map<ConfigurationId, PluginConfiguration> runningConfigs = admin.getRunningServices().stream()
-                .collect(Collectors.toMap((p) -> p.getConfiguration().getId(), PluginInstanceReference::getConfiguration, (a, b) -> b));
+        Map<ConfigurationLabel, PluginConfiguration> runningConfigs = admin.getRunningServices().stream()
+                .collect(Collectors.toMap((p) -> p.getConfiguration().getLabel(), PluginInstanceReference::getConfiguration, (a, b) -> b));
 
-        Map<ConfigurationId, PluginConfiguration> newConfigs = repository.getConfigurations().stream()
-          .filter(c -> admin.handlesConfiguration(c.getId()))
-                .collect(Collectors.toMap(PluginConfiguration::getId, c -> c, (a, b) -> b));
+        Map<ConfigurationLabel, PluginConfiguration> newConfigs = repository.getConfigurations().stream()
+          .filter(c -> admin.handlesConfiguration(c.getLabel()))
+                .collect(Collectors.toMap(PluginConfiguration::getLabel, c -> c, (a, b) -> b));
 
-        Set<ConfigurationId> configsToBeRemoved = runningConfigs.keySet().stream()
+        Set<ConfigurationLabel> configsToBeRemoved = runningConfigs.keySet().stream()
           .filter((c) -> !newConfigs.containsKey(c))
           .collect(Collectors.toSet());
 
@@ -95,7 +95,7 @@ public class Refresher {
           .map(Map.Entry::getValue)
           .collect(Collectors.toSet());
 
-        for (ConfigurationId toDelete : configsToBeRemoved) {
+        for (ConfigurationLabel toDelete : configsToBeRemoved) {
             for (ConfigurationRefreshEventListener listener : refreshEventListeners) {
                 if (listener.isApplicable(toDelete.getPluginFactory())) {
                     try {

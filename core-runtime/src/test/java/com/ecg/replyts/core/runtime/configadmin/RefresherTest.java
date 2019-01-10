@@ -1,6 +1,6 @@
 package com.ecg.replyts.core.runtime.configadmin;
 
-import com.ecg.replyts.core.api.configadmin.ConfigurationId;
+import com.ecg.replyts.core.api.configadmin.ConfigurationLabel;
 import com.ecg.replyts.core.api.configadmin.PluginConfiguration;
 import com.ecg.replyts.core.api.persistence.ConfigurationRepository;
 import com.ecg.replyts.core.api.pluginconfiguration.PluginState;
@@ -43,7 +43,7 @@ public class RefresherTest {
     public void setup() {
         when(repo.getConfigurations()).thenReturn(configsFromRepo);
         when(admin.getRunningServices()).thenReturn(runningPlugins);
-        when(admin.handlesConfiguration(any(ConfigurationId.class))).thenReturn(true);
+        when(admin.handlesConfiguration(any(ConfigurationLabel.class))).thenReturn(true);
     }
 
     @Test
@@ -65,7 +65,7 @@ public class RefresherTest {
 
         r.updateConfigurations();
 
-        verify(admin, times(0)).deleteConfiguration(pi.getId());
+        verify(admin, times(0)).deleteConfiguration(pi.getLabel());
         verify(admin, times(1)).putConfiguration(pi2);
 
     }
@@ -80,7 +80,7 @@ public class RefresherTest {
 
         r.updateConfigurations();
 
-        verify(admin, times(0)).deleteConfiguration(pi.getId());
+        verify(admin, times(0)).deleteConfiguration(pi.getLabel());
         verify(admin, times(0)).putConfiguration(pi2);
     }
 
@@ -94,7 +94,7 @@ public class RefresherTest {
 
         r.updateConfigurations();
 
-        verify(admin, times(0)).deleteConfiguration(pi.getId());
+        verify(admin, times(0)).deleteConfiguration(pi.getLabel());
         verify(admin, times(1)).putConfiguration(pi2);
     }
 
@@ -105,11 +105,11 @@ public class RefresherTest {
 
         r.updateConfigurations();
 
-        verify(admin, times(1)).deleteConfiguration(pi.getId());
+        verify(admin, times(1)).deleteConfiguration(pi.getLabel());
     }
 
     private PluginConfiguration pluginConfiguration(String identifier, String instanceId, long version) {
-        return new PluginConfiguration(new ConfigurationId(identifier, instanceId), 1l, PluginState.ENABLED, version, JsonObjects.newJsonObject());
+        return new PluginConfiguration(new ConfigurationLabel(identifier, instanceId), 1l, PluginState.ENABLED, version, JsonObjects.newJsonObject());
     }
 
     @Configuration

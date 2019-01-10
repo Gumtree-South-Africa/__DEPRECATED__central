@@ -1,7 +1,7 @@
 package com.ecg.replyts.core.runtime.persistence.config;
 
 import com.ecg.replyts.app.filterchain.FilterChainTest;
-import com.ecg.replyts.core.api.configadmin.ConfigurationId;
+import com.ecg.replyts.core.api.configadmin.ConfigurationLabel;
 import com.ecg.replyts.core.api.configadmin.PluginConfiguration;
 import com.google.common.collect.Lists;
 import org.junit.Before;
@@ -30,24 +30,24 @@ public class ConfigurationsTest {
 
     @Before
     public void setUp() {
-        when(existingConfig1.getId()).thenReturn(new ConfigurationId(FilterChainTest.ExampleFilterFactory.IDENTIFIER, "existing1"));
-        when(existingConfig2.getId()).thenReturn(new ConfigurationId(FilterChainTest.ExampleFilterFactory.IDENTIFIER, "existing2"));
+        when(existingConfig1.getLabel()).thenReturn(new ConfigurationLabel(FilterChainTest.ExampleFilterFactory.IDENTIFIER, "existing1"));
+        when(existingConfig2.getLabel()).thenReturn(new ConfigurationLabel(FilterChainTest.ExampleFilterFactory.IDENTIFIER, "existing2"));
         configurations = new Configurations(Lists.newArrayList(new ConfigurationObject(10, existingConfig1), new ConfigurationObject(20, existingConfig2)), true);
     }
 
     @Test
     public void removesElementFromListCorrectly() {
-        Configurations newConfig = configurations.delete(new ConfigurationId(FilterChainTest.ExampleFilterFactory.IDENTIFIER, "existing1"));
+        Configurations newConfig = configurations.delete(new ConfigurationLabel(FilterChainTest.ExampleFilterFactory.IDENTIFIER, "existing1"));
 
         assertEquals(1, newConfig.getConfigurationObjects().size());
-        assertEquals("existing2", newConfig.getConfigurationObjects().get(0).getPluginConfiguration().getId().getInstanceId());
+        assertEquals("existing2", newConfig.getConfigurationObjects().get(0).getPluginConfiguration().getLabel().getInstanceId());
     }
 
     @Test
     public void updatesElementCorrectly() {
 
         PluginConfiguration pluginConf = mock(PluginConfiguration.class);
-        when(pluginConf.getId()).thenReturn(new ConfigurationId(FilterChainTest.ExampleFilterFactory.IDENTIFIER, "existing2"));
+        when(pluginConf.getLabel()).thenReturn(new ConfigurationLabel(FilterChainTest.ExampleFilterFactory.IDENTIFIER, "existing2"));
         ConfigurationObject toUpdate = new ConfigurationObject(222, pluginConf);
 
         Configurations newConfig = configurations.addOrUpdate(toUpdate);
@@ -62,7 +62,7 @@ public class ConfigurationsTest {
     public void addsElementCorrectly() {
 
         PluginConfiguration pluginConf = mock(PluginConfiguration.class);
-        when(pluginConf.getId()).thenReturn(new ConfigurationId(FilterChainTest.ExampleFilterFactory.IDENTIFIER, "new1"));
+        when(pluginConf.getLabel()).thenReturn(new ConfigurationLabel(FilterChainTest.ExampleFilterFactory.IDENTIFIER, "new1"));
         ConfigurationObject toUpdate = new ConfigurationObject(222, pluginConf);
 
         Configurations newConfig = configurations.addOrUpdate(toUpdate);

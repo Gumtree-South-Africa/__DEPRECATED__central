@@ -11,11 +11,11 @@ import static com.google.common.base.Preconditions.checkNotNull;
  *
  * @author mhuttar
  */
-public class ConfigurationId {
+public class ConfigurationLabel {
     private final String pluginFactory;
     private final String instanceId;
 
-    public ConfigurationId(@Nonnull String pluginFactory, @Nonnull String instanceId) {
+    public ConfigurationLabel(@Nonnull String pluginFactory, @Nonnull String instanceId) {
         this.pluginFactory = checkNotNull(pluginFactory, "pluginFactory");
         this.instanceId = checkNotNull(instanceId, "instanceId");
     }
@@ -32,7 +32,7 @@ public class ConfigurationId {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        ConfigurationId that = (ConfigurationId) o;
+        ConfigurationLabel that = (ConfigurationLabel) o;
         return Objects.equal(pluginFactory, that.pluginFactory) &&
                 Objects.equal(instanceId, that.instanceId);
     }
