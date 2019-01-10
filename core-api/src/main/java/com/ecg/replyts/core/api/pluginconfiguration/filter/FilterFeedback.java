@@ -57,4 +57,14 @@ public class FilterFeedback {
     public int hashCode() {
         return Objects.hashCode(description, resultState, score, uiHint);
     }
+
+    @Override
+    public String toString() {
+        return "FilterFeedback{" +
+                "uiHint='" + uiHint + '\'' +
+                ", description='" + description + '\'' +
+                ", score=" + score +
+                ", resultState=" + resultState +
+                '}';
+    }
 }

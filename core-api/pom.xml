@@ -123,6 +123,48 @@
                     </execution>
                 </executions>
             </plugin>
+
+
+            <plugin>
+                <groupId>org.openapitools</groupId>
+                <artifactId>openapi-generator-maven-plugin</artifactId>
+                <version>${openapi-generator.version}</version>
+                <executions>
+                    <execution>
+                        <id>generate-filter-api</id>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <inputSpec>core-api/src/main/protobuf/apis/messagefilters/filter-apispec.yml</inputSpec>
+                            <validateSpec>true</validateSpec>
+
+                            <!-- pom spec -->
+                            <groupId>com.ecg.comaas.filterapi</groupId>
+                            <artifactId>dto</artifactId>
+
+                            <generateSupportingFiles>false</generateSupportingFiles>
+
+                            <!--
+                                Don't generate APIs, and useBeanValidation=false , because this allows for tolerant reader pattern
+                                (making validation part of the mapper responsibility). See also:
+                                 - https://www.thoughtworks.com/radar/techniques/spec-based-codegen
+                                 - https://martinfowler.com/bliki/TolerantReader.html
+                             -->
+                            <generateApis>false</generateApis>
+                            <generatorName>jaxrs-spec</generatorName>
+                            <modelPackage>com.ecg.comaas.filterapi.dto</modelPackage>
+
+                            <configOptions>
+                                <interfaceOnly>true</interfaceOnly>
+                                <dateLibrary>java8</dateLibrary>
+                                <useSwaggerAnnotations>false</useSwaggerAnnotations>
+                                <useBeanValidation>false</useBeanValidation>
+                            </configOptions>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 </project>

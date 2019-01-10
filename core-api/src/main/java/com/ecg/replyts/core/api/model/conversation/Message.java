@@ -19,7 +19,7 @@ public interface Message {
     int getVersion();
 
     /**
-     * @return id
+     * @return id -- a UUID for new messages, but old messages in the DB may still have another type of string-id (non-UUID)
      */
     String getId();
 
