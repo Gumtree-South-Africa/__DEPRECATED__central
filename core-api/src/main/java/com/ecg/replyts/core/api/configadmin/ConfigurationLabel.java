@@ -7,7 +7,9 @@ import javax.annotation.Nonnull;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * @{link ConfigurationLabel} refers to a particular {@link PluginConfiguration} in the set of filters a tenant configured.
+ * @author mhuttar
+ *
+ * Refers to a particular {@link PluginConfiguration} in the set of filters a tenant configured. 
  *
  * <p>
  * The *tenant* identifies a {@link PluginConfiguration} by referring to the {@link ConfigurationLabel}. However, it can update
@@ -17,10 +19,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * <p>
  * However, internally in Comaas, we consider configuration immutable. That means if a {@link PluginConfiguration} is
  * updated, it will be a new thing.
- *
+ * <p>
  * TODO: implement the new UUID: See {@link PluginConfiguration#getUuid()}
  * <p>
- * * @author mhuttar
  */
 public class ConfigurationLabel {
     private final String pluginFactory;
