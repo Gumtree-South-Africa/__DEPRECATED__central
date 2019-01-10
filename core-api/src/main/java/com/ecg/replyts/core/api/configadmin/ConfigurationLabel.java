@@ -8,8 +8,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author mhuttar
- *
- * Refers to a particular {@link PluginConfiguration} in the set of filters a tenant configured. 
+ * <p>
+ * Refers to a particular {@link PluginConfiguration} in the set of filters a tenant configured.
  *
  * <p>
  * The *tenant* identifies a {@link PluginConfiguration} by referring to the {@link ConfigurationLabel}. However, it can update
@@ -17,8 +17,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * over time. That is, the tenant has a mutable perspective on the {@link PluginConfiguration}s.
  *
  * <p>
- * However, internally in Comaas, we consider configuration immutable. That means if a {@link PluginConfiguration} is
- * updated, it will be a new thing.
+ * However, internally in Comaas, we want to be able to reason about a particular filter configuration, with an id that changes if the
+ * configuration changes. So if a {@link PluginConfiguration} is updated, it will be a filter with a new id.
+ *
  * <p>
  * TODO: implement the new UUID: See {@link PluginConfiguration#getUuid()}
  * <p>
