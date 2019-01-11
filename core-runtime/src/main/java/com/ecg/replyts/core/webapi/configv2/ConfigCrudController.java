@@ -11,14 +11,14 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 
@@ -95,20 +95,14 @@ public class ConfigCrudController {
      * This is used by the externalized Filter, which does not get access to Cassandra directly.
      */
     @ResponseBody
-    @RequestMapping(value = "/filter/{uuid}", method = RequestMethod.GET)
-    public Object getConfiguration(@PathVariable String uuid) {
-        Optional<ObjectNode> json = configRepository.getConfigurations().stream()
-                .filter(c -> c.getUuid().toString().equals(uuid))
-                .findFirst()
-                .map(ConfigApiJsonMapper.Model::toJsonPluginConfig);
-
-        if (!json.isPresent()) {
-            return new ResponseEntity(HttpStatus.NOT_FOUND);
-        }
-
-        return json;
+    @RequestMapping(value = "/filters", method = RequestMethod.GET)
+    public Map<UUID, ObjectNode> getConfigurationsMap() {
+        return configRepository.getConfigurations().stream()
+                .collect(Collectors.toMap(
+                        PluginConfiguration::getUuid,
+                        ConfigApiJsonMapper.Model::toJsonPluginConfig
+                ));
     }
-
 
     @ResponseBody
     @RequestMapping(value = "/{pluginFactory}/{instanceId}", method = RequestMethod.PUT, consumes = "*/*")
