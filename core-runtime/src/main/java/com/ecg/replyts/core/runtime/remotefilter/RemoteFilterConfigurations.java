@@ -18,14 +18,18 @@ public class RemoteFilterConfigurations {
     private final Set<String> remotelyValidatedFilterTypes;
 
     public RemoteFilterConfigurations(
-            @Value("${comaas.filter.remote.factories}") String csvListOfFactories,
-            @Value("${comaas.filter.remote.endpoint}") String remoteEndpoint
+            @Value("${comaas.filter.remote.factories:}") String csvListOfFactories,
+            @Value("${comaas.filter.remote.endpoint:#{null}}") String remoteEndpoint
     ) {
-        try {
-            this.remoteEndpoint = URI.create(remoteEndpoint).toURL();
-        } catch (MalformedURLException e) {
-            throw new RuntimeException(e);
-        }
+        this.remoteEndpoint = Optional.ofNullable(remoteEndpoint)
+                .map(s -> {
+                    try {
+                        return URI.create(remoteEndpoint).toURL();
+                    } catch (MalformedURLException e) {
+                        throw new RuntimeException(e);
+                    }
+                })
+                .orElse(null);
 
         remotelyValidatedFilterTypes = Arrays.stream(csvListOfFactories.split(","))
                 .collect(Collectors.toSet());
@@ -34,7 +38,7 @@ public class RemoteFilterConfigurations {
     public Optional<URL> getRemoteEndpoint(PluginConfiguration pluginConf) {
         String factoryName = pluginConf.getId().getPluginFactory();
         if (remotelyValidatedFilterTypes.contains(factoryName)) {
-            return Optional.of(remoteEndpoint);
+            return Optional.ofNullable(remoteEndpoint);
         }
         return Optional.empty();
     }
