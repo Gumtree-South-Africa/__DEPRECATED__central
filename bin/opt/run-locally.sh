@@ -43,6 +43,14 @@ stop () {
     exit 0
 }
 
+function checkJavaVersion() {
+    JAVA_VER=$(java -version 2>&1 | sed -n ';s/.* version "\(.*\)\.\(.*\)\..*"/\1\2/p;')
+    if [ "$JAVA_VER" == 18 ]; then
+        echo "ok, java is 1.8 "
+    else
+        echo "Please make sure you have Java version 8 on your classpath!" && exit 1
+    fi
+}
 
 function runComaas() {
 trap stop SIGINT SIGTERM EXIT SIGQUIT
@@ -83,5 +91,6 @@ pid=
 }
 
 parseArgs $@
+checkJavaVersion
 loadConfig
 runComaas

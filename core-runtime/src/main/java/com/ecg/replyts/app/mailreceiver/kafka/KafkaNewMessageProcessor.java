@@ -78,7 +78,7 @@ public class KafkaNewMessageProcessor extends KafkaMessageProcessor {
 
     @Override
     protected void processMessage(Message message) {
-        LOG.debug("Found a message in the incoming topic {}, tried so far: {} times", message.getCorrelationId(), message.getRetryCount());
+        LOG.trace("Found a message in the incoming topic {}, tried so far: {} times", message.getCorrelationId(), message.getRetryCount());
 
         Future<?> task = executor.submit(MDCConstants.setTaskFields(() -> {
             try {
@@ -92,7 +92,7 @@ public class KafkaNewMessageProcessor extends KafkaMessageProcessor {
 
         try {
             task.get(messageProcessingTimeoutMs, TimeUnit.MILLISECONDS);
-            LOG.debug("Processed message with correlation id {} successfully", message.getCorrelationId());
+            LOG.trace("Processed message with correlation id {} successfully", message.getCorrelationId());
         } catch (TimeoutException e) {
             LOG.info("Message processing time exceeded {} seconds. Trying to stop the thread", messageProcessingTimeoutMs);
             try {
