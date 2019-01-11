@@ -66,7 +66,7 @@ public class ConfigurationAdminTest {
 
     @Test
     public void createsNewConfiguration() throws Exception {
-        PluginConfiguration baseConf = new PluginConfiguration(new ConfigurationId(FACTORY1, "inst1"), 100, PluginState.ENABLED, 1L, JsonObjects.newJsonObject());
+        PluginConfiguration baseConf = PluginConfiguration.createGeneratingUuid(new ConfigurationId(FACTORY1, "inst1"), 100, PluginState.ENABLED, 1L, JsonObjects.newJsonObject());
         admin.putConfiguration(baseConf);
 
         assertEquals("Factory1{}", admin.getRunningServices().get(0).getCreatedService());
@@ -74,9 +74,9 @@ public class ConfigurationAdminTest {
 
     @Test
     public void overridesConfiguration() {
-        PluginConfiguration baseConf = new PluginConfiguration(new ConfigurationId(FACTORY1, "inst1"), 100, PluginState.ENABLED, 1L, JsonObjects.newJsonObject());
+        PluginConfiguration baseConf = PluginConfiguration.createGeneratingUuid(new ConfigurationId(FACTORY1, "inst1"), 100, PluginState.ENABLED, 1L, JsonObjects.newJsonObject());
         admin.putConfiguration(baseConf);
-        PluginConfiguration newConf = new PluginConfiguration(new ConfigurationId(FACTORY1, "inst1"), 100, PluginState.ENABLED, 1L, JsonObjects.newJsonObject());
+        PluginConfiguration newConf = PluginConfiguration.createGeneratingUuid(new ConfigurationId(FACTORY1, "inst1"), 100, PluginState.ENABLED, 1L, JsonObjects.newJsonObject());
         admin.putConfiguration(newConf);
 
         assertEquals("Factory1{}", admin.getRunningServices().get(0).getCreatedService());
@@ -84,9 +84,9 @@ public class ConfigurationAdminTest {
 
     @Test
     public void mergesConfiguration() {
-        PluginConfiguration baseConf = new PluginConfiguration(new ConfigurationId(FACTORY1, "inst1"), 100, PluginState.ENABLED, 1L, JsonObjects.newJsonObject());
+        PluginConfiguration baseConf = PluginConfiguration.createGeneratingUuid(new ConfigurationId(FACTORY1, "inst1"), 100, PluginState.ENABLED, 1L, JsonObjects.newJsonObject());
         admin.putConfiguration(baseConf);
-        PluginConfiguration newConf = new PluginConfiguration(new ConfigurationId(FACTORY2, "inst1"), 200, PluginState.ENABLED, 1L, JsonObjects.newJsonObject());
+        PluginConfiguration newConf = PluginConfiguration.createGeneratingUuid(new ConfigurationId(FACTORY2, "inst1"), 200, PluginState.ENABLED, 1L, JsonObjects.newJsonObject());
         admin.putConfiguration(newConf);
 
         assertEquals("Factory2{}", admin.getRunningServices().get(0).getCreatedService());
@@ -95,7 +95,7 @@ public class ConfigurationAdminTest {
 
     @Test
     public void removesConfiguration() {
-        PluginConfiguration baseConf = new PluginConfiguration(new ConfigurationId(FACTORY1, "inst1"), 100, PluginState.ENABLED, 1L, JsonObjects.newJsonObject());
+        PluginConfiguration baseConf = PluginConfiguration.createGeneratingUuid(new ConfigurationId(FACTORY1, "inst1"), 100, PluginState.ENABLED, 1L, JsonObjects.newJsonObject());
         admin.putConfiguration(baseConf);
         admin.deleteConfiguration(baseConf.getId());
         assertTrue(admin.getRunningServices().isEmpty());

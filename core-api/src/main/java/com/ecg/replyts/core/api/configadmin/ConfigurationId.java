@@ -7,9 +7,16 @@ import javax.annotation.Nonnull;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * Uniquely identifies a plugin instance from a particular service factory.
- *
  * @author mhuttar
+ * <p>
+ * Refers to a particular {@link PluginConfiguration} in the set of filters a tenant configured.
+ * <p>
+ * The *tenant* identifies a {@link PluginConfiguration} by referring to the {@link ConfigurationId}. However, it can update
+ * the {@link PluginConfiguration} (e.g. change the json part of that config), while keeping the {@link ConfigurationId} stable
+ * over time. That is, the tenant has a mutable perspective on the {@link PluginConfiguration}s.
+ * <p>
+ * However, internally in Comaas, we consider configuration immutable. That means if a {@link PluginConfiguration} is
+ * updated, it will be a new thing, with a new UUID: See {@link PluginConfiguration#getUuid()}
  */
 public class ConfigurationId {
     private final String pluginFactory;

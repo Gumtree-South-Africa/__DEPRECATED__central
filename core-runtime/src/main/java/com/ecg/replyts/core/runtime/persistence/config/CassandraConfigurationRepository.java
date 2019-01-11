@@ -43,7 +43,7 @@ public class CassandraConfigurationRepository implements ConfigurationRepository
         this.writeConsistency = writeConsistency;
         this.preparedStatements = Statements.prepare(session);
     }
-
+    
     @Override
     public List<PluginConfiguration> getConfigurations() {
         return fetchConfigurations()
@@ -92,12 +92,13 @@ public class CassandraConfigurationRepository implements ConfigurationRepository
     }
 
     private Optional<Configurations> fetchAuditedConfiguration() {
-        Row row = session.execute(Statements.SELECT_CURRENT_INDEX.bind(this)).one();
-        if (row == null) {
+        Row rowWithCurrentConfig = session.execute(Statements.SELECT_CURRENT_INDEX.bind(this)).one();
+        if (rowWithCurrentConfig == null) {
             return Optional.empty();
         }
-        UUID logId = row.getUUID("log_id");
-        Statement stmt = Statements.SELECT_LOG_RECORD.bind(this, logId);
+        UUID logIdCurrentConfig = rowWithCurrentConfig.getUUID("log_id");
+
+        Statement stmt = Statements.SELECT_LOG_RECORD.bind(this, logIdCurrentConfig);
         return Optional.ofNullable(session.execute(stmt).one())
                 .map(r -> ConfigurationJsonSerializer.toDomain(r.getString("configuration")));
     }

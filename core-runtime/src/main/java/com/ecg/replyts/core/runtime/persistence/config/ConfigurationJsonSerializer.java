@@ -10,6 +10,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Lists;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 public abstract class ConfigurationJsonSerializer {
     public static String fromDomain(Configurations configurations) {
@@ -25,6 +27,7 @@ public abstract class ConfigurationJsonSerializer {
                     .attr("version", configurationObject.getTimestamp())
                     .attr("state", pluginConfiguration.getState().name())
                     .attr("timestamp", configurationObject.getTimestamp())
+                    .attr("uuid", configurationObject.getPluginConfiguration().getUuid().toString())
                     .build();
             configurationObjects.add(serializedConfig);
         }
@@ -47,6 +50,11 @@ public abstract class ConfigurationJsonSerializer {
 
     private static ConfigurationObject loadPluginConfiguration(JsonNode configNode) {
         ConfigurationId configId = extractConfigurationId(configNode);
+
+        UUID uuid = Optional.ofNullable(configNode.get("uuid"))
+                .map(id -> UUID.fromString(id.toString()))
+                .orElse(UUID.randomUUID()); // old data model did not have uuids in the db, so generate if absent
+
         String priority = configNode.get("priority").toString();
         String version = configNode.get("version").toString();
         String state = configNode.get("state").textValue();
@@ -55,7 +63,7 @@ public abstract class ConfigurationJsonSerializer {
         long pluginPriority = Long.parseLong(priority);
         PluginState pluginState = PluginState.valueOf(state);
         long configurationVersion = Long.parseLong(version);
-        PluginConfiguration pluginConfiguration = new PluginConfiguration(configId, pluginPriority, pluginState, configurationVersion, configuration);
+        PluginConfiguration pluginConfiguration = PluginConfiguration.create(uuid, configId, pluginPriority, pluginState, configurationVersion, configuration);
 
         return new ConfigurationObject(timestamp, pluginConfiguration);
     }
