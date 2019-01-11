@@ -52,7 +52,7 @@ public abstract class ConfigurationJsonSerializer {
         ConfigurationId configId = extractConfigurationId(configNode);
 
         UUID uuid = Optional.ofNullable(configNode.get("uuid"))
-                .map(id -> UUID.fromString(id.toString()))
+                .map(id -> UUID.fromString(id.textValue()))
                 .orElse(UUID.randomUUID()); // old data model did not have uuids in the db, so generate if absent
 
         String priority = configNode.get("priority").toString();
