@@ -35,7 +35,7 @@ public class ConfigurationAdmin<T> {
     private static final Logger LOG = LoggerFactory.getLogger(ConfigurationAdmin.class);
 
     @Autowired
-    RemoteFilterConfigurations remoteConfigs;
+    private RemoteFilterConfigurations remoteConfigs;
 
     @Autowired
     private ClusterRefreshPublisher clusterRefreshPublisher;
