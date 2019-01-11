@@ -18,14 +18,14 @@ public class ConfigApiJsonMapperTest {
     @Test
     public void properlyMapsModelToJson() {
         List<PluginConfiguration> configList = Collections.singletonList(
-                new PluginConfiguration(
+                PluginConfiguration.createGeneratingUuid(
                         new ConfigurationId("filterFactory", "fooinstance"),
                         222L, PluginState.ENABLED, 12L, JsonObjects.parse("{foo: 322}")
                 )
         );
 
         // execute SUT
-        ObjectNode listConfigurations = ConfigApiJsonMapper.Model.toJson(configList);
+        ObjectNode listConfigurations = ConfigApiJsonMapper.Model.toJsonPluginConfigurationList(configList);
 
         ArrayNode configs = (ArrayNode) listConfigurations.get("configs");
         ObjectNode firstConfig = (ObjectNode) configs.get(0);
