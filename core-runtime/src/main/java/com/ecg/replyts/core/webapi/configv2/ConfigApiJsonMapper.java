@@ -23,7 +23,7 @@ public class ConfigApiJsonMapper {
         /**
          * configurations as a json object
          */
-        public static ObjectNode toJsonPluginConfiguration(List<PluginConfiguration> configList) {
+        public static ObjectNode toJsonPluginConfigurationList(List<PluginConfiguration> configList) {
             ArrayNode arrayNode = JsonObjects.newJsonArray();
 
             configList.stream().forEach(pluginConf -> {

@@ -88,7 +88,7 @@ public class ConfigCrudController {
     @ResponseBody
     @RequestMapping(value = "/", method = RequestMethod.GET)
     public ObjectNode listConfigurations() {
-        return ConfigApiJsonMapper.Model.toJsonPluginConfiguration(configRepository.getConfigurations());
+        return ConfigApiJsonMapper.Model.toJsonPluginConfigurationList(configRepository.getConfigurations());
     }
 
     /**
