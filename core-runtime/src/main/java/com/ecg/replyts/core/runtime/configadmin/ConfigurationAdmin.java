@@ -11,12 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -34,8 +29,12 @@ import java.util.stream.Collectors;
 public class ConfigurationAdmin<T> {
     private static final Logger LOG = LoggerFactory.getLogger(ConfigurationAdmin.class);
 
-    @Autowired
-    private RemoteFilterConfigurations remoteConfigs;
+    /**
+     * This dependency is a filter-specific pollution here. Give it a default implementation, so all the non-Filter-oriented
+     * ConfigurationAdmin<NonFilter> instances (and their tests) don't need to provide/mock this.
+     */
+    @Autowired(required = false)
+    private RemoteFilterConfigurations remoteFilterConfigs = RemoteFilterConfigurations.createEmptyConfiguration();
 
     @Autowired
     private ClusterRefreshPublisher clusterRefreshPublisher;
@@ -93,7 +92,7 @@ public class ConfigurationAdmin<T> {
 
         Filter localFilter = (Filter) pluginInstance;
 
-        return (Optional<T>) remoteConfigs.getRemoteEndpoint(conf)
+        return (Optional<T>) remoteFilterConfigs.getRemoteEndpoint(conf)
                 .map(proxyEndpoint -> new RemoteFilter(conf, proxyEndpoint))
                 .map(remoteFilter -> FilterWithShadowComparison.create(localFilter, remoteFilter));
     }

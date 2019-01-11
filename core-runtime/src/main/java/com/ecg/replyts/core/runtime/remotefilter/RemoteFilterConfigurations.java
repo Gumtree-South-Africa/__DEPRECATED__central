@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 
 @Component
 public class RemoteFilterConfigurations {
+
     private final URL remoteEndpoint;
     private final Set<String> remotelyValidatedFilterTypes;
 
@@ -37,6 +38,10 @@ public class RemoteFilterConfigurations {
                 .collect(Collectors.toSet());
     }
 
+    public static RemoteFilterConfigurations createEmptyConfiguration() {
+        return new RemoteFilterConfigurations("", "");
+    }
+
     public Optional<URL> getRemoteEndpoint(PluginConfiguration pluginConf) {
         String factoryName = pluginConf.getId().getPluginFactory();
         if (remotelyValidatedFilterTypes.contains(factoryName)) {
@@ -44,6 +49,4 @@ public class RemoteFilterConfigurations {
         }
         return Optional.empty();
     }
-
-
 }
