@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 
 @Component
 public class RemoteFilterConfigurations {
-    private final URL remoteEndpoint;
+    private final URL remoteEndpoint; // may be null
     private final Set<String> remotelyValidatedFilterTypes;
 
     public RemoteFilterConfigurations(
