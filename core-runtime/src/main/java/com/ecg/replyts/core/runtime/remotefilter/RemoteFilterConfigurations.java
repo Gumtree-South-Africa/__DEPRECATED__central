@@ -1,6 +1,7 @@
 package com.ecg.replyts.core.runtime.remotefilter;
 
 import com.ecg.replyts.core.api.configadmin.PluginConfiguration;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -17,6 +18,7 @@ public class RemoteFilterConfigurations {
     private final URL remoteEndpoint; // may be null
     private final Set<String> remotelyValidatedFilterTypes;
 
+    @Autowired
     public RemoteFilterConfigurations(
             @Value("${comaas.filter.remote.factories:}") String csvListOfFactories,
             @Value("${comaas.filter.remote.endpoint:#{null}}") String remoteEndpoint
