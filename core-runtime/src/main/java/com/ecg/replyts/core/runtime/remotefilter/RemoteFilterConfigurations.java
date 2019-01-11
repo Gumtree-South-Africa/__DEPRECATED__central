@@ -15,23 +15,23 @@ import java.util.stream.Collectors;
 
 @Component
 public class RemoteFilterConfigurations {
-    private final URL remoteEndpoint; // may be null
+    private final URL remoteEndpoint; 
     private final Set<String> remotelyValidatedFilterTypes;
 
     @Autowired
     public RemoteFilterConfigurations(
             @Value("${comaas.filter.remote.factories:}") String csvListOfFactories,
-            @Value("${comaas.filter.remote.endpoint:#{null}}") String remoteEndpoint
+            @Value("${comaas.filter.remote.endpoint:}") String remoteEndpoint
     ) {
-        this.remoteEndpoint = Optional.ofNullable(remoteEndpoint)
-                .map(s -> {
-                    try {
-                        return URI.create(remoteEndpoint).toURL();
-                    } catch (MalformedURLException e) {
-                        throw new RuntimeException(e);
-                    }
-                })
-                .orElse(null);
+        if (remoteEndpoint.equals("")) {
+            this.remoteEndpoint = null;
+        } else {
+            try {
+                this.remoteEndpoint = URI.create(remoteEndpoint).toURL();
+            } catch (MalformedURLException e) {
+                throw new RuntimeException(e);
+            }
+        }
 
         remotelyValidatedFilterTypes = Arrays.stream(csvListOfFactories.split(","))
                 .collect(Collectors.toSet());
