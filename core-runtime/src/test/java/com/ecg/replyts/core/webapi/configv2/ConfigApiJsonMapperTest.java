@@ -18,7 +18,7 @@ public class ConfigApiJsonMapperTest {
     @Test
     public void properlyMapsModelToJson() {
         List<PluginConfiguration> configList = Collections.singletonList(
-                PluginConfiguration.createGeneratingUuid(
+                PluginConfiguration.createWithRandomUuid(
                         new ConfigurationId("filterFactory", "fooinstance"),
                         222L, PluginState.ENABLED, 12L, JsonObjects.parse("{foo: 322}")
                 )

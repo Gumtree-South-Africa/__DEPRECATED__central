@@ -109,7 +109,7 @@ public class RefresherTest {
     }
 
     private PluginConfiguration pluginConfiguration(String identifier, String instanceId, long version) {
-        return PluginConfiguration.createGeneratingUuid(new ConfigurationId(identifier, instanceId), 1l, PluginState.ENABLED, version, JsonObjects.newJsonObject());
+        return PluginConfiguration.createWithRandomUuid(new ConfigurationId(identifier, instanceId), 1l, PluginState.ENABLED, version, JsonObjects.newJsonObject());
     }
 
     @Configuration

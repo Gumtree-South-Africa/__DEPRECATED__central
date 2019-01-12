@@ -24,10 +24,9 @@ public class PluginConfiguration {
     }
 
     @Deprecated
-    public static PluginConfiguration createGeneratingUuid(ConfigurationId id, long priority, PluginState state, long version, JsonNode configuration) {
+    public static PluginConfiguration createWithRandomUuid(ConfigurationId id, long priority, PluginState state, long version, JsonNode configuration) {
         return new PluginConfiguration(UUID.randomUUID(), id, priority, state, version, configuration);
     }
-
 
     public static PluginConfiguration create(UUID uuid, ConfigurationId id, long priority, PluginState state, long version, JsonNode configuration) {
         return new PluginConfiguration(uuid, id, priority, state, version, configuration);
