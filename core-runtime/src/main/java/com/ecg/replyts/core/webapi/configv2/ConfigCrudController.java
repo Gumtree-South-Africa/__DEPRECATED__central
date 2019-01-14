@@ -129,7 +129,7 @@ public class ConfigCrudController {
 
     @ResponseBody
     @RequestMapping(value = "/", method = RequestMethod.PUT, consumes = "*/*")
-    public ObjectNode replaceConfigurations(HttpServletRequest request, @RequestBody ArrayNode body) throws Exception {
+    public ObjectNode replaceConfigurations(HttpServletRequest request, @RequestBody JsonNode body) throws Exception {
         List<PluginConfiguration> newConfigurations = ConfigApiJsonMapper.Json.toPluginConfigurationList(body);
 
         newConfigurations.stream().forEach(config -> {
@@ -142,7 +142,7 @@ public class ConfigCrudController {
 
         configUpdateNotifier.confirmConfigurationUpdate();
 
-        return JsonObjects.builder().attr("count", body.size()).success().build();
+        return JsonObjects.builder().attr("count", newConfigurations.size()).success().build();
     }
 
     @ResponseBody

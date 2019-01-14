@@ -12,6 +12,7 @@ import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 import static java.lang.String.format;
@@ -51,8 +52,27 @@ public class ConfigApiJsonMapper {
     }
 
     static class Json {
+        public static List<PluginConfiguration> toPluginConfigurationList(JsonNode body) throws Exception {
+            Objects.requireNonNull(body, "Need a non-null body");
+            switch (body.getNodeType()) {
+                case ARRAY: // do not remove this case: it's the protocol used by the tenants (different from output format!)
+                    return toPluginConfigurationListFromArray(body);
+                case OBJECT:
+                    return toPluginConfigurationListFromConfigObject(body);
+                default:
+                    throw new RuntimeException("Input body is of type " + body.getNodeType() + "; expected array");
+            }
+        }
 
-        public static List<PluginConfiguration> toPluginConfigurationList(ArrayNode body) throws Exception {
+        /**
+         * convenience case to allow parsing the output-format of the Model-to-JSON mapper, which is exposed to tenants.
+         */
+        public static List<PluginConfiguration> toPluginConfigurationListFromConfigObject(JsonNode body) throws Exception {
+            JsonNode config = Objects.requireNonNull(body.get("configs"), "No field '.configs'");
+            return toPluginConfigurationListFromArray(config);
+        }
+
+        public static List<PluginConfiguration> toPluginConfigurationListFromArray(JsonNode body) throws Exception {
             List<PluginConfiguration> pluginConfigurations = new ArrayList<>();
 
             for (JsonNode node : body) {
