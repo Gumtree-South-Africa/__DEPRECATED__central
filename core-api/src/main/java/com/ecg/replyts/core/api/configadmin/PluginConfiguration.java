@@ -32,10 +32,17 @@ public class PluginConfiguration {
         return new PluginConfiguration(uuid, id, priority, state, version, configuration);
     }
 
+    /**
+     * Get a unique id for this configuration, identifying the particular json subconfiguration. 
+     */
     public UUID getUuid() {
         return uuid;
     }
 
+    /**
+     * get the identifier for a particular part of a Trust & Safety pipeline as configured by the tenant; but note that the
+     * contents of this this element may change, while keeping the same id (see {@link ConfigurationId}).
+     */
     public ConfigurationId getId() {
         return id;
     }

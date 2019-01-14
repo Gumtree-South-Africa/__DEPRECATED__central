@@ -54,7 +54,7 @@ public abstract class ConfigurationJsonSerializer {
         UUID uuid = Optional.ofNullable(configNode.get("uuid"))
                 .map(id -> UUID.fromString(id.textValue()))
                 // old data model did not have uuids in the db, so generate if absent
-                // but here we are generating a new UUID every time it's fetched; these uuid's will later not be findable in the db! 
+                // but here we are generating a new UUID every time it's fetched; these uuid's will later not be findable in the db!
                 .orElse(UUID.randomUUID());
 
         String priority = configNode.get("priority").toString();

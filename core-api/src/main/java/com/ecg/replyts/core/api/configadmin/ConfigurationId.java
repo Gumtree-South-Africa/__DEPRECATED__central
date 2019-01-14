@@ -17,6 +17,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * <p>
  * However, internally in Comaas, we consider configuration immutable. That means if a {@link PluginConfiguration} is
  * updated, it will be a new thing, with a new UUID: See {@link PluginConfiguration#getUuid()}
+ *
+ * TODO: rename to ConfigurationLabel or ConfigurationElementLabel or something (when the COMAAS-1660 feature is fully done)
  */
 public class ConfigurationId {
     private final String pluginFactory;
