@@ -1,11 +1,9 @@
 package com.ecg.replyts.core.runtime.remotefilter;
 
-import com.ecg.comaas.filterapi.dto.FilterRequest;
 import com.ecg.comaas.filterapi.dto.FilterResponse;
 import com.ecg.replyts.core.api.configadmin.PluginConfiguration;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.vavr.control.Try;
 import okhttp3.*;
@@ -20,6 +18,7 @@ import java.util.concurrent.TimeUnit;
 
 public class RemoteFilter implements InterruptibleFilter {
     private static final Logger LOG = LoggerFactory.getLogger(RemoteFilter.class);
+    private static final ObjectMapper jsonMapper = new ObjectMapper();
 
     private static final Duration maxProcessingDuration = Duration.ofMillis(30000);
 
@@ -47,7 +46,7 @@ public class RemoteFilter implements InterruptibleFilter {
     public List<FilterFeedback> filter(MessageProcessingContext context) {
         Objects.requireNonNull(context);
         byte[] serializedRequestBody = Try.of(() -> FilterAPIMapper.FromModel.toFilterRequest(context, (int) maxProcessingDuration.toMillis()))
-                .mapTry(reqDTO -> JsonSerializer.om.writeValueAsBytes(reqDTO))
+                .mapTry(reqDTO -> jsonMapper.writeValueAsBytes(reqDTO))
                 .getOrElseThrow(e -> new RuntimeException("FilterRequest unserializable: that's a bug", e));
 
         Call call = client.newCall(
@@ -69,7 +68,7 @@ public class RemoteFilter implements InterruptibleFilter {
         switch (response.code()) {
             case 200:
                 return Try.of(() -> response.body().string())
-                        .mapTry(body -> JsonSerializer.om.readValue(body, FilterResponse.class))
+                        .mapTry(body -> jsonMapper.readValue(body, FilterResponse.class))
                         .flatMapTry(FilterAPIMapper.FromAPI::toFilterFeedback)
                         .getOrElseThrow(e -> {
                             throw new RuntimeException("Cannot process response", e);
@@ -82,19 +81,5 @@ public class RemoteFilter implements InterruptibleFilter {
                 throw new RuntimeException("Unexpected response: code=" + response.code() + ", url=" + endpointURL);
         }
     }
-
-
-    private static class JsonSerializer {
-        private static ObjectMapper om = new ObjectMapper();
-
-        public static byte[] serialize(FilterRequest o) {
-            try {
-                return om.writeValueAsBytes(o);
-            } catch (JsonProcessingException e) {
-                throw new RuntimeException("FilterRequest unserializable: that's a bug", e);
-            }
-        }
-    }
-
 
 }
