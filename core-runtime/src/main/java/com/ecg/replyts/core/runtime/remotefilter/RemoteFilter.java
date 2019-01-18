@@ -79,7 +79,8 @@ public class RemoteFilter implements InterruptibleFilter {
                         .ofCallable(() -> jsonMapper.readValue(responseBody, FilterResponse.class))
                         .flatMap(FilterAPIMapper.FromAPI::toFilterFeedback)
                         .getOrElseThrow(e -> new RuntimeException("cannot parse response body", e));
-            case 400:
+            case 400: // fall though
+            case 422:
                 throw new RuntimeException("Request failed: code=400 (bad request), url=" + endpointURL + ", body=" + responseBody);
             case 404:
                 throw new RuntimeException("Unknown filter: url=" + endpointURL);
