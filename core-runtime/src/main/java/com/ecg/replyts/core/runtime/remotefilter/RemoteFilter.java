@@ -65,21 +65,24 @@ public class RemoteFilter implements InterruptibleFilter {
                     return new RuntimeException("HTTP Call failed", ioExc);
                 });
 
+        String responseBody = Try.of(() -> response.body().string())
+                .andFinally(() -> response.close())
+                .getOrElseThrow(e -> {
+                    throw new RuntimeException("Cannot read response", e);
+                });
+
         switch (response.code()) {
             case 200:
-                return Try.of(() -> response.body().string())
-                        .mapTry(body -> jsonMapper.readValue(body, FilterResponse.class))
-                        .flatMapTry(FilterAPIMapper.FromAPI::toFilterFeedback)
-                        .getOrElseThrow(e -> {
-                            throw new RuntimeException("Cannot process response", e);
-                        });
+                return Try
+                        .ofCallable(() -> jsonMapper.readValue(responseBody, FilterResponse.class))
+                        .flatMap(FilterAPIMapper.FromAPI::toFilterFeedback)
+                        .getOrElseThrow(e -> new RuntimeException("cannot parse response body", e));
             case 400:
-                throw new RuntimeException("Request failed: code=400 (bad request), url=" + endpointURL + ", body=" + Try.of(() -> response.body().string()).get());
+                throw new RuntimeException("Request failed: code=400 (bad request), url=" + endpointURL + ", body=" + responseBody);
             case 404:
                 throw new RuntimeException("Unknown filter: url=" + endpointURL);
             default:
                 throw new RuntimeException("Unexpected response: code=" + response.code() + ", url=" + endpointURL);
         }
     }
-
 }
