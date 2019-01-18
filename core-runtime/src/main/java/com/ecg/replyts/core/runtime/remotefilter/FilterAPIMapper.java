@@ -2,6 +2,7 @@ package com.ecg.replyts.core.runtime.remotefilter;
 
 import com.ecg.comaas.filterapi.dto.FilterFeedback.ResultStateEnum;
 import com.ecg.comaas.filterapi.dto.FilterRequest;
+import com.ecg.comaas.filterapi.dto.FilterResponse;
 import com.ecg.replyts.core.api.model.conversation.ConversationRole;
 import com.ecg.replyts.core.api.model.conversation.FilterResultState;
 import com.ecg.replyts.core.api.model.conversation.Message;
@@ -10,12 +11,15 @@ import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import com.ecg.replyts.core.runtime.logging.MDCConstants;
 import io.vavr.control.Try;
+import org.joda.time.DateTime;
 import org.slf4j.MDC;
 
-import com.ecg.comaas.filterapi.dto.FilterResponse;
-
+import java.time.Instant;
+import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static java.time.ZoneOffset.UTC;
 
 // just a namespace for the mappers to and from the DTO
 public interface FilterAPIMapper {
@@ -46,7 +50,15 @@ public interface FilterAPIMapper {
                                     .senderUserId(toSenderUserId(ctx))
                                     .conversationId(ctx.getConversation().getId())
                                     .conversationMetadata(ctx.getConversation().getCustomValues())
+                                    .receivedTime(jodaToJavaDatetime(ctx.getMessage().getReceivedAt()))
                     );
+        }
+
+        private static OffsetDateTime jodaToJavaDatetime(DateTime jodaDateTime) {
+            return OffsetDateTime.ofInstant(
+                    Instant.ofEpochMilli(jodaDateTime.getMillis()),
+                    jodaDateTime.getZone().toTimeZone().toZoneId()
+            );
         }
     }
 
@@ -60,7 +72,7 @@ public interface FilterAPIMapper {
             resultStates.put(ResultStateEnum.ACCEPT_AND_TERMINATE, FilterResultState.ACCEPT_AND_TERMINATE);
         }
 
-        public static FilterResultState toModelResultState(ResultStateEnum dto){
+        public static FilterResultState toModelResultState(ResultStateEnum dto) {
             return resultStates.get(dto);
         }
 

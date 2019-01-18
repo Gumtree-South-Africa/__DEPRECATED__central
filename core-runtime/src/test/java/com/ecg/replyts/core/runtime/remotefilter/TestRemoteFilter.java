@@ -83,10 +83,10 @@ public class TestRemoteFilter {
     }
 
     @Test
-    public void remoteFilterResponds() throws MalformedURLException {
+    public void remoteFilterResponds() {
         startMockEndpoint(Duration.ofMillis(0));
 
-        RemoteFilter remoteFilter = new RemoteFilter(null, endpointURL);
+        RemoteFilter remoteFilter = new RemoteFilter(endpointURL);
 
         List<FilterFeedback> actualResult = remoteFilter.filter(CtxMocker.createMinimallyMockedContext());
 
@@ -99,7 +99,7 @@ public class TestRemoteFilter {
     public void remoteFilterIsInterruptible() {
         startMockEndpoint(Duration.ofMillis(10000)); // a slow response, which we will interrupt
 
-        RemoteFilter remoteFilter = new RemoteFilter(null, endpointURL);
+        RemoteFilter remoteFilter = new RemoteFilter(endpointURL);
         MultiThreadingTestUtil.assertThatCallableIsInterruptible(
                 () -> remoteFilter.filter(CtxMocker.createMinimallyMockedContext()),
                 InterruptibleFilter::isFilterInterruptException,

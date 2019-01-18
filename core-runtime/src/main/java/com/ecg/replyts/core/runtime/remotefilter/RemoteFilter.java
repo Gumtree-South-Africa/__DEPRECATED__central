@@ -36,10 +36,7 @@ public class RemoteFilter implements InterruptibleFilter {
 
     private final URL endpointURL;
 
-    public RemoteFilter(PluginConfiguration conf, URL endpointURL) {
-        // see https://github.corp.ebay.com/ecg-comaas/central/pull/791/files
-        // for parsing processing timeout of reference filter?
-
+    public RemoteFilter(URL endpointURL) {
         this.endpointURL = endpointURL;
     }
 

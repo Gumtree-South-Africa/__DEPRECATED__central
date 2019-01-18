@@ -3,10 +3,12 @@ package com.ecg.replyts.core.runtime.remotefilter;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.Filter;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
+import com.ecg.replyts.core.runtime.logging.MDCConstants;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.vavr.control.Try;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 
 import java.time.Duration;
 import java.util.List;
@@ -53,7 +55,14 @@ public class FilterWithShadowComparison implements Filter {
     @Override
     public List<FilterFeedback> filter(MessageProcessingContext context) {
         Future<List<FilterFeedback>> testFuture = this.remoteFilterExecutorService.submit(
-                () -> this.underTest.filter(context)
+                () -> {
+                    try {
+                        MDCConstants.setContextFields(context);
+                        return this.underTest.filter(context);
+                    } finally {
+                        MDC.clear();
+                    }
+                }
         );
 
         /* We block indefinitely, even if the authoritative filter blocks forever (and we know it might).

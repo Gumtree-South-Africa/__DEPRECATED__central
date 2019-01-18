@@ -93,7 +93,7 @@ public class ConfigurationAdmin<T> {
         Filter localFilter = (Filter) pluginInstance;
 
         return (Optional<T>) remoteFilterConfigs.getRemoteEndpoint(conf)
-                .map(proxyEndpoint -> new RemoteFilter(conf, proxyEndpoint))
+                .map(RemoteFilter::new)
                 .map(remoteFilter -> FilterWithShadowComparison.create(localFilter, remoteFilter));
     }
 
