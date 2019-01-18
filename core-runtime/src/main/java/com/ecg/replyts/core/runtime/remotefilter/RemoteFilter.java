@@ -65,6 +65,8 @@ public class RemoteFilter implements InterruptibleFilter {
                     return new RuntimeException("HTTP Call failed", ioExc);
                 });
 
+        LOG.info("Received {} from {}", response.code(), endpointURL);
+
         String responseBody = Try.of(() -> response.body().string())
                 .andFinally(() -> response.close())
                 .getOrElseThrow(e -> {

@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import javax.ws.rs.core.UriBuilder;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
@@ -16,7 +17,7 @@ import java.util.stream.Collectors;
 @Component
 public class RemoteFilterConfigurations {
 
-    private final URL remoteEndpoint;
+    private final URI remoteBaseEndpoint;
     private final Set<String> remotelyValidatedFilterTypes;
 
     @Autowired
@@ -25,10 +26,13 @@ public class RemoteFilterConfigurations {
             @Value("${comaas.filter.remote.endpoint:}") String remoteEndpoint
     ) {
         if (remoteEndpoint.equals("")) {
-            this.remoteEndpoint = null;
+            this.remoteBaseEndpoint = null;
         } else {
+            this.remoteBaseEndpoint = URI.create(remoteEndpoint);
+
+            // check early to see if it is a url
             try {
-                this.remoteEndpoint = URI.create(remoteEndpoint).toURL();
+                URI.create(remoteEndpoint).toURL();
             } catch (MalformedURLException e) {
                 throw new RuntimeException(e);
             }
@@ -45,7 +49,14 @@ public class RemoteFilterConfigurations {
     public Optional<URL> getRemoteEndpoint(PluginConfiguration pluginConf) {
         String factoryName = pluginConf.getId().getPluginFactory();
         if (remotelyValidatedFilterTypes.contains(factoryName)) {
-            return Optional.ofNullable(remoteEndpoint);
+            URI endpoint = UriBuilder.fromUri(remoteBaseEndpoint)
+                    .path(pluginConf.getUuid().toString())
+                    .build();
+            try {
+                return Optional.ofNullable(endpoint.toURL());
+            } catch (MalformedURLException e) {
+                new RuntimeException("Failed to convert URI to URL. This is a bug: should have been prevented with earlier validation.");
+            }
         }
         return Optional.empty();
     }
