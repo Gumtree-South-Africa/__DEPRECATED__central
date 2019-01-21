@@ -9,22 +9,36 @@ import com.ecg.replyts.core.api.model.conversation.Message;
 import com.ecg.replyts.core.api.model.mail.Mail;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
-import com.ecg.replyts.core.runtime.logging.MDCConstants;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.vavr.control.Try;
 import org.joda.time.DateTime;
-import org.slf4j.MDC;
 
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static java.time.ZoneOffset.UTC;
-
 // just a namespace for the mappers to and from the DTO
 public interface FilterAPIMapper {
 
+    /**
+     * returns serializer that does it's job properly (also with date fields)
+     */
+    static ObjectMapper getSerializer() {
+        return FilterAPIMapper.FromModel.objectMapper;
+    }
+
     class FromModel {
+        private static final ObjectMapper objectMapper;
+
+        static {
+            objectMapper = new ObjectMapper();
+            objectMapper.registerModule(new JavaTimeModule());
+            objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        }
+
 
         public static String toSenderUserId(MessageProcessingContext ctx) {
             Message message = ctx.getMessage();
@@ -32,13 +46,13 @@ public interface FilterAPIMapper {
             return ctx.getConversation().getUserId(fromRole);
         }
 
-        public static FilterRequest toFilterRequest(MessageProcessingContext ctx, int maxProcessingDurationMillis) {
+        public static FilterRequest toFilterRequest(MessageProcessingContext ctx, String correlationId, int maxProcessingDurationMillis) {
             Objects.requireNonNull(ctx);
 
             Message msgIn = ctx.getMessage();
 
             return new FilterRequest()
-                    .correlationId(MDC.get(MDCConstants.CORRELATION_ID))
+                    .correlationId(correlationId)
                     .maxProcessingDurationMs(maxProcessingDurationMillis)
                     .message(
                             new com.ecg.comaas.filterapi.dto.Message()

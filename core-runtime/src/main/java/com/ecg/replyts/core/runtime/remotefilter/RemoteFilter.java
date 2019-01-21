@@ -1,14 +1,15 @@
 package com.ecg.replyts.core.runtime.remotefilter;
 
 import com.ecg.comaas.filterapi.dto.FilterResponse;
-import com.ecg.replyts.core.api.configadmin.PluginConfiguration;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFeedback;
 import com.ecg.replyts.core.api.processing.MessageProcessingContext;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ecg.replyts.core.runtime.cluster.XidFactory;
+import com.ecg.replyts.core.runtime.logging.MDCConstants;
 import io.vavr.control.Try;
 import okhttp3.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 
 import java.net.URL;
 import java.time.Duration;
@@ -18,7 +19,6 @@ import java.util.concurrent.TimeUnit;
 
 public class RemoteFilter implements InterruptibleFilter {
     private static final Logger LOG = LoggerFactory.getLogger(RemoteFilter.class);
-    private static final ObjectMapper jsonMapper = new ObjectMapper();
 
     private static final Duration maxProcessingDuration = Duration.ofMillis(30000);
 
@@ -36,14 +36,31 @@ public class RemoteFilter implements InterruptibleFilter {
 
     private final URL endpointURL;
 
-    public RemoteFilter(URL endpointURL) {
+
+    private RemoteFilter(URL endpointURL) {
         this.endpointURL = endpointURL;
+    }
+
+    public static RemoteFilter create(URL endpointURL) {
+        return new RemoteFilter(endpointURL);
+    }
+
+    // We assume this was set externally; the filter interface doesn't allow us to do this differently.
+    // But we are defensive here, creating it if it's not set (e.g. in tests)
+    private static final String getOrCreateCorrelationId() {
+        String cid = MDC.get(MDCConstants.CORRELATION_ID);
+        if (cid == null) {
+            cid = XidFactory.nextXid();
+            MDC.put(MDCConstants.CORRELATION_ID, cid);
+        }
+        return cid;
     }
 
     public List<FilterFeedback> filter(MessageProcessingContext context) {
         Objects.requireNonNull(context);
-        byte[] serializedRequestBody = Try.of(() -> FilterAPIMapper.FromModel.toFilterRequest(context, (int) maxProcessingDuration.toMillis()))
-                .mapTry(reqDTO -> jsonMapper.writeValueAsBytes(reqDTO))
+
+        byte[] serializedRequestBody = Try.of(() -> FilterAPIMapper.FromModel.toFilterRequest(context, getOrCreateCorrelationId(), (int) maxProcessingDuration.toMillis()))
+                .mapTry(FilterAPIMapper.getSerializer()::writeValueAsBytes)
                 .getOrElseThrow(e -> new RuntimeException("FilterRequest unserializable: that's a bug", e));
 
         Call call = client.newCall(
@@ -53,7 +70,7 @@ public class RemoteFilter implements InterruptibleFilter {
                         .build()
         );
 
-        Response response = Try.of(() -> call.execute())
+        Response response = Try.of(call::execute)
                 .getOrElseThrow(ioExc -> {
                     if (ioExc instanceof java.io.InterruptedIOException) {
                         // satisfy InterruptibleFilter contract
@@ -64,8 +81,8 @@ public class RemoteFilter implements InterruptibleFilter {
 
         LOG.info("Received {} from {}", response.code(), endpointURL);
 
-        String responseBody = Try.of(() -> response.body().string())
-                .andFinally(() -> response.close())
+        String responseBody = Try.of(response.body()::string)
+                .andFinally(response::close)
                 .getOrElseThrow(e -> {
                     throw new RuntimeException("Cannot read response", e);
                 });
@@ -73,7 +90,7 @@ public class RemoteFilter implements InterruptibleFilter {
         switch (response.code()) {
             case 200:
                 return Try
-                        .ofCallable(() -> jsonMapper.readValue(responseBody, FilterResponse.class))
+                        .ofCallable(() -> FilterAPIMapper.getSerializer().readValue(responseBody, FilterResponse.class))
                         .flatMap(FilterAPIMapper.FromAPI::toFilterFeedback)
                         .getOrElseThrow(e -> new RuntimeException("cannot parse response body", e));
             case 400: // fall though
@@ -85,4 +102,5 @@ public class RemoteFilter implements InterruptibleFilter {
                 throw new RuntimeException("Unexpected response: code=" + response.code() + ", url=" + endpointURL);
         }
     }
+
 }

@@ -7,8 +7,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
 
-import static junit.framework.TestCase.assertTrue;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 
 public class MultiThreadingTestUtil {
@@ -32,10 +30,10 @@ public class MultiThreadingTestUtil {
         AtomicBoolean wasInterrupted = new AtomicBoolean(false);
 
         // cannot Junit.fail() in a subthread, so make it set failure msg instead
-        AtomicReference<String> failure = new AtomicReference<String>("thread was never started");
+        AtomicReference<RuntimeException> failure = new AtomicReference(new RuntimeException("thread was never started"));
 
         Thread t = new Thread(() -> {
-            failure.set("Thread is still running");
+            failure.set(new RuntimeException("Thread is still running"));
             threadStarted.countDown();
             try {
                 runnable.call();
@@ -46,12 +44,12 @@ public class MultiThreadingTestUtil {
                     wasInterrupted.set(true);
                     return;
                 }
-                failure.set("InterruptibleFilter threw a " + e.getClass() + ", but that doesn't signal an Interrupted exception according to the contract");
+                failure.set(new RuntimeException("InterruptibleFilter threw a " + e.getClass() + ", but that doesn't signal an Interrupted exception according to the contract", e));
                 return;
             }
 
             // not good! should have thrown an exception
-            failure.set("Filter finished succesfully, but should have been interrupted within response delay");
+            failure.set(new RuntimeException("Filter finished succesfully, but should have been interrupted within response delay"));
         });
 
         t.start();
@@ -70,8 +68,14 @@ public class MultiThreadingTestUtil {
             fail("main thread should not be interrupted");
         }
 
-        // validate that interrupt was received
-        assertNull("failure! ", failure.get());
-        assertTrue("interrupt signal was received", wasInterrupted.get()); // redundant (failure == null) but explicit
+        // validate that interrupt was received in the other thread
+
+        if (failure.get() != null) {
+            throw failure.get();
+        }
+
+        if (!wasInterrupted.get()) { // redundant (failure == null) but explicit
+            throw new RuntimeException("No interrupt signal was received");
+        }
     }
 }
