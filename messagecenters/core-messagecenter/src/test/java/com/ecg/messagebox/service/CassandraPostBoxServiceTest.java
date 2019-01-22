@@ -3,7 +3,7 @@ package com.ecg.messagebox.service;
 import com.datastax.driver.core.utils.UUIDs;
 import com.ecg.messagebox.events.MessageAddedEventProcessor;
 import com.ecg.messagebox.model.*;
-import com.ecg.messagebox.persistence.CassandraPostBoxRepository;
+import com.ecg.messagebox.persistence.CassandraMessageBoxRepository;
 import com.ecg.messagebox.util.MessagePreProcessor;
 import com.ecg.messagebox.util.messages.DefaultMessagesResponseFactory;
 import com.ecg.replyts.core.api.model.conversation.*;
@@ -93,7 +93,7 @@ public class CassandraPostBoxServiceTest {
     private static final UserUnreadCounts UNREAD_COUNTS = new UserUnreadCounts(USER_ID_1, 2, 5);
 
     @Mock
-    private CassandraPostBoxRepository postBoxRepo;
+    private CassandraMessageBoxRepository postBoxRepo;
     @Mock
     private UserIdentifierService userIdentifierService;
     @Mock

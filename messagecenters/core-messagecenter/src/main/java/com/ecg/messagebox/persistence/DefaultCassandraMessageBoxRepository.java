@@ -44,9 +44,9 @@ import static java.util.Optional.of;
 import static java.util.stream.Collectors.toList;
 
 @Component
-public class DefaultCassandraPostBoxRepository implements CassandraPostBoxRepository {
+public class DefaultCassandraMessageBoxRepository implements CassandraMessageBoxRepository {
 
-    private static final Logger LOG = LoggerFactory.getLogger(DefaultCassandraPostBoxRepository.class);
+    private static final Logger LOG = LoggerFactory.getLogger(DefaultCassandraMessageBoxRepository.class);
 
     static final Comparator<ConversationThread> CONVERSATION_THREAD_COMPARATOR = comparing(
         ConversationThread::getLatestMessage,
@@ -61,7 +61,7 @@ public class DefaultCassandraPostBoxRepository implements CassandraPostBoxReposi
     private final CassandraTemplate cassandraTemplate;
 
     @Autowired
-    public DefaultCassandraPostBoxRepository(CassandraTemplate cassandraTemplate) {
+    public DefaultCassandraMessageBoxRepository(CassandraTemplate cassandraTemplate) {
         this.cassandraTemplate = cassandraTemplate;
     }
 

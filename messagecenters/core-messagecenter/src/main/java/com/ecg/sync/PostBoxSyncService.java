@@ -6,7 +6,7 @@ import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Session;
 import com.ecg.messagecenter.core.persistence.AbstractConversationThread;
 import com.ecg.messagecenter.core.persistence.simple.PostBoxId;
-import com.ecg.messagecenter.core.persistence.simple.SimplePostBoxRepository;
+import com.ecg.messagecenter.core.persistence.simple.SimpleMessageCenterRepository;
 import com.ecg.replyts.core.api.model.conversation.MutableConversation;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
 import com.ecg.replyts.core.runtime.TimingReports;
@@ -31,14 +31,14 @@ public class PostBoxSyncService {
     private final ConversationRepository conversationRepository;
     private final UserIdentifierService userIdentifierService;
     private final Session session;
-    private final SimplePostBoxRepository postBoxRepository;
+    private final SimpleMessageCenterRepository postBoxRepository;
     private final PreparedStatement conversationStatement;
 
     public PostBoxSyncService(
             ConversationRepository conversationRepository,
             UserIdentifierService userIdentifierService,
             Session session,
-            SimplePostBoxRepository postBoxRepository
+            SimpleMessageCenterRepository postBoxRepository
     ) {
         this.conversationRepository = conversationRepository;
         this.userIdentifierService = userIdentifierService;

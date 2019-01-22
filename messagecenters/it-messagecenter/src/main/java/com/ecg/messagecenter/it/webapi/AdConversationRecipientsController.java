@@ -2,7 +2,7 @@ package com.ecg.messagecenter.it.webapi;
 
 import com.ecg.messagecenter.core.persistence.simple.PostBox;
 import com.ecg.messagecenter.core.persistence.simple.PostBoxId;
-import com.ecg.messagecenter.core.persistence.simple.SimplePostBoxRepository;
+import com.ecg.messagecenter.core.persistence.simple.SimpleMessageCenterRepository;
 import com.ecg.messagecenter.it.persistence.ConversationThread;
 import com.ecg.messagecenter.it.webapi.requests.MessageCenterGetAdConversationRecipientsCommand;
 import com.ecg.messagecenter.it.webapi.responses.AdConversationRecipientListResponse;
@@ -40,12 +40,12 @@ import java.util.List;
     private static final Logger LOGGER =
                     LoggerFactory.getLogger(AdConversationRecipientsController.class);
 
-    private final SimplePostBoxRepository postBoxRepository;
+    private final SimpleMessageCenterRepository postBoxRepository;
     private final ConversationRepository conversationRepository;
 
     @Autowired
     public AdConversationRecipientsController(ConversationRepository conversationRepository,
-                                              SimplePostBoxRepository postBoxRepository) {
+                                              SimpleMessageCenterRepository postBoxRepository) {
 
         this.conversationRepository = conversationRepository;
         this.postBoxRepository = postBoxRepository;

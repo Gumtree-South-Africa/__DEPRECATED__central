@@ -3,7 +3,7 @@ package com.ecg.messagecenter.bt.persistence;
 import com.ecg.messagecenter.bt.util.MessagesDiffer;
 import com.ecg.messagecenter.bt.util.MessagesResponseFactory;
 import com.ecg.messagecenter.core.persistence.simple.AbstractSimplePostBoxInitializer;
-import com.ecg.messagecenter.core.persistence.simple.SimplePostBoxRepository;
+import com.ecg.messagecenter.core.persistence.simple.SimpleMessageCenterRepository;
 import com.ecg.messagecenter.core.util.MessageCenterUtils;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.ConversationRole;
@@ -31,7 +31,7 @@ public class PostBoxInitializer extends AbstractSimplePostBoxInitializer<Convers
     private MessagesResponseFactory messageResponseFactory = new MessagesResponseFactory(new MessagesDiffer());
 
     @Autowired
-    public PostBoxInitializer(SimplePostBoxRepository postBoxRepository) {
+    public PostBoxInitializer(SimpleMessageCenterRepository postBoxRepository) {
         super(postBoxRepository);
     }
 

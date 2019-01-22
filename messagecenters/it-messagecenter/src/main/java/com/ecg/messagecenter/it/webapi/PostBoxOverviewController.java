@@ -2,7 +2,7 @@ package com.ecg.messagecenter.it.webapi;
 
 import com.ecg.messagecenter.core.persistence.simple.PostBox;
 import com.ecg.messagecenter.core.persistence.simple.PostBoxId;
-import com.ecg.messagecenter.core.persistence.simple.SimplePostBoxRepository;
+import com.ecg.messagecenter.core.persistence.simple.SimpleMessageCenterRepository;
 import com.ecg.messagecenter.core.webapi.requests.MessageCenterDeletePostBoxConversationCommandNew;
 import com.ecg.messagecenter.core.webapi.requests.MessageCenterGetPostBoxCommand;
 import com.ecg.messagecenter.it.persistence.ConversationThread;
@@ -37,11 +37,11 @@ import java.util.Arrays;
 @Controller class PostBoxOverviewController {
     private static final Logger LOG = LoggerFactory.getLogger(PostBoxOverviewController.class);
 
-    private final SimplePostBoxRepository postBoxRepository;
+    private final SimpleMessageCenterRepository postBoxRepository;
     private final PostBoxResponseBuilder responseBuilder;
 
     @Autowired public PostBoxOverviewController(ConversationRepository conversationRepository,
-                                                SimplePostBoxRepository postBoxRepository) {
+                                                SimpleMessageCenterRepository postBoxRepository) {
         this.postBoxRepository = postBoxRepository;
         this.responseBuilder = new PostBoxResponseBuilder(conversationRepository);
     }

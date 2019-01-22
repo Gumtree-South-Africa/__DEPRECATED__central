@@ -3,7 +3,7 @@ package com.ecg.messagecenter.gtau.diff;
 import com.ecg.messagecenter.core.persistence.AbstractConversationThread;
 import com.ecg.messagecenter.core.persistence.simple.PostBox;
 import com.ecg.messagecenter.core.persistence.simple.PostBoxId;
-import com.ecg.messagecenter.core.persistence.simple.SimplePostBoxRepository;
+import com.ecg.messagecenter.core.persistence.simple.SimpleMessageCenterRepository;
 import com.ecg.messagecenter.gtau.persistence.ConversationThread;
 import com.ecg.messagecenter.gtau.webapi.responses.PostBoxSingleConversationThreadResponse;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
@@ -29,10 +29,10 @@ public class ConversationThreadService {
     private static final Logger LOG = LoggerFactory.getLogger(ConversationThreadService.class);
 
     private final ConversationRepository conversationRepository;
-    private final SimplePostBoxRepository postBoxRepository;
+    private final SimpleMessageCenterRepository postBoxRepository;
 
     @Autowired
-    public ConversationThreadService(ConversationRepository conversationRepository, SimplePostBoxRepository postBoxRepository) {
+    public ConversationThreadService(ConversationRepository conversationRepository, SimpleMessageCenterRepository postBoxRepository) {
         this.conversationRepository = conversationRepository;
         this.postBoxRepository = postBoxRepository;
     }

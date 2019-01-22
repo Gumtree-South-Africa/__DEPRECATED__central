@@ -7,7 +7,7 @@ import com.ecg.messagecenter.core.cleanup.kjca.TextCleaner;
 import com.ecg.messagecenter.core.persistence.AbstractConversationThread;
 import com.ecg.messagecenter.core.persistence.simple.PostBox;
 import com.ecg.messagecenter.core.persistence.simple.PostBoxId;
-import com.ecg.messagecenter.core.persistence.simple.SimplePostBoxRepository;
+import com.ecg.messagecenter.core.persistence.simple.SimpleMessageCenterRepository;
 import com.ecg.messagecenter.kjca.capi.AdInfoLookup;
 import com.ecg.messagecenter.kjca.capi.UserInfoLookup;
 import com.ecg.messagecenter.kjca.persistence.SimplePostBoxInitializer;
@@ -32,7 +32,7 @@ public class PushMessageOnUnreadConversationCallback implements SimplePostBoxIni
     private static final Locale DEFAULT_LOCALE = Locale.CANADA;
     private static final Pattern DISPLAY_NAME_REMOVE_QUOTES = Pattern.compile("^\"([^\"]+)\"$");
 
-    private final SimplePostBoxRepository postBoxRepository;
+    private final SimpleMessageCenterRepository messageCenterRepository;
     private final PushService sendPushService;
     private final TextAnonymizer textAnonymizer;
     private final AdInfoLookup adInfoLookup;
@@ -41,14 +41,14 @@ public class PushMessageOnUnreadConversationCallback implements SimplePostBoxIni
     private final Message message;
 
     public PushMessageOnUnreadConversationCallback(
-            SimplePostBoxRepository postBoxRepository,
+            SimpleMessageCenterRepository messageCenterRepository,
             PushService sendPushService,
             TextAnonymizer textAnonymizer,
             AdInfoLookup adInfoLookup,
             UserInfoLookup userInfoLookup,
             Conversation conversation,
             Message message) {
-        this.postBoxRepository = postBoxRepository;
+        this.messageCenterRepository = messageCenterRepository;
         this.sendPushService = sendPushService;
         this.textAnonymizer = textAnonymizer;
         this.adInfoLookup = adInfoLookup;
@@ -120,7 +120,7 @@ public class PushMessageOnUnreadConversationCallback implements SimplePostBoxIni
     }
 
     private int getUnreadConversationCount(String email) {
-        final PostBox<AbstractConversationThread> postBox = postBoxRepository.byId(PostBoxId.fromEmail(email));
+        final PostBox<AbstractConversationThread> postBox = messageCenterRepository.byId(PostBoxId.fromEmail(email));
         return postBox.getUnreadConversations().size();
     }
 

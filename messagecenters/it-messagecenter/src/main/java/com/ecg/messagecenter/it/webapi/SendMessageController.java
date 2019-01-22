@@ -3,7 +3,7 @@ package com.ecg.messagecenter.it.webapi;
 import com.datastax.driver.core.utils.UUIDs;
 import com.ecg.messagecenter.core.persistence.simple.PostBox;
 import com.ecg.messagecenter.core.persistence.simple.PostBoxId;
-import com.ecg.messagecenter.core.persistence.simple.SimplePostBoxRepository;
+import com.ecg.messagecenter.core.persistence.simple.SimpleMessageCenterRepository;
 import com.ecg.messagecenter.it.chat.Template;
 import com.ecg.messagecenter.it.persistence.ConversationThread;
 import com.ecg.messagecenter.it.util.AdUtil;
@@ -50,13 +50,13 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
     private final String adIdPrefix;
     private MessageProcessingCoordinator coordinator;
     private ConversationRepository conversationRepository;
-    private SimplePostBoxRepository postBoxRepository;
+    private SimpleMessageCenterRepository postBoxRepository;
     private MailCloakingService mailCloakingService;
 
     @Autowired public SendMessageController(MessageProcessingCoordinator coordinator,
                                             ConversationRepository conversationRepository,
                                             Template template,
-                                            SimplePostBoxRepository postBoxRepository,
+                                            SimpleMessageCenterRepository postBoxRepository,
                                             MailCloakingService mailCloakingService,
                                             @Value("${api.adIdPrefix:}") String adIdPrefix) {
         this.coordinator = coordinator;

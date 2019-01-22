@@ -35,7 +35,7 @@ import static org.junit.Assert.*;
 public class CassandraSimplePostBoxRepositoryIntegrationTest {
 
     @Autowired
-    private SimplePostBoxRepository postBoxRepository;
+    private SimpleMessageCenterRepository postBoxRepository;
 
     @Test
     public void persistsPostbox() {
@@ -352,7 +352,7 @@ public class CassandraSimplePostBoxRepositoryIntegrationTest {
         String email = "foo@bar.com";
         AbstractConversationThread convThread = createConversationThread(now(), "123");
 
-        ((CassandraSimplePostBoxRepository) postBoxRepository).writeThread(PostBoxId.fromEmail(email), convThread);
+        ((CassandraSimpleMessageCenterRepository) postBoxRepository).writeThread(PostBoxId.fromEmail(email), convThread);
 
         PostBox box = new PostBox<>(email, Optional.empty(), Collections.singletonList(convThread));
         assertEquals("PostBox's conversationThread is updated", box, postBoxRepository.byId(PostBoxId.fromEmail(email)));
@@ -364,10 +364,10 @@ public class CassandraSimplePostBoxRepositoryIntegrationTest {
         AbstractConversationThread convThread = createConversationThread(now(), "123");
         PostBoxId postBoxId = PostBoxId.fromEmail(email);
 
-        ((CassandraSimplePostBoxRepository) postBoxRepository).writeThread(postBoxId, convThread);
+        ((CassandraSimpleMessageCenterRepository) postBoxRepository).writeThread(postBoxId, convThread);
         postBoxRepository.upsertThread(postBoxId, convThread, true);
         postBoxRepository.upsertThread(postBoxId, convThread, true);
-        ((CassandraSimplePostBoxRepository) postBoxRepository).writeThread(postBoxId, convThread);
+        ((CassandraSimpleMessageCenterRepository) postBoxRepository).writeThread(postBoxId, convThread);
 
         assertEquals("Conversation thread should contain 2 unread messages", 2, postBoxRepository.unreadCountInConversation(postBoxId, convThread.getConversationId()));
     }
@@ -392,7 +392,7 @@ public class CassandraSimplePostBoxRepositoryIntegrationTest {
     }
     @Configuration
     @Import({
-      CassandraSimplePostBoxConfiguration.class
+      CassandraSimpleMessageCenterRepositoryConfiguration.class
     })
     static class TestContext {
 

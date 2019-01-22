@@ -4,7 +4,7 @@ import com.codahale.metrics.Counter;
 import com.codahale.metrics.Timer;
 import com.ecg.comaas.events.Conversation;
 import com.ecg.messagebox.model.Participant;
-import com.ecg.messagebox.persistence.CassandraPostBoxRepository;
+import com.ecg.messagebox.persistence.CassandraMessageBoxRepository;
 import com.ecg.replyts.core.runtime.MetricsService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,11 +32,11 @@ class ConsumerService {
     private static final Counter CONVERSATION_VISIBILITY_CHANGED_TOTAL_COUNTER = METRICS.counter("conversation_visibility_changed_total");
     private static final Counter CONVERSATION_VISIBILITY_CHANGED_FAILED_COUNTER = METRICS.counter("conversation_visibility_changed_failed");
 
-    private final CassandraPostBoxRepository postBoxRepository;
+    private final CassandraMessageBoxRepository messageBoxRepository;
     private final String tenantShort;
 
-    ConsumerService(CassandraPostBoxRepository postBoxRepository, String tenantShort) {
-        this.postBoxRepository = postBoxRepository;
+    ConsumerService(CassandraMessageBoxRepository messageBoxRepository, String tenantShort) {
+        this.messageBoxRepository = messageBoxRepository;
         this.tenantShort = tenantShort;
     }
 
@@ -62,16 +62,16 @@ class ConsumerService {
                 Conversation.ConversationActivated conversationActivated = envelope.getConversationActivated();
                 String userId = conversationActivated.getUserId();
                 LOG.debug("Change visibility event: 'ACTIVATED'", kv("user_id", userId));
-                postBoxRepository.activateConversations(userId,
-                        postBoxRepository.getConversationAdIdsMap(userId, Collections.singletonList(envelope.getConversationId())));
+                messageBoxRepository.activateConversations(userId,
+                        messageBoxRepository.getConversationAdIdsMap(userId, Collections.singletonList(envelope.getConversationId())));
                 successfullyProcessed = true;
             } else if (envelope.hasConversationArchived()) {
                 CONVERSATION_VISIBILITY_CHANGED_TOTAL_COUNTER.inc();
                 Conversation.ConversationArchived conversationArchived = envelope.getConversationArchived();
                 String userId = conversationArchived.getUserId();
                 LOG.debug("Change visibility event: 'ACTIVATED'", kv("user_id", userId));
-                postBoxRepository.archiveConversations(userId,
-                        postBoxRepository.getConversationAdIdsMap(userId, Collections.singletonList(envelope.getConversationId())));
+                messageBoxRepository.archiveConversations(userId,
+                        messageBoxRepository.getConversationAdIdsMap(userId, Collections.singletonList(envelope.getConversationId())));
                 successfullyProcessed = true;
             } else {
                 UNKNOWN_EVENT_COUNTER.inc();
@@ -96,12 +96,12 @@ class ConsumerService {
     }
 
     private void markConversationAsRead(Conversation.Envelope envelope, String userId) {
-        postBoxRepository.getConversationWithMessages(userId, envelope.getConversationId(), null, 1).ifPresent(c ->
+        messageBoxRepository.getConversationWithMessages(userId, envelope.getConversationId(), null, 1).ifPresent(c ->
                 c.getParticipants().stream()
                         .map(Participant::getUserId)
                         .filter(id -> !userId.equals(id))
                         .forEach(otherUserId -> {
-                            postBoxRepository.resetConversationUnreadCount(userId, otherUserId, c.getId(), c.getAdId());
+                            messageBoxRepository.resetConversationUnreadCount(userId, otherUserId, c.getId(), c.getAdId());
                         }));
     }
 }
