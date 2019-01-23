@@ -4,7 +4,7 @@ import com.codahale.metrics.Counter;
 import com.codahale.metrics.Timer;
 import com.ecg.comaas.events.Conversation;
 import com.ecg.messagebox.model.Participant;
-import com.ecg.messagebox.persistence.CassandraMessageBoxRepository;
+import com.ecg.messagebox.persistence.MessageBoxRepository;
 import com.ecg.replyts.core.runtime.MetricsService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,10 +32,10 @@ class ConsumerService {
     private static final Counter CONVERSATION_VISIBILITY_CHANGED_TOTAL_COUNTER = METRICS.counter("conversation_visibility_changed_total");
     private static final Counter CONVERSATION_VISIBILITY_CHANGED_FAILED_COUNTER = METRICS.counter("conversation_visibility_changed_failed");
 
-    private final CassandraMessageBoxRepository messageBoxRepository;
+    private final MessageBoxRepository messageBoxRepository;
     private final String tenantShort;
 
-    ConsumerService(CassandraMessageBoxRepository messageBoxRepository, String tenantShort) {
+    ConsumerService(MessageBoxRepository messageBoxRepository, String tenantShort) {
         this.messageBoxRepository = messageBoxRepository;
         this.tenantShort = tenantShort;
     }

@@ -9,7 +9,7 @@ import com.ecg.messagebox.model.MessageType;
 import com.ecg.messagebox.model.Participant;
 import com.ecg.messagebox.model.ParticipantRole;
 import com.ecg.messagebox.model.Visibility;
-import com.ecg.messagebox.persistence.CassandraMessageBoxRepository;
+import com.ecg.messagebox.persistence.MessageBoxRepository;
 import com.ecg.messagebox.persistence.ResponseDataRepository;
 import com.ecg.messagebox.service.PostBoxService;
 import com.ecg.replyts.app.ConversationEventListeners;
@@ -110,8 +110,8 @@ public abstract class AbstractTest {
         }
 
         @Bean
-        CassandraMessageBoxRepository cassandraPostBoxRepository() {
-            return mock(CassandraMessageBoxRepository.class);
+        MessageBoxRepository cassandraPostBoxRepository() {
+            return mock(MessageBoxRepository.class);
         }
 
         @Bean

@@ -5,7 +5,7 @@ import com.datastax.driver.core.utils.UUIDs;
 import com.ecg.messagebox.resources.requests.PartnerMessagePayload;
 import com.ecg.messagebox.events.MessageAddedEventProcessor;
 import com.ecg.messagebox.model.*;
-import com.ecg.messagebox.persistence.CassandraMessageBoxRepository;
+import com.ecg.messagebox.persistence.MessageBoxRepository;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.MessageDirection;
 import com.ecg.replyts.core.api.model.conversation.UserUnreadCounts;
@@ -43,7 +43,7 @@ public class CassandraPostBoxService implements PostBoxService {
 
     public static final String SKIP_RESPONSE_DATA_HEADER = "X-Skip-Response-Data";
 
-    private final CassandraMessageBoxRepository postBoxRepository;
+    private final MessageBoxRepository postBoxRepository;
     private final UserIdentifierService userIdentifierService;
     private final ResponseDataCalculator responseDataCalculator;
     private final MessageAddedEventProcessor messageAddedEventProcessor;
@@ -60,7 +60,7 @@ public class CassandraPostBoxService implements PostBoxService {
 
     @Autowired
     public CassandraPostBoxService(
-            CassandraMessageBoxRepository postBoxRepository,
+            MessageBoxRepository postBoxRepository,
             UserIdentifierService userIdentifierService,
             ResponseDataCalculator responseDataCalculator,
             MessageAddedEventProcessor messageAddedEventProcessor,

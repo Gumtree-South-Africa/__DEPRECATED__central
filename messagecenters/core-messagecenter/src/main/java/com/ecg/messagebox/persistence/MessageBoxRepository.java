@@ -21,7 +21,7 @@ import java.util.Optional;
  * Resetting the counter to 0 is done by calling {@link #resetConversationUnreadCount(String, String, String, String)}.
  * </p>
  */
-public interface CassandraMessageBoxRepository {
+public interface MessageBoxRepository {
 
     /**
      * Returns a paginated list of conversations for the specified postbox id and visibility.

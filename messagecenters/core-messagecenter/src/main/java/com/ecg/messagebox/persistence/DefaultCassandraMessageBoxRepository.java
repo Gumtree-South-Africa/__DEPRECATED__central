@@ -44,7 +44,7 @@ import static java.util.Optional.of;
 import static java.util.stream.Collectors.toList;
 
 @Component
-public class DefaultCassandraMessageBoxRepository implements CassandraMessageBoxRepository {
+public class DefaultCassandraMessageBoxRepository implements MessageBoxRepository {
 
     private static final Logger LOG = LoggerFactory.getLogger(DefaultCassandraMessageBoxRepository.class);
 
