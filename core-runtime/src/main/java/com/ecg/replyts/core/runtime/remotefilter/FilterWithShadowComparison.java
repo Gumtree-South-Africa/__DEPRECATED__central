@@ -52,6 +52,7 @@ public class FilterWithShadowComparison implements Filter {
 
     @Override
     public List<FilterFeedback> filter(MessageProcessingContext context) {
+        // run in background while we wait on mainResult in this thread.
         Future<List<FilterFeedback>> testFuture = this.remoteFilterExecutorService.submit(
                 () -> this.underTest.filter(context)
         );
@@ -65,8 +66,18 @@ public class FilterWithShadowComparison implements Filter {
          */
         List<FilterFeedback> mainResult = this.authority.filter(context);
 
-        Try.of(
-                () -> {
+        getResultFromFuture(testFuture)
+                .onFailure(e -> LOG.warn("Remote filter executing of testFilter {} failed (ignoring it)", this.underTest, e))
+                .onSuccess(testResult -> logDifferences(mainResult, testResult));
+
+        // FIXME: add metrics
+
+        return mainResult;
+    }
+
+    private Try<List<FilterFeedback>> getResultFromFuture(Future<List<FilterFeedback>> testFuture) {
+        // get result, handle specific sub-exception, after which we no longer have to care/differentiate exceptions
+        return Try.of(() -> {
                     try {
                         // we can time out on the filter unterTest, as it's interruptible.
                         return testFuture.get(secondFilterTimeout.toMillis(), TimeUnit.MILLISECONDS);
@@ -79,16 +90,11 @@ public class FilterWithShadowComparison implements Filter {
                         testFuture.cancel(true);
                         throw new RuntimeException("Execution of remote filter timed out", e);
                     }
-                })
-                .onFailure(e -> LOG.warn("Remote filter executing of testFilter {} failed (ignoring it)", this.underTest, e))
-                .onSuccess(testResult -> logDifferences(mainResult, testResult));
-
-        // FIXME: add metrics
-
-        return mainResult;
+                }
+        );
     }
 
-    public void logDifferences(List<FilterFeedback> ref, List<FilterFeedback> test) {
+    private void logDifferences(List<FilterFeedback> ref, List<FilterFeedback> test) {
         if (!ref.equals(test)) {
             differenceReporter.reportDetectedDifference(ref, test);
         }
