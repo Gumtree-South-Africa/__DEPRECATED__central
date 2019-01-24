@@ -39,7 +39,7 @@ public class DefaultCassandraPostBoxRepositoryIntegrationTest {
     private static final String NO_MSG_ID_CURSOR = null;
     private static final int MSGS_LIMIT = 100;
 
-    private static DefaultCassandraPostBoxRepository conversationsRepo;
+    private static DefaultCassandraMessageBoxRepository conversationsRepo;
 
     private static CassandraIntegrationTestProvisioner casdb = CassandraIntegrationTestProvisioner.getInstance();
     private static String keyspace = CassandraIntegrationTestProvisioner.createUniqueKeyspaceName();
@@ -52,7 +52,7 @@ public class DefaultCassandraPostBoxRepositoryIntegrationTest {
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }
-        conversationsRepo = new DefaultCassandraPostBoxRepository(new CassandraTemplate(session, ConsistencyLevel.ONE, ConsistencyLevel.ONE));
+        conversationsRepo = new DefaultCassandraMessageBoxRepository(new CassandraTemplate(session, ConsistencyLevel.ONE, ConsistencyLevel.ONE));
     }
 
     @After

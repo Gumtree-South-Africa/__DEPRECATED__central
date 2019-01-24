@@ -6,7 +6,7 @@ import com.ecg.messagecenter.bt.webapi.requests.MessageCenterClosePostBoxConvers
 import com.ecg.messagecenter.bt.webapi.responses.PostBoxSingleConversationThreadResponse;
 import com.ecg.messagecenter.core.persistence.simple.PostBox;
 import com.ecg.messagecenter.core.persistence.simple.PostBoxId;
-import com.ecg.messagecenter.core.persistence.simple.SimplePostBoxRepository;
+import com.ecg.messagecenter.core.persistence.simple.SimpleMessageCenterRepository;
 import com.ecg.messagecenter.core.webapi.requests.MessageCenterGetPostBoxConversationCommand;
 import com.ecg.replyts.app.ConversationEventListeners;
 import com.ecg.replyts.core.api.model.MailCloakingService;
@@ -50,7 +50,7 @@ public class ConversationThreadController {
     private static final Logger LOGGER = LoggerFactory.getLogger(PostBoxOverviewController.class);
 
     @Autowired
-    private SimplePostBoxRepository postBoxRepository;
+    private SimpleMessageCenterRepository postBoxRepository;
 
     @Autowired
     private MutableConversationRepository conversationRepository;

@@ -2,7 +2,7 @@ package com.ecg.messagecenter.kjca.webapi;
 
 import com.ecg.messagecenter.core.persistence.simple.PostBox;
 import com.ecg.messagecenter.core.persistence.simple.PostBoxId;
-import com.ecg.messagecenter.core.persistence.simple.SimplePostBoxRepository;
+import com.ecg.messagecenter.core.persistence.simple.SimpleMessageCenterRepository;
 import com.ecg.messagecenter.kjca.persistence.block.ConversationBlockRepository;
 import com.ecg.messagecenter.kjca.sync.WebApiSyncService;
 import com.ecg.messagecenter.kjca.webapi.responses.PostBoxResponse;
@@ -22,7 +22,7 @@ class PostBoxOverviewController {
 
     private static final Logger LOG = LoggerFactory.getLogger(PostBoxOverviewController.class);
 
-    private final SimplePostBoxRepository postBoxRepository;
+    private final SimpleMessageCenterRepository postBoxRepository;
     private final PostBoxResponseBuilder responseBuilder;
 
     @Autowired(required = false)
@@ -32,7 +32,7 @@ class PostBoxOverviewController {
 
     @Autowired
     public PostBoxOverviewController(
-            SimplePostBoxRepository postBoxRepository,
+            SimpleMessageCenterRepository postBoxRepository,
             ConversationBlockRepository conversationBlockRepository,
             @Value("${replyts.maxConversationAgeDays:180}") int maxAgeDays,
             @Value("${webapi.sync.ca.enabled:false}") boolean syncEnabled) {

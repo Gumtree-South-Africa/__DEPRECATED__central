@@ -2,7 +2,7 @@ package com.ecg.messagecenter.gtuk.diff;
 
 import com.ecg.messagecenter.core.persistence.simple.PostBox;
 import com.ecg.messagecenter.core.persistence.simple.PostBoxId;
-import com.ecg.messagecenter.core.persistence.simple.SimplePostBoxRepository;
+import com.ecg.messagecenter.core.persistence.simple.SimpleMessageCenterRepository;
 import com.ecg.messagecenter.gtuk.persistence.ConversationThread;
 import com.ecg.messagecenter.gtuk.webapi.ConversationCustomValue;
 import com.ecg.messagecenter.gtuk.webapi.DeletedCustomValue;
@@ -24,7 +24,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Map;
 import java.util.Optional;
 
 @Component
@@ -34,7 +33,7 @@ public class ConversationService {
 
     private static final Object SUCCESS = new Object();
 
-    private final SimplePostBoxRepository postBoxRepository;
+    private final SimpleMessageCenterRepository postBoxRepository;
     private final MutableConversationRepository conversationRepository;
     private final DocumentSink searchIndexer;
     private final DomainObjectConverter converter;
@@ -42,7 +41,7 @@ public class ConversationService {
 
     @Autowired
     public ConversationService(
-            SimplePostBoxRepository postBoxRepository,
+            SimpleMessageCenterRepository postBoxRepository,
             MutableConversationRepository conversationRepository,
             DocumentSink searchIndexer,
             MailCloakingService mailCloakingService,

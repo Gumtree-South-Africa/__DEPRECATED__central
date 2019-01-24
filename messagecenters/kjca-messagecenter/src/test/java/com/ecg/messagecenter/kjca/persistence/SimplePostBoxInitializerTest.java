@@ -5,7 +5,7 @@ import com.ecg.messagecenter.core.persistence.AbstractConversationThread;
 import com.ecg.messagecenter.core.persistence.Counter;
 import com.ecg.messagecenter.core.persistence.simple.PostBox;
 import com.ecg.messagecenter.core.persistence.simple.PostBoxId;
-import com.ecg.messagecenter.core.persistence.simple.SimplePostBoxRepository;
+import com.ecg.messagecenter.core.persistence.simple.SimpleMessageCenterRepository;
 import com.ecg.messagecenter.kjca.persistence.block.ConversationBlock;
 import com.ecg.messagecenter.kjca.persistence.block.ConversationBlockRepository;
 import com.ecg.replyts.core.api.model.conversation.*;
@@ -73,7 +73,7 @@ public class SimplePostBoxInitializerTest {
     public void newPostBox_newThreadCreated() {
         Conversation conversation = convBuilder.build();
 
-        SimplePostBoxRepository postBoxRepository = mock(SimplePostBoxRepository.class);
+        SimpleMessageCenterRepository postBoxRepository = mock(SimpleMessageCenterRepository.class);
         when(postBoxRepository.threadById(SELLER_POSTBOX_ID, conversation.getId())).thenReturn(Optional.empty());
         when(postBoxRepository.upsertThread(eq(SELLER_POSTBOX_ID), any(AbstractConversationThread.class), eq(true))).thenReturn(1L);
 
@@ -120,7 +120,7 @@ public class SimplePostBoxInitializerTest {
 
         PostBox postbox = new PostBox<>(SELLER_EMAIL, new Counter(), Lists.newArrayList());
 
-        SimplePostBoxRepository postBoxRepository = mock(SimplePostBoxRepository.class);
+        SimpleMessageCenterRepository postBoxRepository = mock(SimpleMessageCenterRepository.class);
         when(postBoxRepository.byId(SELLER_POSTBOX_ID)).thenReturn(postbox);
 
         TextAnonymizer textAnonymizer = mock(TextAnonymizer.class);
@@ -163,7 +163,7 @@ public class SimplePostBoxInitializerTest {
                 Optional.of(MessageDirection.BUYER_TO_SELLER.name())
         );
 
-        SimplePostBoxRepository postBoxRepository = mock(SimplePostBoxRepository.class);
+        SimpleMessageCenterRepository postBoxRepository = mock(SimpleMessageCenterRepository.class);
         when(postBoxRepository.threadById(SELLER_POSTBOX_ID, conversation.getId())).thenReturn(Optional.of(existingThread));
 
         TextAnonymizer textAnonymizer = mock(TextAnonymizer.class);
@@ -203,7 +203,7 @@ public class SimplePostBoxInitializerTest {
         );
 
         PostBox postbox = new PostBox<>(BUYER_EMAIL, new Counter(), Lists.newArrayList(existingThread));
-        SimplePostBoxRepository postBoxRepository = mock(SimplePostBoxRepository.class);
+        SimpleMessageCenterRepository postBoxRepository = mock(SimpleMessageCenterRepository.class);
         when(postBoxRepository.byId(PostBoxId.fromEmail(BUYER_EMAIL))).thenReturn(postbox);
 
         TextAnonymizer textAnonymizer = mock(TextAnonymizer.class);
@@ -245,7 +245,7 @@ public class SimplePostBoxInitializerTest {
         );
 
         PostBox postbox = new PostBox<>(SELLER_EMAIL, new Counter(), Lists.newArrayList(existingThread));
-        SimplePostBoxRepository postBoxRepository = mock(SimplePostBoxRepository.class);
+        SimpleMessageCenterRepository postBoxRepository = mock(SimpleMessageCenterRepository.class);
         when(postBoxRepository.byId(SELLER_POSTBOX_ID)).thenReturn(postbox);
 
         TextAnonymizer textAnonymizer = mock(TextAnonymizer.class);

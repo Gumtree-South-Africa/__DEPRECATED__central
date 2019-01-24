@@ -1,7 +1,7 @@
 package com.ecg.messagecenter.it.persistence;
 
 import com.ecg.messagecenter.core.persistence.simple.AbstractSimplePostBoxInitializer;
-import com.ecg.messagecenter.core.persistence.simple.SimplePostBoxRepository;
+import com.ecg.messagecenter.core.persistence.simple.SimpleMessageCenterRepository;
 import com.ecg.messagecenter.core.util.MessageCenterUtils;
 import com.ecg.messagecenter.it.util.MessagesDiffer;
 import com.ecg.messagecenter.it.util.MessagesResponseFactory;
@@ -29,7 +29,7 @@ public class SimplePostBoxInitializer extends AbstractSimplePostBoxInitializer<C
     private MessagesResponseFactory messageResponseFactory = new MessagesResponseFactory(new MessagesDiffer());
 
     @Autowired
-    public SimplePostBoxInitializer(SimplePostBoxRepository postBoxRepository) {
+    public SimplePostBoxInitializer(SimpleMessageCenterRepository postBoxRepository) {
         super(postBoxRepository);
     }
 

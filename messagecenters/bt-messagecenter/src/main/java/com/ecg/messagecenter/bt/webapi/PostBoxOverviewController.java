@@ -3,7 +3,7 @@ package com.ecg.messagecenter.bt.webapi;
 import com.ecg.messagecenter.bt.webapi.responses.PostBoxResponse;
 import com.ecg.messagecenter.core.persistence.simple.PostBox;
 import com.ecg.messagecenter.core.persistence.simple.PostBoxId;
-import com.ecg.messagecenter.core.persistence.simple.SimplePostBoxRepository;
+import com.ecg.messagecenter.core.persistence.simple.SimpleMessageCenterRepository;
 import com.ecg.messagecenter.core.webapi.requests.MessageCenterDeletePostBoxConversationCommandNew;
 import com.ecg.messagecenter.core.webapi.requests.MessageCenterGetPostBoxCommand;
 import com.ecg.replyts.core.api.webapi.envelope.ResponseObject;
@@ -30,7 +30,7 @@ import java.util.Arrays;
 @Controller
 public class PostBoxOverviewController {
     @Autowired
-    private SimplePostBoxRepository postBoxRepository;
+    private SimpleMessageCenterRepository postBoxRepository;
 
     @Autowired
     private PostBoxResponseBuilder responseBuilder;

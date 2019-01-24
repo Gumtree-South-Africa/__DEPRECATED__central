@@ -21,7 +21,7 @@ public class DefaultCassandraPostBoxRepositoryTest {
     @Test
     public void conversationThreadComparator_shouldSortOnLastMessageId_thenSortOnConversationId_descending() {
 
-        Set<ConversationThread> sorted = new TreeSet<>(DefaultCassandraPostBoxRepository.CONVERSATION_THREAD_COMPARATOR);
+        Set<ConversationThread> sorted = new TreeSet<>(DefaultCassandraMessageBoxRepository.CONVERSATION_THREAD_COMPARATOR);
 
         ConversationThread conversationThread1 = createConversationThread(Guids.next(), UUIDs.timeBased());
         ConversationThread conversationThread2 = createConversationThread(Guids.next(), null);
@@ -49,7 +49,7 @@ public class DefaultCassandraPostBoxRepositoryTest {
     @Test
     public void conversationIndexComparatorr_shouldSortOnLastMessageId_thenSortOnConversationId_descending() {
 
-        Set<ConversationIndex> sorted = new TreeSet<>(DefaultCassandraPostBoxRepository.CONVERSATION_INDEX_COMPARATOR);
+        Set<ConversationIndex> sorted = new TreeSet<>(DefaultCassandraMessageBoxRepository.CONVERSATION_INDEX_COMPARATOR);
 
         ConversationIndex conversationIndex1 = createConversationIndex(Guids.next(), UUIDs.timeBased());
         ConversationIndex conversationIndex2 = createConversationIndex(Guids.next(), UUIDs.timeBased());
@@ -76,7 +76,7 @@ public class DefaultCassandraPostBoxRepositoryTest {
     @Test
     public void messageComparatorr_shouldSortOnId_ascending() {
 
-        Set<Message> sorted = new TreeSet<>(DefaultCassandraPostBoxRepository.MESSAGE_COMPARATOR);
+        Set<Message> sorted = new TreeSet<>(DefaultCassandraMessageBoxRepository.MESSAGE_COMPARATOR);
 
         Message message1 = createMessage(UUIDs.timeBased());
         Message message2 = createMessage(UUIDs.timeBased());

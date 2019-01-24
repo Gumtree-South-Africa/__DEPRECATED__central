@@ -6,7 +6,7 @@ import com.ecg.messagebox.model.PostBox;
 import com.ecg.messagebox.resources.WebApiSyncV2Service;
 import com.ecg.messagebox.service.PostBoxService;
 import com.ecg.messagecenter.core.persistence.simple.PostBoxId;
-import com.ecg.messagecenter.core.persistence.simple.SimplePostBoxRepository;
+import com.ecg.messagecenter.core.persistence.simple.SimpleMessageCenterRepository;
 import com.ecg.sync.EmailNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,11 +24,11 @@ public class WebApiSyncV2ServiceImpl implements WebApiSyncV2Service {
     private static final Logger LOG = LoggerFactory.getLogger(WebApiSyncV2ServiceImpl.class);
 
     private final PostBoxService postBoxService;
-    private final SimplePostBoxRepository postBoxRepository;
+    private final SimpleMessageCenterRepository postBoxRepository;
     private final ConversationThreadService conversationThreadService;
 
     @Autowired
-    public WebApiSyncV2ServiceImpl(PostBoxService postBoxService, SimplePostBoxRepository postBoxRepository, ConversationThreadService conversationThreadService) {
+    public WebApiSyncV2ServiceImpl(PostBoxService postBoxService, SimpleMessageCenterRepository postBoxRepository, ConversationThreadService conversationThreadService) {
         this.postBoxService = postBoxService;
         this.postBoxRepository = postBoxRepository;
         this.conversationThreadService = conversationThreadService;

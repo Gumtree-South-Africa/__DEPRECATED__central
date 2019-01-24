@@ -2,7 +2,7 @@ package com.ecg.messagecenter.kjca.persistence;
 
 import com.ecg.comaas.kjca.coremod.shared.TextAnonymizer;
 import com.ecg.messagecenter.core.persistence.simple.AbstractSimplePostBoxInitializer;
-import com.ecg.messagecenter.core.persistence.simple.SimplePostBoxRepository;
+import com.ecg.messagecenter.core.persistence.simple.SimpleMessageCenterRepository;
 import com.ecg.messagecenter.core.util.MessageCenterUtils;
 import com.ecg.messagecenter.kjca.persistence.block.ConversationBlock;
 import com.ecg.messagecenter.kjca.persistence.block.ConversationBlockRepository;
@@ -14,7 +14,6 @@ import com.google.common.collect.Iterables;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
 import java.util.Optional;
 
 import static org.joda.time.DateTime.now;
@@ -33,7 +32,7 @@ public class SimplePostBoxInitializer extends AbstractSimplePostBoxInitializer<C
 
     @Autowired
     public SimplePostBoxInitializer(
-            SimplePostBoxRepository postBoxRepository,
+            SimpleMessageCenterRepository postBoxRepository,
             ConversationBlockRepository conversationBlockRepository,
             TextAnonymizer textAnonymizer) {
 

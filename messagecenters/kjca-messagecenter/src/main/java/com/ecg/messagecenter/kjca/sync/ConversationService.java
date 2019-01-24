@@ -3,7 +3,7 @@ package com.ecg.messagecenter.kjca.sync;
 import com.ecg.comaas.kjca.coremod.shared.TextAnonymizer;
 import com.ecg.messagecenter.core.persistence.simple.PostBox;
 import com.ecg.messagecenter.core.persistence.simple.PostBoxId;
-import com.ecg.messagecenter.core.persistence.simple.SimplePostBoxRepository;
+import com.ecg.messagecenter.core.persistence.simple.SimpleMessageCenterRepository;
 import com.ecg.messagecenter.kjca.persistence.ConversationThread;
 import com.ecg.messagecenter.kjca.persistence.block.ConversationBlock;
 import com.ecg.messagecenter.kjca.persistence.block.ConversationBlockRepository;
@@ -30,7 +30,7 @@ public class ConversationService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ConversationService.class);
 
-    private final SimplePostBoxRepository postBoxRepository;
+    private final SimpleMessageCenterRepository postBoxRepository;
     private final ConversationRepository conversationRepository;
     private final ConversationBlockRepository conversationBlockRepository;
     private final MailCloakingService mailCloakingService;
@@ -38,7 +38,7 @@ public class ConversationService {
 
     @Autowired
     public ConversationService(
-            final SimplePostBoxRepository postBoxRepository,
+            final SimpleMessageCenterRepository postBoxRepository,
             final ConversationRepository conversationRepository,
             final ConversationBlockRepository conversationBlockRepository,
             final MailCloakingService mailCloakingService,

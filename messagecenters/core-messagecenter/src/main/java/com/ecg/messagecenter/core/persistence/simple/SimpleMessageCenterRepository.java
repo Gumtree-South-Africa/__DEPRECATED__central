@@ -7,7 +7,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-public interface SimplePostBoxRepository {
+public interface SimpleMessageCenterRepository {
 
     PostBox byId(PostBoxId id);
 

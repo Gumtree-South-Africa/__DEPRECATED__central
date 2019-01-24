@@ -2,7 +2,7 @@ package com.ecg.messagecenter.it.webapi;
 
 import com.ecg.messagecenter.core.persistence.simple.PostBox;
 import com.ecg.messagecenter.core.persistence.simple.PostBoxId;
-import com.ecg.messagecenter.core.persistence.simple.SimplePostBoxRepository;
+import com.ecg.messagecenter.core.persistence.simple.SimpleMessageCenterRepository;
 import com.ecg.messagecenter.core.webapi.requests.MessageCenterGetPostBoxConversationCommand;
 import com.ecg.messagecenter.it.persistence.ConversationThread;
 import com.ecg.messagecenter.it.webapi.responses.PostBoxSingleConversationThreadResponse;
@@ -36,11 +36,11 @@ import static org.joda.time.DateTime.now;
 @Controller class ConversationThreadController {
     private static final Logger LOGGER = LoggerFactory.getLogger(PostBoxOverviewController.class);
 
-    private final SimplePostBoxRepository postBoxRepository;
+    private final SimpleMessageCenterRepository postBoxRepository;
     private final ConversationRepository conversationRepository;
 
     @Autowired public ConversationThreadController(ConversationRepository conversationRepository,
-                                                   SimplePostBoxRepository postBoxRepository) {
+                                                   SimpleMessageCenterRepository postBoxRepository) {
         this.conversationRepository = conversationRepository;
         this.postBoxRepository = postBoxRepository;
     }
