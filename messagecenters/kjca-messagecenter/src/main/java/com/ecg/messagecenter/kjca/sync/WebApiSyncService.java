@@ -7,7 +7,7 @@ import com.ecg.messagebox.model.PostBox;
 import com.ecg.messagebox.model.Visibility;
 import com.ecg.messagebox.service.CassandraPostBoxService;
 import com.ecg.messagecenter.core.persistence.simple.PostBoxId;
-import com.ecg.messagecenter.core.persistence.simple.SimplePostBoxRepository;
+import com.ecg.messagecenter.core.persistence.simple.SimpleMessageCenterRepository;
 import com.ecg.messagecenter.kjca.persistence.block.ConversationBlockRepository;
 import com.ecg.messagecenter.kjca.webapi.responses.PostBoxResponseBuilder;
 import com.ecg.messagecenter.kjca.webapi.responses.PostBoxSingleConversationThreadResponse;
@@ -48,7 +48,7 @@ public class WebApiSyncService {
     private final ConversationService conversationService;
     private final ConversationRepository conversationRepository;
     private final UserIdentifierService userIdentifierService;
-    private final SimplePostBoxRepository postBoxRepository;
+    private final SimpleMessageCenterRepository postBoxRepository;
     private final CassandraPostBoxService postBoxService;
     private final PostBoxSyncService postBoxSyncService;
     private final ExecutorService oldExecutor;
@@ -67,7 +67,7 @@ public class WebApiSyncService {
             ConversationBlockRepository conversationBlockRepository,
             ConversationService conversationService,
             CassandraPostBoxService postBoxService,
-            SimplePostBoxRepository postBoxRepository,
+            SimpleMessageCenterRepository postBoxRepository,
             ConversationRepository conversationRepository,
             UserIdentifierService userIdentifierService,
             CustomExecutorsFactory customExecutorsFactory,

@@ -58,8 +58,8 @@ import static com.ecg.replyts.core.runtime.logging.MDCConstants.setTaskFields;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toSet;
 
-public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository, CassandraRepository {
-    private static final Logger LOG = LoggerFactory.getLogger(CassandraSimplePostBoxRepository.class);
+public class CassandraSimpleMessageCenterRepository implements SimpleMessageCenterRepository, CassandraRepository {
+    private static final Logger LOG = LoggerFactory.getLogger(CassandraSimpleMessageCenterRepository.class);
 
     private static final String LEGACY_CONVERSATION_THREAD_CLASS = "com.ecg.messagecenter.persistence.ConversationThread";
 
@@ -119,7 +119,7 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
         }
     }
 
-    CassandraSimplePostBoxRepository(Session session, ConsistencyLevel readConsistency, ConsistencyLevel writeConsistency) {
+    CassandraSimpleMessageCenterRepository(Session session, ConsistencyLevel readConsistency, ConsistencyLevel writeConsistency) {
         this.session = session;
         this.readConsistency = readConsistency;
         this.writeConsistency = writeConsistency;
@@ -348,7 +348,7 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
 
     private ExecutorService createCleanupExecutor(int threadCount, BlockingQueue<Collection<ConversationThreadModificationDate>> jobs) {
         ThreadFactory threadFactory = new ThreadFactoryBuilder()
-                .setNameFormat(CassandraSimplePostBoxRepository.class.getSimpleName() + "-%d")
+                .setNameFormat(CassandraSimpleMessageCenterRepository.class.getSimpleName() + "-%d")
                 .setDaemon(true)
                 .build();
         ExecutorService executor = Executors.newFixedThreadPool(threadCount, threadFactory);
@@ -367,7 +367,7 @@ public class CassandraSimplePostBoxRepository implements SimplePostBoxRepository
                         LOG.error("Error while performing a single iteration of cleanups", e);
                     }
                 }
-            }, CassandraSimplePostBoxRepository.class.getSimpleName() + ".cleanup"));
+            }, CassandraSimpleMessageCenterRepository.class.getSimpleName() + ".cleanup"));
         }
 
         return executor;

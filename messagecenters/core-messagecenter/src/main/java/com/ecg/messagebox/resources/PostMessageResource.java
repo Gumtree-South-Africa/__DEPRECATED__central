@@ -4,7 +4,7 @@ import com.ecg.comaas.events.Conversation;
 import com.ecg.comaas.protobuf.MessageOuterClass;
 import com.ecg.comaas.protobuf.MessageOuterClass.Message;
 import com.ecg.messagebox.model.*;
-import com.ecg.messagebox.persistence.CassandraPostBoxRepository;
+import com.ecg.messagebox.persistence.MessageBoxRepository;
 import com.ecg.messagebox.resources.exceptions.ClientException;
 import com.ecg.messagebox.resources.requests.CreateConversationRequest;
 import com.ecg.messagebox.resources.requests.PostMessageRequest;
@@ -57,7 +57,7 @@ public class PostMessageResource {
     private final MutableConversationRepository conversationRepository;
     private final UserIdentifierService userIdentifierService;
     private final UniqueConversationSecret uniqueConversationSecret;
-    private final CassandraPostBoxRepository postBoxRepository;
+    private final MessageBoxRepository postBoxRepository;
     private final QueueService queueService;
     private final ConversationEventService conversationEventService;
     private final AnonymizedMailConverter anonymizedMailConverter;
@@ -73,7 +73,7 @@ public class PostMessageResource {
             MutableConversationRepository conversationRepository,
             UserIdentifierService userIdentifierService,
             UniqueConversationSecret uniqueConversationSecret,
-            CassandraPostBoxRepository postBoxRepository,
+            MessageBoxRepository postBoxRepository,
             QueueService queueService,
             ConversationEventService conversationEventService,
             AnonymizedMailConverter anonymizedMailConverter,

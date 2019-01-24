@@ -1,10 +1,9 @@
 package com.ecg.messagecenter.kjca.listeners;
 
 import com.ecg.comaas.kjca.coremod.shared.TextAnonymizer;
-import com.ecg.messagecenter.core.persistence.simple.SimplePostBoxRepository;
+import com.ecg.messagecenter.core.persistence.simple.SimpleMessageCenterRepository;
 import com.ecg.messagecenter.kjca.capi.AdInfoLookup;
 import com.ecg.messagecenter.kjca.capi.UserInfoLookup;
-import com.ecg.messagecenter.kjca.listeners.KjcaPostBoxUpdateListener;
 import com.ecg.messagecenter.kjca.persistence.SimplePostBoxInitializer;
 import com.ecg.messagecenter.kjca.pushmessage.PushMessageOnUnreadConversationCallback;
 import com.ecg.messagecenter.kjca.pushmessage.PushService;
@@ -40,7 +39,7 @@ public class KjcaPostBoxUpdateListenerTest {
     @Mock
     private SimplePostBoxInitializer postBoxInitializer;
     @Mock
-    private SimplePostBoxRepository postBoxRepository;
+    private SimpleMessageCenterRepository postBoxRepository;
     @Mock
     private PushService pushService;
     @Mock

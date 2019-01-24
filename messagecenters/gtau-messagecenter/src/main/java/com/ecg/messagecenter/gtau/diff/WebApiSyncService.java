@@ -8,7 +8,7 @@ import com.ecg.messagebox.model.PostBox;
 import com.ecg.messagebox.model.Visibility;
 import com.ecg.messagebox.service.CassandraPostBoxService;
 import com.ecg.messagecenter.core.persistence.simple.PostBoxId;
-import com.ecg.messagecenter.core.persistence.simple.SimplePostBoxRepository;
+import com.ecg.messagecenter.core.persistence.simple.SimpleMessageCenterRepository;
 import com.ecg.messagecenter.gtau.util.ConversationThreadEnricher;
 import com.ecg.messagecenter.gtau.webapi.PostBoxResponseBuilder;
 import com.ecg.messagecenter.gtau.webapi.responses.PostBoxSingleConversationThreadResponse;
@@ -46,7 +46,7 @@ public class WebApiSyncService {
     private final Counter newModelFailureCounter = TimingReports.newCounter("webapi.diff.newModel.failed");
 
     private final CassandraPostBoxService postBoxService;
-    private final SimplePostBoxRepository postBoxRepository;
+    private final SimpleMessageCenterRepository postBoxRepository;
     private final PostBoxResponseBuilder responseBuilder;
     private final PostBoxSyncService postBoxSyncService;
     private final boolean diffEnabled;
@@ -65,7 +65,7 @@ public class WebApiSyncService {
     @Autowired
     public WebApiSyncService(
             CassandraPostBoxService postBoxService,
-            SimplePostBoxRepository postBoxRepository,
+            SimpleMessageCenterRepository postBoxRepository,
             ConversationRepository conversationRepository,
             ConversationThreadEnricher conversationThreadEnricher,
             UserIdentifierService userIdentifierService,

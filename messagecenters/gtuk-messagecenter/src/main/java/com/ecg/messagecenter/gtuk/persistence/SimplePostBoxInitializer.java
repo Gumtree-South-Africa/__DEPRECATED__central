@@ -2,7 +2,7 @@ package com.ecg.messagecenter.gtuk.persistence;
 
 import com.ecg.gumtree.replyts2.common.message.MessageCenterUtils;
 import com.ecg.messagecenter.core.persistence.simple.AbstractSimplePostBoxInitializer;
-import com.ecg.messagecenter.core.persistence.simple.SimplePostBoxRepository;
+import com.ecg.messagecenter.core.persistence.simple.SimpleMessageCenterRepository;
 import com.ecg.messagecenter.gtuk.util.MessagesDiffer;
 import com.ecg.messagecenter.gtuk.util.MessagesResponseFactory;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
@@ -22,7 +22,7 @@ public class SimplePostBoxInitializer extends AbstractSimplePostBoxInitializer<C
     private MessagesResponseFactory messageResponseFactory = new MessagesResponseFactory(new MessagesDiffer());
 
     @Autowired
-    public SimplePostBoxInitializer(SimplePostBoxRepository postBoxRepository) {
+    public SimplePostBoxInitializer(SimpleMessageCenterRepository postBoxRepository) {
         super(postBoxRepository);
     }
 

@@ -7,7 +7,6 @@ import com.ecg.replyts.core.api.model.conversation.Message;
 import com.google.common.collect.Iterables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
 import javax.annotation.Nonnull;
@@ -21,10 +20,10 @@ import java.util.Optional;
 public abstract class AbstractSimplePostBoxInitializer<T extends AbstractConversationThread> {
     private static final Logger LOG = LoggerFactory.getLogger(AbstractSimplePostBoxInitializer.class);
 
-    protected SimplePostBoxRepository postBoxRepository;
+    protected SimpleMessageCenterRepository messageCenterRepo;
 
-    public AbstractSimplePostBoxInitializer(SimplePostBoxRepository postBoxRepository) {
-        this.postBoxRepository = postBoxRepository;
+    public AbstractSimplePostBoxInitializer(SimpleMessageCenterRepository messageCenterRepository) {
+        this.messageCenterRepo = messageCenterRepository;
     }
 
     @Value("${replyts.maxPreviewMessageCharacters:250}")
@@ -51,7 +50,7 @@ public abstract class AbstractSimplePostBoxInitializer<T extends AbstractConvers
         // Don't display empty conversations and don't add empty messages to existing conversations
 
         Optional<String> previewLastMessage = extractPreviewLastMessage(conversation, email);
-        Optional<? extends AbstractConversationThread> existingThread = postBoxRepository.threadById(postBoxId, conversation.getId());
+        Optional<? extends AbstractConversationThread> existingThread = messageCenterRepo.threadById(postBoxId, conversation.getId());
 
         if (!previewLastMessage.isPresent() || shouldReuseExistingThread(existingThread, previewLastMessage.get())) {
             return;
@@ -63,7 +62,7 @@ public abstract class AbstractSimplePostBoxInitializer<T extends AbstractConvers
 
         T conversationThread = newConversationThread(email, conversation, newReplyArrived, lastMessage);
 
-        long newUnreadCount = postBoxRepository.upsertThread(postBoxId, conversationThread, newReplyArrived);
+        long newUnreadCount = messageCenterRepo.upsertThread(postBoxId, conversationThread, newReplyArrived);
 
         for (PostBoxWriteCallback callback : postBoxWriteCallbacks) {
             try {

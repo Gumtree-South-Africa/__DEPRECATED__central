@@ -3,9 +3,9 @@ package com.ecg.messagecenter.ebayk.webapi;
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.Session;
 import com.ecg.messagecenter.core.persistence.AbstractConversationThread;
-import com.ecg.messagecenter.core.persistence.simple.CassandraSimplePostBoxConfiguration;
+import com.ecg.messagecenter.core.persistence.simple.CassandraSimpleMessageCenterRepositoryConfiguration;
 import com.ecg.messagecenter.core.persistence.simple.PostBox;
-import com.ecg.messagecenter.core.persistence.simple.SimplePostBoxRepository;
+import com.ecg.messagecenter.core.persistence.simple.SimpleMessageCenterRepository;
 import com.ecg.messagecenter.ebayk.persistence.ConversationThread;
 import com.ecg.messagecenter.ebayk.webapi.responses.PostBoxListItemResponse;
 import com.ecg.replyts.app.preprocessorchain.preprocessors.ConversationResumer;
@@ -73,7 +73,7 @@ public class PostBoxOverviewControllerIntegrationTest {
     static final DateTime NOW = now();
 
     @Autowired
-    private SimplePostBoxRepository postBoxRepository;
+    private SimpleMessageCenterRepository postBoxRepository;
 
     @Autowired
     private PostBoxOverviewController controller;
@@ -301,7 +301,7 @@ public class PostBoxOverviewControllerIntegrationTest {
                 Optional.of(BUYER_ID), Optional.of(SELLER_ID));
     }
 
-    @Import({CassandraSimplePostBoxConfiguration.class, PostBoxOverviewController.class})
+    @Import({CassandraSimpleMessageCenterRepositoryConfiguration.class, PostBoxOverviewController.class})
     static class TestContext {
         @Value("${persistence.cassandra.consistency.read:#{null}}")
         private ConsistencyLevel cassandraReadConsistency;

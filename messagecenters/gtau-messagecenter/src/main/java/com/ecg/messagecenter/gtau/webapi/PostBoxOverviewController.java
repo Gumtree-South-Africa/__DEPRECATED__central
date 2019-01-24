@@ -2,7 +2,7 @@ package com.ecg.messagecenter.gtau.webapi;
 
 import com.ecg.messagecenter.core.persistence.simple.PostBox;
 import com.ecg.messagecenter.core.persistence.simple.PostBoxId;
-import com.ecg.messagecenter.core.persistence.simple.SimplePostBoxRepository;
+import com.ecg.messagecenter.core.persistence.simple.SimpleMessageCenterRepository;
 import com.ecg.messagecenter.gtau.diff.WebApiSyncService;
 import com.ecg.messagecenter.gtau.util.ConversationThreadEnricher;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
@@ -31,7 +31,7 @@ public class PostBoxOverviewController {
 
     private static final Logger LOG = LoggerFactory.getLogger(PostBoxOverviewController.class);
 
-    private final SimplePostBoxRepository postBoxRepository;
+    private final SimpleMessageCenterRepository postBoxRepository;
     private final PostBoxResponseBuilder responseBuilder;
     private final boolean syncEnabled;
     private final boolean diffEnabled;
@@ -42,7 +42,7 @@ public class PostBoxOverviewController {
     @Autowired
     public PostBoxOverviewController(
             ConversationRepository conversationRepository,
-            SimplePostBoxRepository postBoxRepository,
+            SimpleMessageCenterRepository postBoxRepository,
             ConversationThreadEnricher conversationThreadEnricher,
             @Value("${webapi.sync.au.enabled:false}") boolean syncEnabled,
             @Value("${webapi.diff.au.enabled:false}") boolean diffEnabled) {

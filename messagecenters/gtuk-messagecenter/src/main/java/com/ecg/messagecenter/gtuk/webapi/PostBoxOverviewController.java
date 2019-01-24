@@ -2,7 +2,7 @@ package com.ecg.messagecenter.gtuk.webapi;
 
 import com.ecg.messagecenter.core.persistence.simple.PostBox;
 import com.ecg.messagecenter.core.persistence.simple.PostBoxId;
-import com.ecg.messagecenter.core.persistence.simple.SimplePostBoxRepository;
+import com.ecg.messagecenter.core.persistence.simple.SimpleMessageCenterRepository;
 import com.ecg.messagecenter.core.webapi.requests.MessageCenterGetPostBoxCommand;
 import com.ecg.messagecenter.gtuk.diff.WebApiSyncService;
 import com.ecg.replyts.core.api.persistence.ConversationRepository;
@@ -26,7 +26,7 @@ public class PostBoxOverviewController {
 
     private static final Logger LOG = LoggerFactory.getLogger(PostBoxOverviewController.class);
 
-    private final SimplePostBoxRepository postBoxRepository;
+    private final SimpleMessageCenterRepository postBoxRepository;
     private final PostBoxResponseBuilder responseBuilder;
     private final boolean syncEnabled;
 
@@ -36,7 +36,7 @@ public class PostBoxOverviewController {
     @Autowired
     public PostBoxOverviewController(
             ConversationRepository conversationRepository,
-            SimplePostBoxRepository postBoxRepository,
+            SimpleMessageCenterRepository postBoxRepository,
             @Value("${webapi.sync.uk.enabled:false}") boolean syncEnabled) {
 
         this.postBoxRepository = postBoxRepository;

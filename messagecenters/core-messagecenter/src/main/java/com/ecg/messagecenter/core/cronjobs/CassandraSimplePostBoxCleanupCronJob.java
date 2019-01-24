@@ -1,6 +1,6 @@
 package com.ecg.messagecenter.core.cronjobs;
 
-import com.ecg.messagecenter.core.persistence.simple.CassandraSimplePostBoxRepository;
+import com.ecg.messagecenter.core.persistence.simple.CassandraSimpleMessageCenterRepository;
 import com.ecg.replyts.app.cronjobs.cleanup.CleanupDateCalculator;
 import com.ecg.replyts.core.api.cron.CronJobExecutor;
 import com.ecg.replyts.core.runtime.persistence.clock.CronJobClockRepository;
@@ -22,7 +22,7 @@ public class CassandraSimplePostBoxCleanupCronJob implements CronJobExecutor {
     protected static final String CLEANUP_CONVERSATION_JOB_NAME = "cleanupPostboxesJob";
 
     @Autowired
-    private CassandraSimplePostBoxRepository postBoxRepository;
+    private CassandraSimpleMessageCenterRepository postBoxRepository;
 
     @Autowired
     private CleanupDateCalculator cleanupDateCalculator;
