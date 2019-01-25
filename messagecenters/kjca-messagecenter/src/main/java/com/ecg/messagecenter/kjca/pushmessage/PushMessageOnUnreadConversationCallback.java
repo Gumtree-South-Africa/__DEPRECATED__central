@@ -1,16 +1,13 @@
 package com.ecg.messagecenter.kjca.pushmessage;
 
-import com.ecg.comaas.kjca.coremod.shared.TraceThreadLocal;
 import com.ecg.comaas.kjca.coremod.shared.BoxHeaders;
 import com.ecg.comaas.kjca.coremod.shared.TextAnonymizer;
+import com.ecg.comaas.kjca.coremod.shared.TraceThreadLocal;
+import com.ecg.messagebox.persistence.MessageBoxRepository;
 import com.ecg.messagecenter.core.cleanup.kjca.TextCleaner;
-import com.ecg.messagecenter.core.persistence.AbstractConversationThread;
-import com.ecg.messagecenter.core.persistence.simple.PostBox;
-import com.ecg.messagecenter.core.persistence.simple.PostBoxId;
-import com.ecg.messagecenter.core.persistence.simple.SimpleMessageCenterRepository;
 import com.ecg.messagecenter.kjca.capi.AdInfoLookup;
 import com.ecg.messagecenter.kjca.capi.UserInfoLookup;
-import com.ecg.messagecenter.kjca.persistence.SimplePostBoxInitializer;
+import com.ecg.messagecenter.kjca.persistence.SimpleMessageCenterInitializer;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.Message;
 import com.google.common.collect.ImmutableMap;
@@ -22,7 +19,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class PushMessageOnUnreadConversationCallback implements SimplePostBoxInitializer.PostBoxWriteCallback {
+public class PushMessageOnUnreadConversationCallback implements SimpleMessageCenterInitializer.PostBoxWriteCallback {
 
     private static final String FROM = "From";
     private static final String SOUND_FILE_NAME = "kijijica-push.caf";
@@ -32,57 +29,29 @@ public class PushMessageOnUnreadConversationCallback implements SimplePostBoxIni
     private static final Locale DEFAULT_LOCALE = Locale.CANADA;
     private static final Pattern DISPLAY_NAME_REMOVE_QUOTES = Pattern.compile("^\"([^\"]+)\"$");
 
-    private final SimpleMessageCenterRepository messageCenterRepository;
     private final PushService sendPushService;
     private final TextAnonymizer textAnonymizer;
     private final AdInfoLookup adInfoLookup;
     private final UserInfoLookup userInfoLookup;
     private final Conversation conversation;
     private final Message message;
+    private final MessageBoxRepository messageBoxRepository;
 
     public PushMessageOnUnreadConversationCallback(
-            SimpleMessageCenterRepository messageCenterRepository,
+            MessageBoxRepository messageBoxRepository,
             PushService sendPushService,
             TextAnonymizer textAnonymizer,
             AdInfoLookup adInfoLookup,
             UserInfoLookup userInfoLookup,
             Conversation conversation,
             Message message) {
-        this.messageCenterRepository = messageCenterRepository;
+        this.messageBoxRepository = messageBoxRepository;
         this.sendPushService = sendPushService;
         this.textAnonymizer = textAnonymizer;
         this.adInfoLookup = adInfoLookup;
         this.userInfoLookup = userInfoLookup;
         this.conversation = conversation;
         this.message = message;
-    }
-
-    static String truncateText(String description, int maxChars) {
-        if (isNullOrEmpty(description)) {
-            return "";
-        }
-
-        if (description.length() <= maxChars) {
-            return description;
-        }
-
-        String substring = description.substring(0, maxChars);
-        return substringBeforeLast(substring, " ").concat("...");
-    }
-
-    private static String substringBeforeLast(String str, String separator) {
-        if (isNullOrEmpty(str) || isNullOrEmpty(separator)) {
-            return str;
-        }
-        int pos = str.lastIndexOf(separator);
-        if (pos == -1) {
-            return str;
-        }
-        return str.substring(0, pos);
-    }
-
-    private static boolean isNullOrEmpty(String input) {
-        return input == null || input.isEmpty();
     }
 
     @Override
@@ -102,14 +71,16 @@ public class PushMessageOnUnreadConversationCallback implements SimplePostBoxIni
             TraceThreadLocal.set(UUID.randomUUID().toString());
             Optional<AdInfoLookup.AdInfo> adInfo = adInfoLookup.lookupInfo("adId", conversation.getAdId());
             Optional<UserInfoLookup.UserInfo> userInfo = userInfoLookup.lookupInfo("email", email);
-            int unreadCount = getUnreadConversationCount(email);
 
-            Optional<PushMessagePayload> payload = createPayloadBasedOnNotificationRules(conversation, message, email, unreadCount, adInfo, userInfo);
-            if (!payload.isPresent()) {
+            if (!userInfo.isPresent()) {
                 return;
             }
 
-            sendPushMessageInternal(sendPushService, payload.get());
+            int unreadCount = messageBoxRepository.getUserUnreadCounts(userInfo.get().getUserId()).getNumUnreadConversations();
+
+            PushMessagePayload payload = createPayloadBasedOnNotificationRules(conversation, message, email, unreadCount, adInfo, userInfo.get());
+
+            sendPushMessageInternal(sendPushService, payload);
 
         } catch (Exception e) {
             if (pushService != null) {
@@ -117,11 +88,6 @@ public class PushMessageOnUnreadConversationCallback implements SimplePostBoxIni
             }
             LOG.error("Error sending push for conversation '{}' and message '{}'", conversation.getId(), message.getId(), e);
         }
-    }
-
-    private int getUnreadConversationCount(String email) {
-        final PostBox<AbstractConversationThread> postBox = messageCenterRepository.byId(PostBoxId.fromEmail(email));
-        return postBox.getUnreadConversations().size();
     }
 
     private void sendPushMessageInternal(PushService pushService, PushMessagePayload payload) {
@@ -138,21 +104,15 @@ public class PushMessageOnUnreadConversationCallback implements SimplePostBoxIni
 
     }
 
-    private Optional<PushMessagePayload> createPayloadBasedOnNotificationRules(Conversation conversation, Message message, String email, int unreadCount, Optional<AdInfoLookup.AdInfo> adInfo, Optional<UserInfoLookup.UserInfo> userInfo) {
-        if (!userInfo.isPresent()) {
-            return Optional.empty();
-        }
-
+    private PushMessagePayload createPayloadBasedOnNotificationRules(Conversation conversation, Message message, String email, int unreadCount, Optional<AdInfoLookup.AdInfo> adInfo, UserInfoLookup.UserInfo userInfo) {
         String pushMessage = createPushMessageText(message, getConversationLocale(conversation));
-        return Optional.of(
-                new PushMessagePayload(
-                        email,
-                        userInfo.map(UserInfoLookup.UserInfo::getUserId).orElse(""),
-                        pushMessage,
-                        "CHATMESSAGE",
-                        Optional.of(details(conversation, adInfo, pushMessage, unreadCount)),
-                        Optional.of(unreadCount)
-                )
+        return new PushMessagePayload(
+                email,
+                userInfo.getUserId(),
+                pushMessage,
+                "CHATMESSAGE",
+                Optional.of(details(conversation, adInfo, pushMessage, unreadCount)),
+                Optional.of(unreadCount)
         );
     }
 

@@ -4,13 +4,13 @@ import com.codahale.metrics.Counter;
 import com.codahale.metrics.Timer;
 import com.ecg.comaas.kjca.coremod.shared.AddresserUtil;
 import com.ecg.comaas.kjca.coremod.shared.TextAnonymizer;
+import com.ecg.messagebox.persistence.MessageBoxRepository;
 import com.ecg.messagecenter.core.listeners.UserNotificationRules;
-import com.ecg.messagecenter.core.persistence.simple.SimpleMessageCenterRepository;
 import com.ecg.messagecenter.kjca.capi.AdInfoLookup;
 import com.ecg.messagecenter.kjca.capi.CommonApiConfig;
 import com.ecg.messagecenter.kjca.capi.HttpClientConfig;
 import com.ecg.messagecenter.kjca.capi.UserInfoLookup;
-import com.ecg.messagecenter.kjca.persistence.SimplePostBoxInitializer;
+import com.ecg.messagecenter.kjca.persistence.SimpleMessageCenterInitializer;
 import com.ecg.messagecenter.kjca.pushmessage.PushMessageOnUnreadConversationCallback;
 import com.ecg.messagecenter.kjca.pushmessage.PushService;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
@@ -35,16 +35,16 @@ public class KjcaPostBoxUpdateListener implements MessageProcessedListener {
     private static final Counter PROCESSING_SKIPPED_PRO_AD = TimingReports.newCounter("message-box.postBoxUpdateListener.skipped.pro");
 
     private final UserNotificationRules userNotificationRules;
-    private final SimpleMessageCenterRepository messageCenterRepository;
-    private final SimplePostBoxInitializer postBoxInitializer;
+    private final MessageBoxRepository messageBoxRepository;
+    private final SimpleMessageCenterInitializer postBoxInitializer;
     private final PushService sendPushService;
     private final AdInfoLookup adInfoLookup;
     private final UserInfoLookup userInfoLookup;
     private final TextAnonymizer textAnonymizer;
 
     @Autowired
-    public KjcaPostBoxUpdateListener(SimplePostBoxInitializer postBoxInitializer,
-                                     SimpleMessageCenterRepository messageCenterRepository,
+    public KjcaPostBoxUpdateListener(SimpleMessageCenterInitializer postBoxInitializer,
+                                     MessageBoxRepository messageBoxRepository,
                                      @Value("${push-mobile.enabled:true}") boolean pushEnabled,
                                      @Value("${capi.scheme:http}") String capiScheme,
                                      @Value("${capi.host:www.dev.kjdev.ca}") String capiHost,
@@ -59,7 +59,7 @@ public class KjcaPostBoxUpdateListener implements MessageProcessedListener {
                                      @Qualifier("sendPushService") PushService sendPushService,
                                      TextAnonymizer textAnonymizer) {
         this.postBoxInitializer = postBoxInitializer;
-        this.messageCenterRepository = messageCenterRepository;
+        this.messageBoxRepository = messageBoxRepository;
         this.textAnonymizer = textAnonymizer;
 
         final HttpClientConfig httpClientConfig = new HttpClientConfig(connectionTimeout, connectionManagerTimeout, socketTimeout, maxConnectionsPerHost, retryCount);
@@ -117,7 +117,7 @@ public class KjcaPostBoxUpdateListener implements MessageProcessedListener {
                 conversation,
                 newReplyArrived,
                 new PushMessageOnUnreadConversationCallback(
-                        messageCenterRepository,
+                        messageBoxRepository,
                         sendPushService,
                         textAnonymizer,
                         adInfoLookup,

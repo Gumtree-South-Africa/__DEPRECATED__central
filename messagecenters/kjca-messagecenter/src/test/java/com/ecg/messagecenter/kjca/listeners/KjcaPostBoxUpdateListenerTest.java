@@ -1,10 +1,11 @@
 package com.ecg.messagecenter.kjca.listeners;
 
 import com.ecg.comaas.kjca.coremod.shared.TextAnonymizer;
+import com.ecg.messagebox.persistence.MessageBoxRepository;
 import com.ecg.messagecenter.core.persistence.simple.SimpleMessageCenterRepository;
 import com.ecg.messagecenter.kjca.capi.AdInfoLookup;
 import com.ecg.messagecenter.kjca.capi.UserInfoLookup;
-import com.ecg.messagecenter.kjca.persistence.SimplePostBoxInitializer;
+import com.ecg.messagecenter.kjca.persistence.SimpleMessageCenterInitializer;
 import com.ecg.messagecenter.kjca.pushmessage.PushMessageOnUnreadConversationCallback;
 import com.ecg.messagecenter.kjca.pushmessage.PushService;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
@@ -37,9 +38,9 @@ public class KjcaPostBoxUpdateListenerTest {
     private KjcaPostBoxUpdateListener listener;
 
     @Mock
-    private SimplePostBoxInitializer postBoxInitializer;
+    private SimpleMessageCenterInitializer postBoxInitializer;
     @Mock
-    private SimpleMessageCenterRepository postBoxRepository;
+    private MessageBoxRepository messageBoxRepository;
     @Mock
     private PushService pushService;
     @Mock
@@ -56,7 +57,7 @@ public class KjcaPostBoxUpdateListenerTest {
 
     @Before
     public void setUp() throws Exception {
-        listener = new KjcaPostBoxUpdateListener(postBoxInitializer, postBoxRepository, false, "http", "capi", 80, "username", "password", 1000, 1000, 1000, 1, 0, sendPushService, textAnonymizer);
+        listener = new KjcaPostBoxUpdateListener(postBoxInitializer, messageBoxRepository, false, "http", "capi", 80, "username", "password", 1000, 1000, 1000, 1, 0, sendPushService, textAnonymizer);
 
         convoBuilder = ImmutableConversation.Builder
                 .aConversation()

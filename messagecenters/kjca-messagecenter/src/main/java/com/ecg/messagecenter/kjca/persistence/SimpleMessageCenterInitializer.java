@@ -24,14 +24,14 @@ import static org.joda.time.DateTime.now;
  * 'customValues' map.
  */
 @Component
-public class SimplePostBoxInitializer extends AbstractSimplePostBoxInitializer<ConversationThread> {
+public class SimpleMessageCenterInitializer extends AbstractSimplePostBoxInitializer<ConversationThread> {
 
     private ConversationBlockRepository conversationBlockRepository;
     private TextAnonymizer textAnonymizer;
     private MessagesResponseFactory messageResponseFactory;
 
     @Autowired
-    public SimplePostBoxInitializer(
+    public SimpleMessageCenterInitializer(
             SimpleMessageCenterRepository postBoxRepository,
             ConversationBlockRepository conversationBlockRepository,
             TextAnonymizer textAnonymizer) {

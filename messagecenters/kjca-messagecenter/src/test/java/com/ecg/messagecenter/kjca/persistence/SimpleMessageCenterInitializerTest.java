@@ -28,7 +28,7 @@ import static org.joda.time.DateTimeZone.UTC;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.*;
 
-public class SimplePostBoxInitializerTest {
+public class SimpleMessageCenterInitializerTest {
     private static final String SELLER_EMAIL = "seller@example.com";
     private static final PostBoxId SELLER_POSTBOX_ID = PostBoxId.fromEmail(SELLER_EMAIL);
     private static final String AD_ID = "adid";
@@ -38,7 +38,7 @@ public class SimplePostBoxInitializerTest {
     private static final String SELLER_SECRET = "seller_secret";
     private static final String MSG_TEXT = "text";
 
-    private SimplePostBoxInitializer.PostBoxWriteCallback postBoxWriteCallback = mock(SimplePostBoxInitializer.PostBoxWriteCallback.class);
+    private SimpleMessageCenterInitializer.PostBoxWriteCallback postBoxWriteCallback = mock(SimpleMessageCenterInitializer.PostBoxWriteCallback.class);
 
     private ImmutableConversation.Builder convBuilder;
     private DateTime now;
@@ -82,7 +82,7 @@ public class SimplePostBoxInitializerTest {
 
         ConversationBlockRepository conversationBlockRepository = mock(ConversationBlockRepository.class);
 
-        SimplePostBoxInitializer postBoxInitializer = new SimplePostBoxInitializer(postBoxRepository, conversationBlockRepository, textAnonymizer);
+        SimpleMessageCenterInitializer postBoxInitializer = new SimpleMessageCenterInitializer(postBoxRepository, conversationBlockRepository, textAnonymizer);
         postBoxInitializer.moveConversationToPostBox(SELLER_EMAIL, conversation, true, postBoxWriteCallback);
 
         ArgumentCaptor<AbstractConversationThread> argumentCaptor = ArgumentCaptor.forClass(AbstractConversationThread.class);
@@ -128,7 +128,7 @@ public class SimplePostBoxInitializerTest {
 
         ConversationBlockRepository conversationBlockRepository = mock(ConversationBlockRepository.class);
 
-        SimplePostBoxInitializer postBoxInitializer = new SimplePostBoxInitializer(postBoxRepository, conversationBlockRepository, textAnonymizer);
+        SimpleMessageCenterInitializer postBoxInitializer = new SimpleMessageCenterInitializer(postBoxRepository, conversationBlockRepository, textAnonymizer);
         postBoxInitializer.moveConversationToPostBox(SELLER_EMAIL, conversation, true, postBoxWriteCallback);
 
         verifyZeroInteractions(postBoxWriteCallback);
@@ -171,7 +171,7 @@ public class SimplePostBoxInitializerTest {
 
         ConversationBlockRepository conversationBlockRepository = mock(ConversationBlockRepository.class);
 
-        SimplePostBoxInitializer postBoxInitializer = new SimplePostBoxInitializer(postBoxRepository, conversationBlockRepository, textAnonymizer);
+        SimpleMessageCenterInitializer postBoxInitializer = new SimpleMessageCenterInitializer(postBoxRepository, conversationBlockRepository, textAnonymizer);
         postBoxInitializer.moveConversationToPostBox(SELLER_EMAIL, conversation, true, postBoxWriteCallback);
 
         verifyZeroInteractions(postBoxWriteCallback);
@@ -212,7 +212,7 @@ public class SimplePostBoxInitializerTest {
         ConversationBlockRepository conversationBlockRepository = mock(ConversationBlockRepository.class);
         when(conversationBlockRepository.byId(CONV_ID)).thenReturn(new ConversationBlock(CONV_ID, 1, Optional.of(new DateTime(DateTimeZone.UTC)), Optional.empty()));
 
-        SimplePostBoxInitializer postBoxInitializer = new SimplePostBoxInitializer(postBoxRepository, conversationBlockRepository, textAnonymizer);
+        SimpleMessageCenterInitializer postBoxInitializer = new SimpleMessageCenterInitializer(postBoxRepository, conversationBlockRepository, textAnonymizer);
         postBoxInitializer.moveConversationToPostBox(BUYER_EMAIL, conversation, true, postBoxWriteCallback);
 
         verifyZeroInteractions(postBoxWriteCallback);
@@ -254,7 +254,7 @@ public class SimplePostBoxInitializerTest {
         ConversationBlockRepository conversationBlockRepository = mock(ConversationBlockRepository.class);
         when(conversationBlockRepository.byId(CONV_ID)).thenReturn(new ConversationBlock(CONV_ID, 1, Optional.empty(), Optional.of(new DateTime(DateTimeZone.UTC))));
 
-        SimplePostBoxInitializer postBoxInitializer = new SimplePostBoxInitializer(postBoxRepository, conversationBlockRepository, textAnonymizer);
+        SimpleMessageCenterInitializer postBoxInitializer = new SimpleMessageCenterInitializer(postBoxRepository, conversationBlockRepository, textAnonymizer);
         postBoxInitializer.moveConversationToPostBox(SELLER_EMAIL, conversation, true, postBoxWriteCallback);
 
         verifyZeroInteractions(postBoxWriteCallback);
