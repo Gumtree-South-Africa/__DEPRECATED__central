@@ -20,6 +20,6 @@ echo "Loading to consul: tenant properties from file $TENANT_PROPERTIES"
 
 docker run --network comaasdocker_default --rm \
 	--volume $TENANT_PROPERTIES:/props.properties \
-        dock.es.ecg.tools/comaas/properties-to-consul:0.0.7 -consul http://comaasdocker_consul_1:8500 \
+        dock.es.ecg.tools/comaas/properties-to-consul:0.0.7 -consul http://consul:8500 \
 	-tenant $TENANT
 

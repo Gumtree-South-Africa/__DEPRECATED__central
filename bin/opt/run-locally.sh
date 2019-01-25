@@ -31,7 +31,7 @@ EOF
 function loadConfig() {
 # You might need to change the default network name comaasdocker_consul_1 for something else. Check your consul container network name with docker ps for this
 docker run --network comaasdocker_default --rm --volume ${PWD}/distribution/conf/${TENANT}/docker.properties:/props.properties  \
-  dock.es.ecg.tools/comaas/properties-to-consul:0.0.7 -consul http://comaasdocker_consul_1:8500 -tenant ${TENANT}
+  dock.es.ecg.tools/comaas/properties-to-consul:0.0.7 -consul http://consul:8500 -tenant ${TENANT}
 }
 
 stop () {
