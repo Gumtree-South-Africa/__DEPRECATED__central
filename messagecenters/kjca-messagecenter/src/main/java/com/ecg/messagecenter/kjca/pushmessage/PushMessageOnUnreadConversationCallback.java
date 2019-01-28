@@ -66,7 +66,6 @@ public class PushMessageOnUnreadConversationCallback implements SimpleMessageCen
     }
 
     private void sendPushMessage(String email) {
-        PushService pushService = null;
         try {
             TraceThreadLocal.set(UUID.randomUUID().toString());
             Optional<AdInfoLookup.AdInfo> adInfo = adInfoLookup.lookupInfo("adId", conversation.getAdId());
@@ -77,15 +76,10 @@ public class PushMessageOnUnreadConversationCallback implements SimpleMessageCen
             }
 
             int unreadCount = messageBoxRepository.getUserUnreadCounts(userInfo.get().getUserId()).getNumUnreadConversations();
-
             PushMessagePayload payload = createPayloadBasedOnNotificationRules(conversation, message, email, unreadCount, adInfo, userInfo.get());
-
             sendPushMessageInternal(sendPushService, payload);
-
-        } catch (Exception e) {
-            if (pushService != null) {
-                pushService.incrementCounter(PushService.Result.Status.ERROR);
-            }
+        } catch (RuntimeException e) {
+            sendPushService.incrementCounter(PushService.Result.Status.ERROR);
             LOG.error("Error sending push for conversation '{}' and message '{}'", conversation.getId(), message.getId(), e);
         }
     }
@@ -101,7 +95,6 @@ public class PushMessageOnUnreadConversationCallback implements SimpleMessageCen
         if (PushService.Result.Status.ERROR == sendPushResult.getStatus()) {
             LOG.error("Error sending push for conversation '{}' and message '{}'", conversation.getId(), message.getId(), sendPushResult.getException());
         }
-
     }
 
     private PushMessagePayload createPayloadBasedOnNotificationRules(Conversation conversation, Message message, String email, int unreadCount, Optional<AdInfoLookup.AdInfo> adInfo, UserInfoLookup.UserInfo userInfo) {
