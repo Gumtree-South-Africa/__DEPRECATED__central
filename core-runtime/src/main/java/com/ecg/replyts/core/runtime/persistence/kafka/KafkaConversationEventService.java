@@ -7,6 +7,7 @@ import com.ecg.replyts.core.api.processing.ConversationEventService;
 import com.google.common.base.Charsets;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Timestamp;
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -87,7 +88,7 @@ public class KafkaConversationEventService implements ConversationEventService {
 
         Envelope envelope = Envelope.newBuilder()
                 .setTenant(tenant)
-                .setOrigin(originTenant == null ? tenant : originTenant)
+                .setOrigin(StringUtils.isEmpty(originTenant) ? tenant : originTenant)
                 .setConversationId(conversationId)
                 .setMessageAdded(builder.build())
                 .build();
