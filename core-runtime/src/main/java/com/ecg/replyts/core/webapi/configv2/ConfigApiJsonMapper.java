@@ -12,6 +12,7 @@ import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import static java.lang.String.format;
 
@@ -22,19 +23,29 @@ public class ConfigApiJsonMapper {
         /**
          * configurations as a json object
          */
-        public static ObjectNode toJson(List<PluginConfiguration> configList) {
+        public static ObjectNode toJsonPluginConfigurationList(List<PluginConfiguration> configList) {
             ArrayNode arrayNode = JsonObjects.newJsonArray();
-            for (PluginConfiguration pluginConfiguration : configList) {
-                JsonObjects.Builder config = JsonObjects.builder()
-                        .attr("pluginFactory", pluginConfiguration.getId().getPluginFactory())
-                        .attr("instanceId", pluginConfiguration.getId().getInstanceId())
-                        .attr("priority", pluginConfiguration.getPriority())
-                        .attr("state", pluginConfiguration.getState().name())
-                        .attr("version", pluginConfiguration.getVersion())
-                        .attr("configuration", pluginConfiguration.getConfiguration());
-                arrayNode.add(config.build());
-            }
+
+            configList.stream().forEach(pluginConf -> {
+                ObjectNode config = toJsonPluginConfig(pluginConf);
+                arrayNode.add(config);
+            });
+
             return JsonObjects.builder().attr("configs", arrayNode).build();
+        }
+
+        /**
+         * For backwards-compatibility reasons, we didn't add the UUID to the API json model
+         */
+        public static ObjectNode toJsonPluginConfig(PluginConfiguration pluginConfiguration) {
+            return JsonObjects.builder()
+                    .attr("pluginFactory", pluginConfiguration.getId().getPluginFactory())
+                    .attr("instanceId", pluginConfiguration.getId().getInstanceId())
+                    .attr("priority", pluginConfiguration.getPriority())
+                    .attr("state", pluginConfiguration.getState().name())
+                    .attr("version", pluginConfiguration.getVersion())
+                    .attr("configuration", pluginConfiguration.getConfiguration())
+                    .build();
         }
 
     }
@@ -66,7 +77,7 @@ public class ConfigApiJsonMapper {
             Long priority = Long.valueOf(getContent(body, "priority", "0"));
             PluginState state = PluginState.valueOf(getContent(body, "state", PluginState.ENABLED.name()));
 
-            return new PluginConfiguration(new ConfigurationId(pluginFactory, instanceId), priority, state, 1L, configuration);
+            return PluginConfiguration.create(UUID.randomUUID(), new ConfigurationId(pluginFactory, instanceId), priority, state, 1L, configuration);
         }
 
         private static String getContent(JsonNode body, String fieldname, String alternative) {

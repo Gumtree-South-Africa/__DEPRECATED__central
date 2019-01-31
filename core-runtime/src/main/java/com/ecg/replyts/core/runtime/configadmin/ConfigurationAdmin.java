@@ -3,16 +3,15 @@ package com.ecg.replyts.core.runtime.configadmin;
 import com.ecg.replyts.core.api.configadmin.ConfigurationId;
 import com.ecg.replyts.core.api.configadmin.PluginConfiguration;
 import com.ecg.replyts.core.api.pluginconfiguration.BasePluginFactory;
+import com.ecg.replyts.core.api.pluginconfiguration.filter.Filter;
+import com.ecg.replyts.core.runtime.remotefilter.FilterWithShadowComparison;
+import com.ecg.replyts.core.runtime.remotefilter.RemoteFilter;
+import com.ecg.replyts.core.runtime.remotefilter.RemoteFilterConfigurations;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -29,6 +28,13 @@ import java.util.stream.Collectors;
  */
 public class ConfigurationAdmin<T> {
     private static final Logger LOG = LoggerFactory.getLogger(ConfigurationAdmin.class);
+
+    /**
+     * This dependency is a filter-specific pollution here. Give it a default implementation, so all the non-Filter-oriented
+     * ConfigurationAdmin<NonFilter> instances (and their tests) don't need to provide/mock this.
+     */
+    @Autowired(required = false)
+    private RemoteFilterConfigurations remoteFilterConfigs = RemoteFilterConfigurations.createEmptyConfiguration();
 
     @Autowired
     private ClusterRefreshPublisher clusterRefreshPublisher;
@@ -65,14 +71,30 @@ public class ConfigurationAdmin<T> {
             throw new IllegalArgumentException("configuration required");
         }
         ConfigurationId id = configuration.getId();
-        T createdService = createPluginInstance(configuration);
+        T localPlugin = createPluginInstance(configuration);
 
-        PluginInstanceReference<T> sr = new PluginInstanceReference<>(configuration, createdService);
+        // COMAAS-1658: allow service to run remotely. We keep the local one too, comparing the results.
+        T usedPlugin = createShadowComparedFilter(localPlugin, configuration)
+                .orElse(localPlugin);
+
+        PluginInstanceReference<T> sr = new PluginInstanceReference<>(configuration, usedPlugin);
         synchronized (this) {
             knownServices.put(id, sr);
             LOG.info("Adding/Updating Configuration {}", id);
             updateConfiguration();
         }
+    }
+
+    private Optional<T> createShadowComparedFilter(T pluginInstance, PluginConfiguration conf) {
+        if (!(pluginInstance instanceof Filter)) {
+            return Optional.empty(); // never proxy non-filters
+        }
+
+        Filter localFilter = (Filter) pluginInstance;
+
+        return (Optional<T>) remoteFilterConfigs.getRemoteEndpoint(conf)
+                .map(RemoteFilter::create)
+                .map(remoteFilter -> FilterWithShadowComparison.create(localFilter, remoteFilter));
     }
 
     /**
@@ -86,18 +108,6 @@ public class ConfigurationAdmin<T> {
     }
 
     /**
-     * checks if this configuration admin has a specific configuration running.
-     *
-     * @param config configuration id to check for
-     * @return <code>true</code> if this configuration exists and is alive.
-     */
-    public boolean isRunning(ConfigurationId config) {
-        synchronized (this) {
-            return knownServices.containsKey(config);
-        }
-    }
-
-    /**
      * Creates a plugin instance from the given configuration but does not register it. Can be used externally to
      * validate a new plugin configuration.
      */
@@ -106,9 +116,9 @@ public class ConfigurationAdmin<T> {
         ConfigurationId configId = configuration.getId();
 
         BasePluginFactory<?> pluginFactory = getPluginFactory(configId)
-            .orElseThrow(() -> new IllegalStateException(String.format(
-                "ServiceFactory %s not found. Cannot create a new service from it",
-                configId.getPluginFactory())));
+                .orElseThrow(() -> new IllegalStateException(String.format(
+                        "ServiceFactory %s not found. Cannot create a new service from it",
+                        configId.getPluginFactory())));
 
         return (T) pluginFactory.createPlugin(configId.getInstanceId(), configuration.getConfiguration());
     }
