@@ -33,6 +33,7 @@ public class KafkaMailPublisherConfig {
     private String kafkaTopic;
     private KafkaProducer<String, byte[]> producer;
 
+    // This method gets called irrespective of the value of mailpublisher.kafka.enabled property - COMAAS-1740
     @PostConstruct
     private void createKafkaProducer() {
         checkNotNull(kafkaBrokers);
