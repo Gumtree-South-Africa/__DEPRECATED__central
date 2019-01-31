@@ -4,10 +4,11 @@ import com.ecg.replyts.core.api.pluginconfiguration.ComaasPlugin;
 import com.ecg.replyts.core.runtime.listener.KafkaMailPublisher;
 import com.ecg.replyts.core.runtime.listener.MailPublisher;
 import org.apache.kafka.clients.producer.KafkaProducer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 
 import javax.annotation.PostConstruct;
@@ -24,6 +25,8 @@ import static org.apache.kafka.clients.producer.ProducerConfig.VALUE_SERIALIZER_
 @Configuration
 @ConditionalOnProperty(name = "mailpublisher.kafka.enabled", havingValue = "true")
 public class KafkaMailPublisherConfig {
+    private static final Logger LOGGER = LoggerFactory.getLogger(KafkaMailPublisherConfig.class);
+
     @Value("${mailpublisher.kafka.broker.list:#{null}}")
     private String kafkaBrokers;
     @Value("${mailpublisher.kafka.topic:coremail}")
@@ -33,7 +36,7 @@ public class KafkaMailPublisherConfig {
     @PostConstruct
     private void createKafkaProducer() {
         checkNotNull(kafkaBrokers);
-
+        LOGGER.info("Initializing KafkaMailPublisherConfig with kafkaBrokers {} and kafkaTopic {}", kafkaBrokers, kafkaTopic);
         Properties props = new Properties();
         props.put(BOOTSTRAP_SERVERS_CONFIG, kafkaBrokers);
         props.put(KEY_SERIALIZER_CLASS_CONFIG, org.apache.kafka.common.serialization.StringSerializer.class.getName());
