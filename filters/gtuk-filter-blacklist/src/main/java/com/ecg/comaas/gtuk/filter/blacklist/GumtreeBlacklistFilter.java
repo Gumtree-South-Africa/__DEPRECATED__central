@@ -106,13 +106,7 @@ public class GumtreeBlacklistFilter implements com.ecg.replyts.core.api.pluginco
             LOG.error("Gumshield API was null");
             return false;
         }
-        try {
-            gumshieldClient.checkByValue(ApiChecklistType.BLACK, checklistAttribute, attribute);
-            return true;
-        } catch (Exception e) {
-            LOG.debug("Could not find blacklist entry for " + attribute + ": " + e.getMessage());
-            return false;
-        }
+        return gumshieldClient.checkContainsRecord(ApiChecklistType.BLACK, checklistAttribute, attribute);
     }
 
     private boolean isRecipientBlacklisted(Message message, String recipientEmail) {

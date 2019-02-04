@@ -13,12 +13,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.gumtree.common.util.http.NotFoundHttpStatusException;
 import com.gumtree.filters.comaas.Filter;
 import com.gumtree.filters.comaas.config.BlacklistFilterConfig;
 import com.gumtree.filters.comaas.config.State;
 import com.gumtree.gumshield.api.domain.checklist.ApiChecklistAttribute;
-import com.gumtree.gumshield.api.domain.checklist.ApiChecklistEntry;
 import com.gumtree.gumshield.api.domain.checklist.ApiChecklistType;
 import org.junit.Before;
 import org.junit.Test;
@@ -236,8 +234,8 @@ public class GumtreeBlacklistFilterTest {
 
     @Test
     public void testSenderEmailDomainIsBlacklisted() throws Exception {
-        when(checklistApi.checkByValue(eq(ApiChecklistType.BLACK), eq(ApiChecklistAttribute.EMAIL_DOMAIN),
-                eq("hotmail.com"))).thenReturn(new ApiChecklistEntry());
+        when(checklistApi.checkContainsRecord(eq(ApiChecklistType.BLACK), eq(ApiChecklistAttribute.EMAIL_DOMAIN),
+                eq("hotmail.com"))).thenReturn(true);
 
 
         Message message = mockMessage(MessageDirection.BUYER_TO_SELLER, null, true);
@@ -253,10 +251,10 @@ public class GumtreeBlacklistFilterTest {
 
     @Test
     public void testSenderIpAddressIsBlacklisted() throws Exception {
-        when(checklistApi.checkByValue(eq(ApiChecklistType.BLACK), eq(ApiChecklistAttribute.EMAIL_DOMAIN),
-                eq("hotmail.com"))).thenThrow(new NotFoundHttpStatusException());
-        when(checklistApi.checkByValue(eq(ApiChecklistType.BLACK), eq(ApiChecklistAttribute.HOST),
-                eq("1.1.1.1"))).thenReturn(new ApiChecklistEntry());
+        when(checklistApi.checkContainsRecord(eq(ApiChecklistType.BLACK), eq(ApiChecklistAttribute.EMAIL_DOMAIN),
+                eq("hotmail.com"))).thenReturn(false);
+        when(checklistApi.checkContainsRecord(eq(ApiChecklistType.BLACK), eq(ApiChecklistAttribute.HOST),
+                eq("1.1.1.1"))).thenReturn(true);
 
 
         Message message = mockMessage(MessageDirection.BUYER_TO_SELLER, null, true);
@@ -307,27 +305,29 @@ public class GumtreeBlacklistFilterTest {
     }
 
     private void initialiseChecklistApiTestConditions() {
+        when(checklistApi.checkContainsRecord(any(ApiChecklistType.class), any(ApiChecklistAttribute.class),
+                anyString())).thenReturn(true);
 
-        when(checklistApi.checkByValue(eq(ApiChecklistType.BLACK), eq(ApiChecklistAttribute.EMAIL),
-                eq("goodguy@hotmail.com"))).thenThrow(new NotFoundHttpStatusException());
+        when(checklistApi.checkContainsRecord(eq(ApiChecklistType.BLACK), eq(ApiChecklistAttribute.EMAIL),
+                eq("goodguy@hotmail.com"))).thenReturn(false);
 
-        when(checklistApi.checkByValue(eq(ApiChecklistType.BLACK), eq(ApiChecklistAttribute.EMAIL),
-                eq("goodguy@yahoo.com"))).thenThrow(new NotFoundHttpStatusException());
+        when(checklistApi.checkContainsRecord(eq(ApiChecklistType.BLACK), eq(ApiChecklistAttribute.EMAIL),
+                eq("goodguy@yahoo.com"))).thenReturn(false);
 
-        when(checklistApi.checkByValue(eq(ApiChecklistType.BLACK), eq(ApiChecklistAttribute.EMAIL),
-                eq(null))).thenThrow(new NotFoundHttpStatusException());
+        when(checklistApi.checkContainsRecord(eq(ApiChecklistType.BLACK), eq(ApiChecklistAttribute.EMAIL),
+                eq(null))).thenReturn(false);
 
-        when(checklistApi.checkByValue(eq(ApiChecklistType.BLACK), eq(ApiChecklistAttribute.EMAIL_DOMAIN),
-                eq("hotmail.com"))).thenThrow(new NotFoundHttpStatusException());
+        when(checklistApi.checkContainsRecord(eq(ApiChecklistType.BLACK), eq(ApiChecklistAttribute.EMAIL_DOMAIN),
+                eq("hotmail.com"))).thenReturn(false);
 
-        when(checklistApi.checkByValue(eq(ApiChecklistType.BLACK), eq(ApiChecklistAttribute.EMAIL_DOMAIN),
-                eq("yahoo.com"))).thenThrow(new NotFoundHttpStatusException());
+        when(checklistApi.checkContainsRecord(eq(ApiChecklistType.BLACK), eq(ApiChecklistAttribute.EMAIL_DOMAIN),
+                eq("yahoo.com"))).thenReturn(false);
 
-        when(checklistApi.checkByValue(eq(ApiChecklistType.BLACK), eq(ApiChecklistAttribute.EMAIL_DOMAIN),
-                eq(null))).thenThrow(new NotFoundHttpStatusException());
+        when(checklistApi.checkContainsRecord(eq(ApiChecklistType.BLACK), eq(ApiChecklistAttribute.EMAIL_DOMAIN),
+                eq(null))).thenReturn(false);
 
-        when(checklistApi.checkByValue(eq(ApiChecklistType.BLACK), eq(ApiChecklistAttribute.HOST),
-                eq("1.1.1.1"))).thenThrow(new NotFoundHttpStatusException());
+        when(checklistApi.checkContainsRecord(eq(ApiChecklistType.BLACK), eq(ApiChecklistAttribute.HOST),
+                eq("1.1.1.1"))).thenReturn(false);
     }
 
     @Configuration

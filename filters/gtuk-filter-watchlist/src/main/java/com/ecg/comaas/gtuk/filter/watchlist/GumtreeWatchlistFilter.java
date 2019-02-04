@@ -63,13 +63,7 @@ public class GumtreeWatchlistFilter implements com.ecg.replyts.core.api.pluginco
     }
 
     private boolean isWatchlisted(String attribute, ApiChecklistAttribute checklistAttribute) {
-        try {
-            gumshieldClient.checkByValue(ApiChecklistType.WATCH, checklistAttribute, attribute);
-            return true;
-        } catch (Exception e) {
-            LOG.debug("Could not find watchlist entry for " + attribute + ": " + e.getMessage());
-            return false;
-        }
+        return gumshieldClient.checkContainsRecord(ApiChecklistType.WATCH, checklistAttribute, attribute);
     }
 
     GumtreeWatchlistFilter withPluginConfig(Filter pluginConfig) {
