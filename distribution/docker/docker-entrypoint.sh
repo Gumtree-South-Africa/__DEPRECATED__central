@@ -33,7 +33,7 @@ export region=${NOMAD_REGION}
 export http_proxy=http://proxy.${region}.cloud.ecg.so:3128
 export https_proxy=http://proxy.${region}.cloud.ecg.so:3128
 
-/usr/bin/java \
+java \
     -Djava.security.egd=file:/dev/urandom \
     -DlogDir=/tmp \
     -Dtenant=${TENANT} \
