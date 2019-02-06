@@ -70,7 +70,9 @@ function startComaas() {
                -e NOMAD_PORT_prometheus=${COMAAS_HTTP_PORT} \
                -e NOMAD_REGION=local \
                -e HEAP_SIZE=128m \
-               dock.es.ecg.tools/comaas/comaas:1-SNAPSHOT 2>&1 &
+               -e CUSTOM_GC_LOG_FILE=gc.log \
+               --network host \
+               dock.es.ecg.tools/comaas/comaas:1-SNAPSHOT 2>&1 > app.log &
 
     echo $! > ${COMAAS_PID}
 
@@ -81,6 +83,8 @@ function stopComaas() {
     if [[ -f ${COMAAS_PID} ]]; then
         PID=$(cat ${COMAAS_PID})
         log "Stopping comaas with PID $PID"
+        ls -l
+        cat app.log
         kill -0 ${PID} 2>&1 >/dev/null || { log "Comaas already stopped"; return; }
         kill -9 ${PID}
         log "Comaas stopped"
