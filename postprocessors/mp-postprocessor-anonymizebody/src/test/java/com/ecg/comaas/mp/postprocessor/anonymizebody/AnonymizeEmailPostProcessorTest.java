@@ -1,8 +1,5 @@
 package com.ecg.comaas.mp.postprocessor.anonymizebody;
 
-import com.ecg.comaas.mp.postprocessor.anonymizebody.AnonymizeEmailPostProcessor;
-import com.ecg.comaas.mp.postprocessor.anonymizebody.AnonymizeEmailPostProcessorConfig;
-import com.ecg.comaas.mp.postprocessor.anonymizebody.MediaTypeHelper;
 import com.ecg.replyts.app.Mails;
 import com.ecg.replyts.core.api.model.conversation.Conversation;
 import com.ecg.replyts.core.api.model.conversation.ConversationRole;
@@ -34,14 +31,8 @@ import java.util.List;
 import java.util.Properties;
 
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 public class AnonymizeEmailPostProcessorTest {
     private String unanonymizedSender = "unanonymized@hotmail.com";
@@ -62,7 +53,13 @@ public class AnonymizeEmailPostProcessorTest {
         AbstractEnvironment environment = new StandardEnvironment();
         environment.getPropertySources().addFirst(new PropertiesPropertySource("test", props));
         anonymizeEmailPostProcessorConfig = new AnonymizeEmailPostProcessorConfig(environment);
-        postProcessor = new AnonymizeEmailPostProcessor(new String[]{"mail.marktplaats.nl"}, anonymizeEmailPostProcessorConfig);
+        postProcessor = new AnonymizeEmailPostProcessor(
+                new String[]{
+                        "mail.otherplatform.nl", // we support multiple domains
+                        "mail.marktplaats.nl" // tests are written for this domain
+                },
+                anonymizeEmailPostProcessorConfig
+        );
 
         // create mock conversation and repository
         when(conversation.getUserId(Matchers.<ConversationRole>any())).thenReturn(unanonymizedSender);
@@ -140,7 +137,7 @@ public class AnonymizeEmailPostProcessorTest {
         ArgumentCaptor<String> argument = ArgumentCaptor.forClass(String.class);
         verify(messageContent).overrideContent(argument.capture());
         assertThat(argument.getValue(), equalTo(
-                "This is my email address "+ unanonymizedSender
+                "This is my email address " + unanonymizedSender
                         + " thanks. To: " + anonymizedSender + ". From:  " + anonymizedSender + "."));
     }
 
@@ -406,7 +403,7 @@ public class AnonymizeEmailPostProcessorTest {
 
     @Test
     public void testThirdPartyMailAddressesAreStripped() {
-        String text ="> Aan: Another Guy <third.party@hotmail.com>\n" +
+        String text = "> Aan: Another Guy <third.party@hotmail.com>\n" +
                 "Hi my email address is third.party@hotmail.com.";
 
         MutableMail mail = prepareMailWithPainText(text);
@@ -874,7 +871,7 @@ public class AnonymizeEmailPostProcessorTest {
                 htmlPartContent = textPart.getContent();
             }
         }
-        return new String[] {textPartContent, htmlPartContent};
+        return new String[]{textPartContent, htmlPartContent};
     }
 
     private MutableMail prepareMailWithPainText(String text) {

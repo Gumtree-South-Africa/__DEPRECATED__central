@@ -17,12 +17,13 @@ import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static com.ecg.replyts.core.api.model.Tenants.TENANT_BE;
 import static com.ecg.replyts.core.api.model.Tenants.TENANT_MP;
@@ -34,27 +35,29 @@ import static com.ecg.replyts.core.api.model.Tenants.TENANT_MP;
 public class AnonymizeEmailPostProcessor implements EmailPostProcessor {
 
     private static final Logger LOG = LoggerFactory.getLogger(AnonymizeEmailPostProcessor.class);
-    private final String[] platformDomains;
 
-    private List<Pattern> patterns;
+    private final List<String> cloakedMailPatterns;
+
+    private List<Pattern> emailAddressPatterns;
 
     @Autowired
-    public AnonymizeEmailPostProcessor(@Value("${mailcloaking.domains}") String[] platformDomains,
+    public AnonymizeEmailPostProcessor(@Value("${mailcloaking.domains}") String[] cloakingDomains,
                                        AnonymizeEmailPostProcessorConfig anonymizeEmailPostProcessorConfig) {
-        if (platformDomains.length != 1)
-            throw new IllegalArgumentException("AnonymizeEmailPostProcessor currently does not accept multiple domains");
 
-        this.platformDomains = platformDomains;
+        this.cloakedMailPatterns = Arrays.stream(cloakingDomains)
+                .map(s -> "@" + s)
+                .collect(Collectors.toList());
 
-        List<String> stringPatterns = anonymizeEmailPostProcessorConfig.getPatterns();
-        patterns = new ArrayList<>(stringPatterns.size());
+        emailAddressPatterns = anonymizeEmailPostProcessorConfig.getPatterns().stream()
+                .map(AnonymizeEmailPostProcessor::expandWhitespaceMarkerToRegex)
+                .map(p -> Pattern.compile(p, Pattern.CASE_INSENSITIVE))
+                .collect(Collectors.toList());
+    }
 
+    private static String expandWhitespaceMarkerToRegex(String p) {
         // The patterns are enhanced to do better whitespace detection. Any whitespace (including newlines)
         // and HTML whitespace is detected.
-        for (String stringPattern : stringPatterns ) {
-            String enhancedPattern = stringPattern.replace(" *", "(?:\\s|&nbsp;)*");
-            patterns.add(Pattern.compile(enhancedPattern, Pattern.CASE_INSENSITIVE));
-        }
+        return p.replace(" *", "(?:\\s|&nbsp;)*");
     }
 
     @Override
@@ -67,14 +70,13 @@ public class AnonymizeEmailPostProcessor implements EmailPostProcessor {
             // get anonymized and unanonymized sender email addresses
             String unanonymizedSender = getConversationSenderEmail(message, conversation);
             String anonymizedSender = mail.getFrom();
-            String platformDomain = "@" + platformDomains[0];
 
             LOG.trace("Replacing unanonymized '{} with '{}'.", unanonymizedSender, anonymizedSender);
 
             // loop through all text parts and replace all occurrences
             for (TypedContent<String> textPart : mail.getTextParts(false)) {
                 if (textPart.isMutable()) {
-                    doReplacement(textPart, unanonymizedSender, anonymizedSender, patterns, platformDomain);
+                    doReplacement(textPart, unanonymizedSender, anonymizedSender);
                 }
             }
 
@@ -95,23 +97,25 @@ public class AnonymizeEmailPostProcessor implements EmailPostProcessor {
         return conv.getUserId(fromRole);
     }
 
-    private void doReplacement(TypedContent<String> textPart, String toReplace, String replacement, List<Pattern> patterns, String toKeep) {
+    private void doReplacement(TypedContent<String> textPart, String toReplace, String replacement) {
         boolean isHtml = MediaTypeHelper.isHtmlCompatibleType(textPart.getMediaType());
         String originalContent = textPart.getContent();
 
         String newContent = originalContent;
         if (isHtml) {
             // Un-escape some characters that are used in the patterns and that have been seen escaped.
-            newContent = newContent.
-                    replace("&#58;", ":").replace("&#x3a;", ":").
-                    replace("&#64;", "@").replace("&#x40;", "@");
+            newContent = newContent
+                    .replace("&#58;", ":")
+                    .replace("&#x3a;", ":")
+                    .replace("&#64;", "@")
+                    .replace("&#x40;", "@");
         }
 
         boolean contentChanged = false;
         StringBuilder sb = new StringBuilder(newContent.length());
         for (String line : lines(newContent, isHtml)) {
             if (line.contains("@")) {
-                for (Pattern pattern : patterns) {
+                for (Pattern pattern : emailAddressPatterns) {
                     try {
                         Matcher matcher = pattern.matcher(line);
                         while (matcher.find()) {
@@ -125,9 +129,8 @@ public class AnonymizeEmailPostProcessor implements EmailPostProcessor {
                             } else if (element.contains(replacement)) {
                                 // Replacement was already done, skip this line.
 
-                            } else if (element.contains(toKeep)) {
+                            } else if (stringContainsCloakedMail(element)) {
                                 // Already anonymized, skip this line.
-
                             } else {
                                 // No replacement could be made,
                                 // and the replacement was not already done
@@ -148,6 +151,13 @@ public class AnonymizeEmailPostProcessor implements EmailPostProcessor {
         if (!contentChanged) return;
 
         textPart.overrideContent(sb.toString());
+    }
+
+    private boolean stringContainsCloakedMail(String text) {
+        return cloakedMailPatterns.stream()
+                .filter(pd -> text.contains(pd))
+                .findAny()
+                .isPresent();
     }
 
     private Iterable<String> lines(final String text, final boolean isHtml) {
@@ -214,7 +224,7 @@ public class AnonymizeEmailPostProcessor implements EmailPostProcessor {
                             } while (
                                     nextTextIndex < text.length() &&
                                             ((nextTextIndex - textIndex) < 140 || htmlConstructContinuesOnNextLine(nextTextIndex))
-                                    );
+                            );
                             nextLine = text.substring(textIndex, nextTextIndex);
                             textIndex = nextTextIndex;
                         }
