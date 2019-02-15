@@ -76,6 +76,7 @@
 
                 <module>filters/mp-filter-bankaccount</module>
                 <module>filters/mp-filter-volume</module>
+                <module>filters/mp-filter-buyer-attachments</module>
                 <module>preprocessors/mp-preprocessor-emailoptout</module>
                 <module>postprocessors/mp-postprocessor-anonymizebody</module>
                 <module>postprocessors/mp-postprocessor-sendername</module>

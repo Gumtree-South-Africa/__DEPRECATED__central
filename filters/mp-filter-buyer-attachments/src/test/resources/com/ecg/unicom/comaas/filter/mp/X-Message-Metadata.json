@@ -1,0 +1,21 @@
+{
+  "attachment": {
+    "type": "image",
+    "fallbackMessage": "[Afbeelding] - Update de Marktplaats app om deze te bekijken.",
+    "image": {
+      "imageId": 4561684611,
+      "xsmall": {
+        "href": "https://i.ebayimg.com/00/s/MTAyMlgxMDI0/z/QH4AAOSwXitcU5ae/$_14.JPG"
+      },
+      "medium": {
+        "href": "https://i.ebayimg.com/00/s/MTAyMlgxMDI0/z/QH4AAOSwXitcU5ae/$_82.JPG"
+      },
+      "large": {
+        "href": "https://i.ebayimg.com/00/s/MTAyMlgxMDI0/z/QH4AAOSwXitcU5ae/$_83.JPG"
+      },
+      "xxlarge": {
+        "href": "https://i.ebayimg.com/00/s/MTAyMlgxMDI0/z/QH4AAOSwXitcU5ae/$_85.JPG"
+      }
+    }
+  }
+}
