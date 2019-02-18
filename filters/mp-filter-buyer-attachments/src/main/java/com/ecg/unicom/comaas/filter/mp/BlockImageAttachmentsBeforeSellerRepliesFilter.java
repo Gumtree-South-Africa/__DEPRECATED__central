@@ -88,7 +88,7 @@ public class BlockImageAttachmentsBeforeSellerRepliesFilter implements Filter {
         @Nonnull
         @Override
         public String getIdentifier() {
-            return "mp-filter-buyer-attachments";
+            return "com.ecg.unicom.comaas.filter.mp.BlockImageAttachmentsBeforeSellerRepliesFilter";
         }
     }
 }

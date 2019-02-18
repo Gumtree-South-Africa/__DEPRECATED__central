@@ -64,7 +64,7 @@ public class BlockUrlMessageBeforeSellerRepliesFilter implements Filter {
         @Nonnull
         @Override
         public String getIdentifier() {
-            return "mp-filter-buyer-urls";
+            return "com.ecg.unicom.comaas.filter.mp.BlockUrlMessageBeforeSellerRepliesFilter";
         }
     }
 }
