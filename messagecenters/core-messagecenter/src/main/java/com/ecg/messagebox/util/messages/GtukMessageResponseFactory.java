@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.ecg.messagebox.util.messages.DefaultMessagesResponseFactory.extractBodyMarkedByNonPrintableChars;
 import static com.ecg.replyts.core.api.model.Tenants.TENANT_GTUK;
 
 @Primary
@@ -74,7 +75,7 @@ public class GtukMessageResponseFactory implements MessagesResponseFactory {
         long start, end, duration;
         Matcher matcher;
 
-        tmp = stripOutInitialReplyGumtreeTemplate(tmp);
+        tmp = extractBodyMarkedByNonPrintableChars(tmp);
 
         for (Pattern pattern : REPLACE_PATTERNS) {
             start = System.currentTimeMillis();
@@ -102,19 +103,4 @@ public class GtukMessageResponseFactory implements MessagesResponseFactory {
         return tmp;
     }
 
-    private static String stripOutInitialReplyGumtreeTemplate(String input) {
-        Pattern prefix = Pattern.compile("(Dear[^\\n]*,[\\n\\s=]*You have received a reply to your ad.*[=\\s\\n-]*\\nFrom: [^\\n]*\\n[\\s\\n=]*)", Pattern.DOTALL);
-        Matcher prefixMatcher = prefix.matcher(input);
-        String inputAfterStrippingOutFirstpart = prefixMatcher.replaceAll("");
-
-        if (inputAfterStrippingOutFirstpart.equals(input)) {
-            return input;
-        }
-
-        Pattern belowText = Pattern.compile("=?(\\n[=\\s\\n-]*This message has been sent through Gumtree mail,.+)", Pattern.DOTALL);
-        String res = belowText.matcher(inputAfterStrippingOutFirstpart).replaceAll("");
-
-        Pattern belowMessageTextTemplate = Pattern.compile("=?(\\n[=\\s\\n-]*Need to respond[?] Answer this message by pressing 'Reply'.+)", Pattern.DOTALL);
-        return belowMessageTextTemplate.matcher(res).replaceAll("");
-    }
 }
