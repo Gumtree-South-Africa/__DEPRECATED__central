@@ -229,6 +229,16 @@
         </dependency>
         <dependency>
             <groupId>ecg.comaas</groupId>
+            <artifactId>mp-filter-buyer-attachments</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>ecg.comaas</groupId>
+            <artifactId>mp-filter-buyer-urls</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>ecg.comaas</groupId>
             <artifactId>mp-preprocessor-emailoptout</artifactId>
             <version>${project.version}</version>
         </dependency>
