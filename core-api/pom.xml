@@ -95,6 +95,11 @@
             <artifactId>assertj-core</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>javax.validation</groupId>
+            <artifactId>validation-api</artifactId>
+            <version>1.1.0.Final</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -160,6 +165,28 @@
                                 <dateLibrary>java8</dateLibrary>
                                 <useSwaggerAnnotations>false</useSwaggerAnnotations>
                                 <useBeanValidation>false</useBeanValidation>
+                            </configOptions>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>generate-configv2-api</id>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <inputSpec>core-api/src/main/protobuf/apis/comaas-configv2/configv2.yml</inputSpec>
+                            <generateApis>false</generateApis>
+                            <generatorName>jaxrs-spec</generatorName>
+                            <validateSpec>true</validateSpec>
+                            <configOptions>
+                                <modelPackage>ecg.unicom.comaas.configv2.model</modelPackage>
+                                <apiPackage>ecg.unicom.comaas.configv2.api</apiPackage>
+                                <dateLibrary>java8</dateLibrary>
+                                <interfaceOnly>true</interfaceOnly>
+                                <returnResponse>true</returnResponse>
+                                <useSwaggerAnnotations>false</useSwaggerAnnotations>
+                                <generatePom>false</generatePom>
+                                <sourceFolder>gen</sourceFolder>
                             </configOptions>
                         </configuration>
                     </execution>

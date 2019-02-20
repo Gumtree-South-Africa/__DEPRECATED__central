@@ -41,7 +41,7 @@ public class CassandraConfigurationRepositoryIntegrationTest {
     public void shouldInsertAndReadConfiguration() {
         ConfigurationId id = new ConfigurationId(DummyFactory.IDENTIFIER, "id1");
         PluginConfiguration configuration = PluginConfiguration.createWithRandomUuid(id, 1, PluginState.ENABLED, 1, new TextNode("some_json"));
-        configurationRepository.persistConfiguration(configuration, "127.0.0.1");
+        configurationRepository.upsertConfiguration(configuration, "127.0.0.1");
 
         List<PluginConfiguration> configurations = configurationRepository.getConfigurations();
 
@@ -58,11 +58,11 @@ public class CassandraConfigurationRepositoryIntegrationTest {
     public void shouldUpdateConfiguration() {
         ConfigurationId id = new ConfigurationId(DummyFactory.IDENTIFIER, "id1");
         PluginConfiguration configuration = PluginConfiguration.createWithRandomUuid(id, 1, PluginState.ENABLED, 1, new TextNode("some_json"));
-        configurationRepository.persistConfiguration(configuration, "127.0.0.1");
+        configurationRepository.upsertConfiguration(configuration, "127.0.0.1");
 
         ConfigurationId sameId = new ConfigurationId(DummyFactory.IDENTIFIER, "id1");
         PluginConfiguration configuration2 = PluginConfiguration.createWithRandomUuid(sameId, 2, PluginState.DISABLED, 2, new TextNode("other_json"));
-        configurationRepository.persistConfiguration(configuration2, "127.0.0.1");
+        configurationRepository.upsertConfiguration(configuration2, "127.0.0.1");
 
         List<PluginConfiguration> configurations = configurationRepository.getConfigurations();
 
@@ -80,7 +80,7 @@ public class CassandraConfigurationRepositoryIntegrationTest {
     public void shouldDeleteConfiguration() {
         ConfigurationId id = new ConfigurationId(DummyFactory.IDENTIFIER, "id1");
         PluginConfiguration configuration = PluginConfiguration.createWithRandomUuid(id, 1, PluginState.ENABLED, 1, new TextNode("some_json"));
-        configurationRepository.persistConfiguration(configuration, "127.0.0.1");
+        configurationRepository.upsertConfiguration(configuration, "127.0.0.1");
 
         List<PluginConfiguration> configurations = configurationRepository.getConfigurations();
 
