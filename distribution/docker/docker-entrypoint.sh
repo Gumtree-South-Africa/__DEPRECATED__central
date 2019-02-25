@@ -6,10 +6,20 @@ BASE_DIR=/opt/replyts
 CLASSPATH="/app/*"
 REPO=${BASE_DIR}/lib
 CONF_DIR=${BASE_DIR}/conf
+GC_LOG_FILE=/alloc/logs/gc.log
+SERVICE_DISCOVERY_PORT=8500
 
 if [ -z ${TENANT} ] || [ -z ${NOMAD_PORT_http} ] || [ -z ${NOMAD_IP_hazelcast} ] || [ -z ${NOMAD_PORT_hazelcast} ] || [ -z ${NOMAD_PORT_prometheus} ] || [ -z ${NOMAD_REGION} ] || [ -z ${HEAP_SIZE} ]; then
     echo "Please set TENANT, NOMAD_PORT_http, NOMAD_IP_hazelcast, NOMAD_PORT_hazelcast, NOMAD_PORT_prometheus, NOMAD_REGION, and HEAP_SIZE"
     exit 1
+fi
+
+if [ -n ${CUSTOM_GC_LOG_FILE} ]; then
+   GC_LOG_FILE=${CUSTOM_GC_LOG_FILE}
+fi
+
+if [ -n ${CUSTOM_SERVICE_DISCOVERY_PORT} ]; then
+    SERVICE_DISCOVERY_PORT=${CUSTOM_SERVICE_DISCOVERY_PORT}
 fi
 
 stop () {
@@ -37,7 +47,7 @@ java \
     -Djava.security.egd=file:/dev/urandom \
     -DlogDir=/tmp \
     -Dtenant=${TENANT} \
-    -Dservice.discovery.port=8500 \
+    -Dservice.discovery.port=${SERVICE_DISCOVERY_PORT} \
     -Dfile.encoding=UTF-8 \
     -XX:+PreserveFramePointer \
     -Xms${HEAP_SIZE} \
@@ -53,7 +63,7 @@ java \
     -Dmail.mime.uudecode.ignoremissingbeginend=true \
     -Dmail.mime.multipart.allowempty=true \
     -XX:+PrintGCDetails \
-    -Xloggc:/alloc/logs/gc.log \
+    -Xloggc:${GC_LOG_FILE} \
     -verbose:gc \
     -XX:+PrintGCTimeStamps \
     -XX:+PrintGCDateStamps \
