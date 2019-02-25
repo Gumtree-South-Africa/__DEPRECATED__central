@@ -14,11 +14,11 @@ if [ -z ${TENANT} ] || [ -z ${NOMAD_PORT_http} ] || [ -z ${NOMAD_IP_hazelcast} ]
     exit 1
 fi
 
-if [ -n ${CUSTOM_GC_LOG_FILE} ]; then
+if [ "${CUSTOM_GC_LOG_FILE}" != "" ]; then
    GC_LOG_FILE=${CUSTOM_GC_LOG_FILE}
 fi
 
-if [ -n ${CUSTOM_SERVICE_DISCOVERY_PORT} ]; then
+if [ "${CUSTOM_SERVICE_DISCOVERY_PORT}" != "" ]; then
     SERVICE_DISCOVERY_PORT=${CUSTOM_SERVICE_DISCOVERY_PORT}
 fi
 
