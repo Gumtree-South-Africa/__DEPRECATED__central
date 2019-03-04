@@ -63,18 +63,32 @@ function startComaas() {
     (cd distribution/target
     mkdir -p log
 
-    echo "Starting COMaaS as docker container for ${TENANT}"
-    docker run --network host \
-               -e TENANT=${TENANT} \
-               -e NOMAD_PORT_http=${COMAAS_HTTP_PORT} \
-               -e NOMAD_IP_hazelcast=127.0.0.1 \
-               -e NOMAD_PORT_hazelcast=${COMAAS_HAZELCAST_PORT} \
-               -e NOMAD_PORT_prometheus=${COMAAS_HTTP_PORT} \
-               -e NOMAD_REGION=local \
-               -e HEAP_SIZE=128m \
-               -e CUSTOM_SERVICE_DISCOVERY_PORT=8599 \
-               -e CUSTOM_GC_LOG_FILE=gc.log \
-               dock.es.ecg.tools/comaas/comaas:1-SNAPSHOT &> app.log &
+    COMAAS_HTTP_PORT=${COMAAS_HTTP_PORT} \
+    COMAAS_HAZELCAST_IP=127.0.0.1 \
+    COMAAS_HAZELCAST_PORT=${COMAAS_HAZELCAST_PORT} \
+    java \
+    -DlogDir=log \
+    -Dtenant=${TENANT} \
+    -Dservice.discovery.port=8599 \
+    -Dlogging.service.structured.logging=false \
+    -XX:-HeapDumpOnOutOfMemoryError \
+    -Djava.awt.headless=true \
+    -Dcom.datastax.driver.FORCE_NIO=true \
+    -XX:+PrintGCDetails \
+    -Xloggc:log/gc.log \
+    -verbose:gc \
+    -XX:+PrintGCTimeStamps \
+    -XX:+PrintGCDateStamps \
+    -XX:+PrintTenuringDistribution \
+    -XX:+UseGCLogFileRotation \
+    -XX:NumberOfGCLogFiles=7 \
+    -XX:GCLogFileSize=128M \
+    -XX:+PrintConcurrentLocks \
+    -XX:+PrintClassHistogram \
+    -XX:+PrintStringTableStatistics \
+    -classpath dependency/\* \
+    com.ecg.replyts.core.Application \
+    2>&1 &
 
     echo $! > ${COMAAS_PID}
 
@@ -82,8 +96,6 @@ function startComaas() {
 }
 
 function stopComaas() {
-    log "Application logs: "
-    cat distribution/target/app.log
     if [[ -f ${COMAAS_PID} ]]; then
         PID=$(cat ${COMAAS_PID})
         log "Stopping comaas with PID $PID"
