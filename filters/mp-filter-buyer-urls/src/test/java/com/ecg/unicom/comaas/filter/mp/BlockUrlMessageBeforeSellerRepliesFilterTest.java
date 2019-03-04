@@ -9,7 +9,9 @@ import com.ecg.replyts.core.api.processing.MessageProcessingContext;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -31,8 +33,11 @@ public class BlockUrlMessageBeforeSellerRepliesFilterTest {
         );
         when(conversation.getMessages()).thenReturn(messages);
 
+        Map<String, String> metadata = new HashMap<>();
+        metadata.put("X-User-Message", "some message url.com");
+
         Message messageWithUrl = mock(Message.class);
-        when(messageWithUrl.getPlainTextBody()).thenReturn("some message url.com");
+        when(messageWithUrl.getCaseInsensitiveHeaders()).thenReturn(metadata);
         MessageProcessingContext context = mock(MessageProcessingContext.class);
         when(context.getConversation()).thenReturn(conversation);
         when(context.getMessage()).thenReturn(messageWithUrl);
@@ -55,8 +60,11 @@ public class BlockUrlMessageBeforeSellerRepliesFilterTest {
         );
         when(conversation.getMessages()).thenReturn(messages);
 
+        Map<String, String> metadata = new HashMap<>();
+        metadata.put("X-User-Message", "some message url.com");
+
         Message messageWithUrl = mock(Message.class);
-        when(messageWithUrl.getPlainTextBody()).thenReturn("some message url.com");
+        when(messageWithUrl.getCaseInsensitiveHeaders()).thenReturn(metadata);
         MessageProcessingContext context = mock(MessageProcessingContext.class);
         when(context.getConversation()).thenReturn(conversation);
         when(context.getMessage()).thenReturn(messageWithUrl);
@@ -70,8 +78,11 @@ public class BlockUrlMessageBeforeSellerRepliesFilterTest {
     public void messageDoesntContainUrls() {
         BlockUrlMessageBeforeSellerRepliesFilter filter = new BlockUrlMessageBeforeSellerRepliesFilter();
 
+        Map<String, String> metadata = new HashMap<>();
+        metadata.put("X-User-Message", "some message");
+
         Message message = mock(Message.class);
-        when(message.getPlainTextBody()).thenReturn("some message");
+        when(message.getCaseInsensitiveHeaders()).thenReturn(metadata);
 
         assertThat(filter.containsUrls(message), is(false));
     }
@@ -104,8 +115,12 @@ public class BlockUrlMessageBeforeSellerRepliesFilterTest {
     private static void assertContainsUrl(String text) {
         BlockUrlMessageBeforeSellerRepliesFilter filter = new BlockUrlMessageBeforeSellerRepliesFilter();
 
+
+        Map<String, String> metadata = new HashMap<>();
+        metadata.put("X-User-Message", text);
+
         Message message = mock(Message.class);
-        when(message.getPlainTextBody()).thenReturn(text);
+        when(message.getCaseInsensitiveHeaders()).thenReturn(metadata);
 
         assertThat(filter.containsUrls(message), is(true));
     }

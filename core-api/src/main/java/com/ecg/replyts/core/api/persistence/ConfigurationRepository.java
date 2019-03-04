@@ -2,9 +2,6 @@ package com.ecg.replyts.core.api.persistence;
 
 import com.ecg.replyts.core.api.configadmin.ConfigurationId;
 import com.ecg.replyts.core.api.configadmin.PluginConfiguration;
-import com.ecg.replyts.core.api.util.JsonObjects;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import java.util.List;
 
@@ -19,16 +16,19 @@ public interface ConfigurationRepository {
     List<PluginConfiguration> getConfigurations();
 
     /**
-     * creates/updates a configuration. Whether to create or to update a configuration depends on the Configuration's
-     * {@link ConfigurationId}
+     * creates/updates a single configuration, adding it to the list of existing configuration.
+     * If the {@link ConfigurationId} already exists, it is replaced.
      */
-    void persistConfiguration(PluginConfiguration configuration, String remoteAddress);
+    void upsertConfiguration(PluginConfiguration configuration, String remoteAddress);
 
     /**
      * deletes the configuration identified by this {@link ConfigurationId}.
      */
     void deleteConfiguration(String pluginFactory, String instanceId, String remoteAddress);
 
+    /**
+     * make all existing configurations obsolete, replacing them with the given ones.
+     */
     void replaceConfigurations(List<PluginConfiguration> pluginConfigurations, String remoteAddress);
 
 }
