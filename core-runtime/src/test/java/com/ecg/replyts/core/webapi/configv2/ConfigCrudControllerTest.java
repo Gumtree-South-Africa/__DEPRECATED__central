@@ -1,11 +1,15 @@
 package com.ecg.replyts.core.webapi.configv2;
 
+import com.ecg.replyts.core.api.configadmin.ConfigurationId;
 import com.ecg.replyts.core.api.configadmin.ConfigurationUpdateNotifier;
 import com.ecg.replyts.core.api.configadmin.PluginConfiguration;
 import com.ecg.replyts.core.api.persistence.ConfigurationRepository;
+import com.ecg.replyts.core.api.pluginconfiguration.PluginState;
 import com.ecg.replyts.core.api.pluginconfiguration.filter.FilterFactory;
 import com.ecg.replyts.core.api.util.JsonObjects;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import ecg.unicom.comaas.configv2.model.FilterConfig;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -17,6 +21,9 @@ import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Collections;
+import java.util.Map;
+import java.util.UUID;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
@@ -69,7 +76,7 @@ public class ConfigCrudControllerTest {
     @Test
     public void persistsValidConfiguration() throws Exception {
         configCrudController.addConfiguration(request, FilterFactory.class.getName(), "i", validPutData);
-        verify(repository).persistConfiguration(Mockito.any(PluginConfiguration.class), anyString());
+        verify(repository).upsertConfiguration(Mockito.any(PluginConfiguration.class), anyString());
     }
 
     @Test
@@ -79,16 +86,66 @@ public class ConfigCrudControllerTest {
     }
 
     @Test
+    public void servesFilterByUuidWithConfigV2OpenApiSpec() {
+        // set up
+        PluginConfiguration pluginInRepo = createPluginConf();
+
+        when(repository.getConfigurations()).thenReturn(Collections.singletonList(pluginInRepo));
+
+        // execute
+        FilterConfig actualConfig = configCrudController.getConfigurationByUuid(pluginInRepo.getUuid().toString());
+
+        // verify, assuming the mapper does it's job (it's not SUT)
+        FilterConfig expectedConfig = ConfigApiJsonMapper.ToJson.filterConfig(pluginInRepo);
+
+        assertEquals(expectedConfig, actualConfig);
+
+    }
+    @Test
+    public void listFiltersWithConfigV2ApiSpec() {
+        // set up
+        PluginConfiguration pluginInRepo = createPluginConf();
+        when(repository.getConfigurations()).thenReturn(Collections.singletonList(pluginInRepo));
+
+        // execute
+        Map<String,FilterConfig> actualConfig = configCrudController.getConfigurationList();
+
+        // verify, assuming the mapper does it's job (it's not SUT)
+        FilterConfig expectedConfig = ConfigApiJsonMapper.ToJson.filterConfig(pluginInRepo);
+
+        assertEquals(
+                Collections.singletonMap(
+                        pluginInRepo.getUuid().toString(), expectedConfig
+                ),
+                actualConfig
+        );
+
+    }
+
+    private PluginConfiguration createPluginConf(){
+       return PluginConfiguration.create(
+                UUID.randomUUID(),
+                new ConfigurationId(
+                        "my.plugin.factory", "myInstanceId"
+                ),
+                3,
+                PluginState.ENABLED,
+                2,
+                (new ObjectMapper().createObjectNode().put("k", "v"))
+        );
+    }
+
+    @Test
     @Ignore("Versioning of Configuration Versions should probably be done inside the repository ")
     public void incrementsConfigurationVersion() throws Exception {
         ArgumentCaptor<PluginConfiguration> lastPersistedConfig = ArgumentCaptor.forClass(PluginConfiguration.class);
         configCrudController.addConfiguration(request, FilterFactory.class.getName(), "i", validPutData);
-        verify(repository, atLeastOnce()).persistConfiguration(lastPersistedConfig.capture(), "127.0.0.1");
+        verify(repository, atLeastOnce()).upsertConfiguration(lastPersistedConfig.capture(), "127.0.0.1");
 
         assertEquals(1L, lastPersistedConfig.getValue().getVersion());
 
         configCrudController.addConfiguration(request, FilterFactory.class.getName(), "i", validPutData);
-        verify(repository, atLeastOnce()).persistConfiguration(lastPersistedConfig.capture(), "127.0.0.1");
+        verify(repository, atLeastOnce()).upsertConfiguration(lastPersistedConfig.capture(), "127.0.0.1");
 
         assertEquals(2L, lastPersistedConfig.getValue().getVersion());
     }

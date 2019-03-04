@@ -6,11 +6,13 @@ import com.ecg.replyts.core.api.persistence.ConfigurationRepository;
 import com.ecg.replyts.core.api.pluginconfiguration.PluginState;
 import com.ecg.replyts.core.api.util.JsonObjects;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import ecg.unicom.comaas.configv2.model.FilterConfig;
+import ecg.unicom.comaas.configv2.model.FilterMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
@@ -73,6 +75,7 @@ import static java.lang.String.format;
  */
 @Controller
 public class ConfigCrudController {
+
     private static final Logger LOG = LoggerFactory.getLogger(ConfigCrudController.class);
 
     private ConfigurationRepository configRepository;
@@ -88,7 +91,20 @@ public class ConfigCrudController {
     @ResponseBody
     @RequestMapping(value = "/", method = RequestMethod.GET)
     public ObjectNode listConfigurations() {
-        return ConfigApiJsonMapper.Model.toJsonPluginConfigurationList(configRepository.getConfigurations());
+        return ConfigApiJsonMapper.ToJson.pluginConfigurationList(configRepository.getConfigurations());
+    }
+
+    /**
+     * This is used by the externalized Filter, which does not get access to Cassandra directly.
+     */
+    @ResponseBody
+    @RequestMapping(value = "/filters/{filterUuid}", method = RequestMethod.GET)
+    public FilterConfig getConfigurationByUuid(@PathVariable String filterUuid) {
+        return configRepository.getConfigurations().stream()
+                .filter(pc -> pc.getUuid().toString().equals(filterUuid))
+                .findFirst()
+                .map(ConfigApiJsonMapper.ToJson::filterConfig)
+                .orElseThrow(() -> new ResourceNotFoundException("no such filter"));
     }
 
     /**
@@ -96,12 +112,15 @@ public class ConfigCrudController {
      */
     @ResponseBody
     @RequestMapping(value = "/filters", method = RequestMethod.GET)
-    public Map<UUID, ObjectNode> getConfigurationsMap() {
+    public Map<String, FilterConfig> getConfigurationList() {
+        // not sure how to instantiate a populated FilterMap type as defined by the API spec, but we don't have to.
         return configRepository.getConfigurations().stream()
-                .collect(Collectors.toMap(
-                        PluginConfiguration::getUuid,
-                        ConfigApiJsonMapper.Model::toJsonPluginConfig
-                ));
+                .collect(
+                        Collectors.toMap(
+                                pluginConf -> pluginConf.getUuid().toString(),
+                                ConfigApiJsonMapper.ToJson::filterConfig
+                        )
+                );
     }
 
     @ResponseBody
@@ -112,13 +131,12 @@ public class ConfigCrudController {
             throw new RuntimeException("InstanceId is required");
         }
 
-        PluginConfiguration config = ConfigApiJsonMapper.Json.toPluginConfiguration(pluginFactory, instanceId, body, body.get("configuration"));
+        PluginConfiguration config = ConfigApiJsonMapper.ToModel.pluginConfig(pluginFactory, instanceId, body, body.get("configuration"));
 
-        if (!configUpdateNotifier.validateConfiguration(config)) {
-            throw new RuntimeException("Plugin validation has failed: " + pluginFactory);
-        }
+        assertConfigurationIsValid(config);
+
         LOG.info("Saving Config update {}", config.getId());
-        configRepository.persistConfiguration(config, request.getRemoteAddr());
+        configRepository.upsertConfiguration(config, request.getRemoteAddr());
         configUpdateNotifier.confirmConfigurationUpdate();
 
         return JsonObjects.builder()
@@ -129,20 +147,21 @@ public class ConfigCrudController {
 
     @ResponseBody
     @RequestMapping(value = "/", method = RequestMethod.PUT, consumes = "*/*")
-    public ObjectNode replaceConfigurations(HttpServletRequest request, @RequestBody ArrayNode body) throws Exception {
-        List<PluginConfiguration> newConfigurations = ConfigApiJsonMapper.Json.toPluginConfigurationList(body);
+    public ObjectNode replaceConfigurations(HttpServletRequest request, @RequestBody JsonNode body) throws Exception {
+        List<PluginConfiguration> newConfigurations = ConfigApiJsonMapper.ToModel.pluginConfigurationList(body);
 
-        newConfigurations.stream().forEach(config -> {
-            if (!configUpdateNotifier.validateConfiguration(config)) {
-                throw new IllegalArgumentException(format("PluginFactory %s not found", config.getId().getPluginFactory()));
-            }
-        });
+        newConfigurations.stream().forEach(this::assertConfigurationIsValid);
 
         configRepository.replaceConfigurations(newConfigurations, request.getRemoteAddr());
-
         configUpdateNotifier.confirmConfigurationUpdate();
 
-        return JsonObjects.builder().attr("count", body.size()).success().build();
+        return JsonObjects.builder().attr("count", newConfigurations.size()).success().build();
+    }
+
+    public void assertConfigurationIsValid(PluginConfiguration c){
+        if (!configUpdateNotifier.validateConfiguration(c)) {
+            throw new RuntimeException("Plugin validation has failed: " + c.getId().getPluginFactory());
+        }
     }
 
     @ResponseBody
@@ -154,5 +173,10 @@ public class ConfigCrudController {
 
     }
 
-
+    @ResponseStatus(value = HttpStatus.NOT_FOUND)
+    public class ResourceNotFoundException extends RuntimeException {
+        public ResourceNotFoundException(String s) {
+            super(s);
+        }
+    }
 }

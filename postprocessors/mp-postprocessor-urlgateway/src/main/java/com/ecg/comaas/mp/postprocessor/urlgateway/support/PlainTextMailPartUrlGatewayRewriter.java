@@ -74,7 +74,7 @@ public class PlainTextMailPartUrlGatewayRewriter implements UrlGatewayRewriter {
      * Group 1 is the optional schema, or ("www.").
      * Group 2 is the domain part, not including "www." if that is present
      */
-    private static final Pattern URL_PATTERN = Pattern.compile(
+    public static final Pattern URL_PATTERN = Pattern.compile(
             "\\b(?:(https?:/*|ftp:/*|file:/*|www\\.))?((?<![@\\w.])(?:[a-z0-9_][-a-z0-9+&#%=~_|$]{0,62}\\.)+" +
                     TOP_LEVEL_DOMAIN_PATTERN + ")" +
                     URL_PATH_AND_QUERY_STRING +

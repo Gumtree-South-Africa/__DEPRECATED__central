@@ -54,7 +54,7 @@ public class CassandraConfigurationRepository implements ConfigurationRepository
     }
 
     @Override
-    public void persistConfiguration(PluginConfiguration configuration, String remoteAddress) {
+    public void upsertConfiguration(PluginConfiguration configuration, String remoteAddress) {
         ConfigurationObject obj = new ConfigurationObject(System.currentTimeMillis(), configuration);
         Configurations mergedConfigurations = fetchConfigurations().addOrUpdate(obj);
         persistConfigurations(configuration.getId().toString(), mergedConfigurations, remoteAddress);

@@ -76,6 +76,8 @@
 
                 <module>filters/mp-filter-bankaccount</module>
                 <module>filters/mp-filter-volume</module>
+                <module>filters/mp-filter-buyer-attachments</module>
+                <module>filters/mp-filter-buyer-urls</module>
                 <module>preprocessors/mp-preprocessor-emailoptout</module>
                 <module>postprocessors/mp-postprocessor-anonymizebody</module>
                 <module>postprocessors/mp-postprocessor-sendername</module>
@@ -305,10 +307,12 @@
         <gt.version>3.0-SNAPSHOT</gt.version>
         <gt.google.analytics.version>${gt.version}</gt.google.analytics.version>
         <gt.category.api.client.version>${gt.version}</gt.category.api.client.version>
-        <gumtree.dependencies.version>4.37437</gumtree.dependencies.version>
+
+        <!-- this version is thrown away after a while, after which you have to find an existing version at https://gtuk-nexus.es.dus1.cloud/ -->
+        <gumtree.dependencies.version>4.39324</gumtree.dependencies.version>
         <gumtree.healthchecks.version>5.1</gumtree.healthchecks.version>
         <gt.replies.models.version>${gumtree.dependencies.version}</gt.replies.models.version>
-        <gt.gumshield.api.version>4.37375</gt.gumshield.api.version>
+        <gt.gumshield.api.version>4.39326</gt.gumshield.api.version>
         <gt.gumtree.common.version>${gumtree.dependencies.version}</gt.gumtree.common.version>
         <gt.comaas.models.version>1.8</gt.comaas.models.version>
         <gt.geoip.lib.version>1.0.0</gt.geoip.lib.version>

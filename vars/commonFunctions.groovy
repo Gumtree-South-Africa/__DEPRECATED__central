@@ -67,7 +67,7 @@ String getCurrentlyDeployedVersion(String tenantLongName, String dc, String envi
             returnStdout: true
     ).trim()
     String version = sh(
-            script: "curl -s --resolve ${tenant}.${environmentShort}.comaas.cloud:443:${dc_ip} https://${dc}.${tenant}.${environmentShort}.comaas.cloud/health | jq -r .version",
+            script: "curl -s --resolve ${tenant}.${environmentShort}.comaas.cloud:443:${dc_ip} https://${tenant}.${environmentShort}.comaas.cloud/health | jq -r .version",
             returnStdout: true
     ).trim()
     return version
